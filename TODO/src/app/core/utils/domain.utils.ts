@@ -180,7 +180,20 @@ export function getSuperAdminUrl(path: string = '/'): string {
     return `${protocol}//${prefix}.localhost${port}${fullPath}`;
   }
 
-  // 3. Production: use configured BASE_DOMAIN or auto-detect from window.location.hostname
+  // 3. Cloud provider domains (e.g. *.vercel.app, *.netlify.app)
+  // On cloud domains, subdomains like superadmin.workspace-pro-ten.vercel.app lack valid SSL.
+  // Instead, direct to the /super-admin path on the current host.
+  if (
+    host.endsWith('.vercel.app') ||
+    host.endsWith('.netlify.app') ||
+    host.endsWith('.onrender.com') ||
+    host.endsWith('.pages.dev')
+  ) {
+    const superAdminPath = cleanPath === '/' || cleanPath === '' ? '/super-admin/dashboard' : cleanPath;
+    return `${protocol}//${host}${port}${basePath}${superAdminPath.startsWith('/') ? superAdminPath : `/${superAdminPath}`}`;
+  }
+
+  // 4. Production: use configured BASE_DOMAIN or auto-detect from window.location.hostname
   const baseDomain = window.__env?.BASE_DOMAIN?.trim();
   if (baseDomain) {
     return `${protocol}//${prefix}.${baseDomain}${fullPath}`;

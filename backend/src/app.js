@@ -16,7 +16,7 @@ const { routes } = require('./config/routes');
 
 const app = express();
 
-const allowedOriginPattern = /^https?:\/\/([a-zA-Z0-9-]+\.)?(localhost(:\d+)?|127\.0\.0\.1(:\d+)?)$/;
+const allowedOriginPattern = /^https?:\/\/([a-zA-Z0-9-]+\.)?(localhost(:\d+)?|127\.0\.0\.1(:\d+)?|vercel\.app)$/;
 
 app.use(cors({
   origin: (origin, callback) => {
