@@ -14,9 +14,7 @@ export const authGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
   if (!hasSession()) {
-    return isCustomDomainHost()
-      ? router.createUrlTree(ROUTES.login)
-      : router.createUrlTree(['/']);
+    return router.createUrlTree(ROUTES.login);
   }
   const user = auth.getUser();
   if (user?.role === 'super_admin') {
@@ -30,9 +28,7 @@ export const superAdminGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   if (!hasSession()) {
-    return isCustomDomainHost()
-      ? router.createUrlTree(ROUTES.login)
-      : router.createUrlTree(['/']);
+    return router.createUrlTree(ROUTES.login);
   }
   return auth.getUser()?.role === 'super_admin'
     ? true
@@ -58,7 +54,7 @@ export const guestGuard: CanActivateFn = () => {
   return true;
 };
 
-export const loginGuard: CanActivateFn = (route) => {
+export const loginGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
@@ -67,14 +63,7 @@ export const loginGuard: CanActivateFn = (route) => {
     return router.createUrlTree(auth.getHomeRoute(auth.getUser()));
   }
 
-  // Default root domain (e.g. http://localhost:4200/login or http://localhost/todo/login)
-  // does NOT have a login page — redirect directly to '/' (Landing page) unless a custom/company domain is active
-  const hasCompanyQuery = Boolean(route.queryParamMap.get('company'));
-  if (!isCustomDomainHost() && !hasCompanyQuery) {
-    return router.createUrlTree(['/']);
-  }
-
-  // Custom company domain or superadmin domain: allow login page
+  // Allow visiting the login portal on root domain, cloud platform, and tenant subdomains
   return true;
 };
 

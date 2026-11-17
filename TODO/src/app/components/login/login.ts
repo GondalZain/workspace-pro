@@ -73,11 +73,19 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    // 2. On default root domain (localhost / 127.0.0.1) without ?company=, login is not allowed — redirect to Landing page
-    if ((currentDomain === 'localhost' || currentDomain === '127.0.0.1') && !companyQuery) {
+    // 2. On default root platform (localhost or base cloud domain) without ?company=, display the official Workspace Pro portal
+    const isRootPlatform =
+      currentDomain === 'localhost' ||
+      currentDomain === '127.0.0.1' ||
+      currentDomain.endsWith('.vercel.app') ||
+      currentDomain.endsWith('.netlify.app') ||
+      currentDomain === (window.__env?.BASE_DOMAIN || '').trim();
+
+    if (isRootPlatform && !companyQuery) {
       sessionStorage.removeItem(`cached_company_${currentDomain}`);
       this.companyTheme.resetDefaultTheme();
-      this.router.navigateByUrl('/');
+      this.detectedCompany.set(null);
+      this.isLoadingCompany.set(false);
       return;
     }
 
