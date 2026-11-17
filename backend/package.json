@@ -4,8 +4,9 @@
     "private":  true,
     "description":  "Node.js API for the TODO Angular application",
     "main":  "server.js",
-    "scripts":  {
-                    "env:encrypt":  "node scripts/env-crypto.js encrypt",
+    "scripts": {
+        "build": "echo 'Backend ready'",
+        "env:encrypt": "node scripts/env-crypto.js encrypt",
                     "env:decrypt":  "node scripts/env-crypto.js decrypt",
                     "mail:test":  "node scripts/test-mailtrap.js",
                     "start":  "node server.js",
