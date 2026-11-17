@@ -26,12 +26,8 @@ bazel-out/
 TODO/public/env.js
 public/env.js
 
-# Uploaded assets (keep folders, ignore uploads)
-backend/uploads/*
-!backend/uploads/.gitkeep
-!backend/uploads/profiles/.gitkeep
-!backend/uploads/projects/.gitkeep
-!backend/uploads/tasks/.gitkeep
+# Uploaded assets (tracked so project and profile images persist in repo)
+# backend/uploads/*
 
 # Logs and system files
 logs/
