@@ -4,17 +4,58 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const { databaseName, databaseUrl } = require('./env');
 
-let adminPoolUrl = databaseUrl;
-try {
-  const adminUrl = new URL(databaseUrl);
-  adminUrl.pathname = '/';
-  adminPoolUrl = adminUrl.toString();
-} catch (e) {
-  adminPoolUrl = databaseUrl;
+function buildPoolOptions(rawUrl) {
+  let isLocal = true;
+  let poolConfig = {};
+
+  try {
+    const url = new URL(rawUrl);
+    isLocal = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+    poolConfig = {
+      host: url.hostname,
+      port: Number(url.port) || 3306,
+      user: decodeURIComponent(url.username),
+      password: decodeURIComponent(url.password),
+      database: decodeURIComponent(url.pathname.slice(1)) || undefined,
+      waitForConnections: true,
+      connectionLimit: 10,
+      maxIdle: 5,
+      idleTimeout: 30000,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 0,
+      connectTimeout: 20000
+    };
+  } catch (e) {
+    poolConfig = {
+      uri: rawUrl,
+      waitForConnections: true,
+      connectionLimit: 10,
+      maxIdle: 5,
+      idleTimeout: 30000,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 0,
+      connectTimeout: 20000
+    };
+  }
+
+  return { isLocal, poolConfig };
 }
 
-const adminPool = mysql.createPool(adminPoolUrl);
-const pool = mysql.createPool(databaseUrl);
+const { isLocal, poolConfig } = buildPoolOptions(databaseUrl);
+const pool = mysql.createPool(poolConfig);
+
+let adminPool = null;
+if (isLocal) {
+  let adminPoolUrl = databaseUrl;
+  try {
+    const adminUrl = new URL(databaseUrl);
+    adminUrl.pathname = '/';
+    adminPoolUrl = adminUrl.toString();
+  } catch (e) {
+    adminPoolUrl = databaseUrl;
+  }
+  adminPool = mysql.createPool(adminPoolUrl);
+}
 
 function splitSqlStatements(sql) {
   const statements = [];
@@ -94,11 +135,12 @@ async function ensureDefaultAdminUser(poolInstance = pool, password = 'admin1234
 }
 
 async function initializeDatabase() {
-  try {
-    await adminPool.query(`CREATE DATABASE IF NOT EXISTS \`${databaseName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
-  } catch (error) {
-    // Managed cloud MySQL providers often disallow root CREATE DATABASE queries
-    console.warn(`[DB Init] Skipped CREATE DATABASE (${error.message})`);
+  if (isLocal && adminPool) {
+    try {
+      await adminPool.query(`CREATE DATABASE IF NOT EXISTS \`${databaseName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+    } catch (error) {
+      console.warn(`[DB Init] Skipped CREATE DATABASE (${error.message})`);
+    }
   }
   await runMigrations();
   await ensureDefaultSuperAdminUser();

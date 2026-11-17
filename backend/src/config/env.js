@@ -1,5 +1,6 @@
 // @ts-nocheck
-require('dotenv').config();
+const path = require('node:path');
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 const { decryptProcessEnv } = require('../../scripts/env-crypto');
 
 // Transparently decrypt any ENC(v1:...) values in process.env in memory
