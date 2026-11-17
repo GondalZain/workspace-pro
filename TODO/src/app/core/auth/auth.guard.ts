@@ -13,12 +13,10 @@ import { isSuperAdminHost, isCustomDomainHost } from '../utils/domain.utils';
 export const authGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  if (!hasSession()) {
+  const token = auth.getToken('user');
+  const user = auth.getUser('user');
+  if (!token || !user) {
     return router.createUrlTree(ROUTES.login);
-  }
-  const user = auth.getUser();
-  if (user?.role === 'super_admin') {
-    return router.createUrlTree(['/super-admin/dashboard']);
   }
   return true;
 };
@@ -26,13 +24,13 @@ export const authGuard: CanActivateFn = () => {
 export const superAdminGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
+  const token = auth.getToken('superadmin');
+  const user = auth.getUser('superadmin');
 
-  if (!hasSession()) {
+  if (!token || user?.role !== 'super_admin') {
     return router.createUrlTree(ROUTES.login);
   }
-  return auth.getUser()?.role === 'super_admin'
-    ? true
-    : router.createUrlTree(ROUTES.dashboardProjects);
+  return true;
 };
 
 export const guestGuard: CanActivateFn = () => {

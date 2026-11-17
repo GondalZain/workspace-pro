@@ -129,25 +129,72 @@ export class AuthService {
     return this.http.put<User>(`${API_BASE_URL}${API_ROUTES.auth.profile}`, formData);
   }
 
-  private getStoredUser(): User | null {
-    try {
-      if (typeof localStorage === 'undefined') return null;
-      return JSON.parse(localStorage.getItem(this.userKey) || 'null') as User | null;
-    } catch {
-      return null;
+  private getScope(userOverride?: User | null): 'superadmin' | 'user' {
+    if (userOverride?.role === 'super_admin') return 'superadmin';
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname || '';
+      if (path.startsWith('/super-admin') || isCustomDomainHost() && window.location.hostname.toLowerCase().startsWith('superadmin')) {
+        return 'superadmin';
+      }
     }
+    return 'user';
+  }
+
+  private getScopedKey(baseKey: string, scope?: 'superadmin' | 'user'): string {
+    const s = scope || this.getScope();
+    return `${baseKey}-${s}`;
+  }
+
+  private readStorageItem(baseKey: string, scope?: 'superadmin' | 'user'): string | null {
+    if (typeof window === 'undefined') return null;
+    const scopedKey = this.getScopedKey(baseKey, scope);
+
+    // 1. Check tab-isolated sessionStorage first (allows two tabs to hold different users)
+    const sessionVal = sessionStorage.getItem(scopedKey);
+    if (sessionVal) return sessionVal;
+
+    // 2. Check persistent localStorage with scoped key
+    const localVal = localStorage.getItem(scopedKey);
+    if (localVal) return localVal;
+
+    // 3. Fallback to generic un-scoped key
+    return sessionStorage.getItem(baseKey) || localStorage.getItem(baseKey);
+  }
+
+  private writeStorageItem(baseKey: string, value: string, scope?: 'superadmin' | 'user'): void {
+    if (typeof window === 'undefined') return;
+    const scopedKey = this.getScopedKey(baseKey, scope);
+
+    sessionStorage.setItem(scopedKey, value);
+    localStorage.setItem(scopedKey, value);
+
+    // Keep generic key in sync for backwards-compatibility
+    sessionStorage.setItem(baseKey, value);
+    localStorage.setItem(baseKey, value);
+  }
+
+  private removeStorageItem(baseKey: string, scope?: 'superadmin' | 'user'): void {
+    if (typeof window === 'undefined') return;
+    const scopedKey = this.getScopedKey(baseKey, scope);
+
+    sessionStorage.removeItem(scopedKey);
+    localStorage.removeItem(scopedKey);
   }
 
   saveSession(response: LoginResponse | User): void {
     const user = 'user' in response ? response.user : response;
-    if ('token' in response) localStorage.setItem(this.tokenKey, response.token);
-    localStorage.setItem(this.userKey, JSON.stringify(user));
+    const scope = user.role === 'super_admin' ? 'superadmin' : 'user';
+    if ('token' in response) {
+      this.writeStorageItem(this.tokenKey, response.token, scope);
+    }
+    this.writeStorageItem(this.userKey, JSON.stringify(user), scope);
     this.userSignal.set(user);
     this.applyUserTheme(user);
   }
 
   saveUser(user: User): void {
-    localStorage.setItem(this.userKey, JSON.stringify(user));
+    const scope = user.role === 'super_admin' ? 'superadmin' : 'user';
+    this.writeStorageItem(this.userKey, JSON.stringify(user), scope);
     this.userSignal.set(user);
     this.applyUserTheme(user);
   }
@@ -166,18 +213,18 @@ export class AuthService {
     }
   }
 
-  private clearStoredSession(): void {
-    if (typeof localStorage === 'undefined') return;
-    localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(this.userKey);
+  private clearStoredSession(scopeOverride?: 'superadmin' | 'user'): void {
+    if (typeof window === 'undefined') return;
+    this.removeStorageItem(this.tokenKey, scopeOverride);
+    this.removeStorageItem(this.userKey, scopeOverride);
   }
 
-  getToken(): string | null {
-    if (typeof localStorage === 'undefined') return null;
-    const token = localStorage.getItem(this.tokenKey);
+  getToken(scopeOverride?: 'superadmin' | 'user'): string | null {
+    if (typeof window === 'undefined') return null;
+    const token = this.readStorageItem(this.tokenKey, scopeOverride);
     if (!token) return null;
     if (this.isTokenExpired(token)) {
-      this.clearStoredSession();
+      this.clearStoredSession(scopeOverride);
       if (this.userSignal) {
         this.userSignal.set(null);
       }
@@ -187,24 +234,25 @@ export class AuthService {
   }
 
   private readInitialUser(): User | null {
-    if (typeof localStorage === 'undefined') return null;
-    const token = localStorage.getItem(this.tokenKey);
-    if (!token || this.isTokenExpired(token)) {
-      this.clearStoredSession();
-      return null;
-    }
-    const raw = localStorage.getItem(this.userKey);
+    return this.readScopedUser();
+  }
+
+  private readScopedUser(scopeOverride?: 'superadmin' | 'user'): User | null {
+    if (typeof window === 'undefined') return null;
+    const token = this.getToken(scopeOverride);
+    if (!token) return null;
+    const raw = this.readStorageItem(this.userKey, scopeOverride);
     if (!raw) return null;
     try {
-      return JSON.parse(raw);
+      return JSON.parse(raw) as User | null;
     } catch {
       return null;
     }
   }
 
-  getUser(): User | null {
-    if (!this.getToken()) return null;
-    return this.userSignal() || this.readInitialUser();
+  getUser(scopeOverride?: 'superadmin' | 'user'): User | null {
+    if (!this.getToken(scopeOverride)) return null;
+    return this.readScopedUser(scopeOverride) || this.userSignal();
   }
 
   isAdminUser(user: User | null | undefined): boolean {
@@ -226,11 +274,9 @@ export class AuthService {
     return ROUTES.dashboardProjects;
   }
 
-  logout(): void {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem(this.tokenKey);
-      localStorage.removeItem(this.userKey);
-    }
+  logout(scopeOverride?: 'superadmin' | 'user'): void {
+    const scope = scopeOverride || this.getScope();
+    this.clearStoredSession(scope);
     this.userSignal.set(null);
     this.companyTheme.resetDefaultTheme();
   }

@@ -8,7 +8,9 @@ import { isCustomDomainHost } from '../utils/domain.utils';
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const injector = inject(Injector);
-  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('todo-auth-token') : null;
+  const auth = injector.get(AuthService);
+  const isSuperAdminReq = request.url.includes('/super-admin');
+  const token = auth.getToken(isSuperAdminReq ? 'superadmin' : undefined);
   const authReq = token ? request.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : request;
 
   return next(authReq).pipe(
@@ -20,9 +22,8 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
         !request.url.includes('/auth/register') &&
         !request.url.includes('/auth/create-password')
       ) {
-        const auth = injector.get(AuthService);
         const router = injector.get(Router);
-        auth.logout();
+        auth.logout(isSuperAdminReq ? 'superadmin' : undefined);
         router.navigate(isCustomDomainHost() ? ROUTES.login : ['/']);
       }
       return throwError(() => error);
