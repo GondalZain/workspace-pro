@@ -1,3 +1,6 @@
+const dns = require('node:dns');
+dns.setDefaultResultOrder('ipv4first');
+
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');
 const fs = require('node:fs/promises');

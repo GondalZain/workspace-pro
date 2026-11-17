@@ -1,3 +1,6 @@
+const dns = require('node:dns');
+dns.setDefaultResultOrder('ipv4first');
+
 const app = require('../src/app');
 const { initializeDatabase } = require('../src/config/database');
 
