@@ -60,12 +60,34 @@ export function getHostInfo(hostname: string = window.location.hostname): HostIn
     };
   }
 
+  // If an exact base platform domain is configured (e.g. workspace-pro.vercel.app or myplatform.com)
+  const configuredBaseDomain = window.__env?.BASE_DOMAIN?.toLowerCase().trim();
+  if (configuredBaseDomain && (host === configuredBaseDomain || host === `www.${configuredBaseDomain}`)) {
+    return {
+      hostname: host,
+      subdomain: null,
+      isSuperAdmin: false,
+      isLocalhost
+    };
+  }
+
   const parts = host.split('.');
   const configuredKeyword = getSuperAdminSubdomain();
 
   let subdomain: string | null = null;
   if (isLocalhost) {
     if (parts.length >= 2 && parts[parts.length - 1] === 'localhost') {
+      subdomain = parts[0];
+    }
+  } else if (
+    host.endsWith('.vercel.app') ||
+    host.endsWith('.netlify.app') ||
+    host.endsWith('.onrender.com') ||
+    host.endsWith('.pages.dev')
+  ) {
+    // Cloud provider domains: <project>.<provider>.<tld> (e.g. workspace-pro.vercel.app) is the root platform (3 parts).
+    // Tenant subdomains only exist if there are 4 or more parts (e.g. <tenant>.<project>.vercel.app).
+    if (parts.length >= 4 && parts[0] !== 'www') {
       subdomain = parts[0];
     }
   } else {
