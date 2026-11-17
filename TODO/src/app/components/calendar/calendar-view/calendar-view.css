@@ -1,0 +1,27 @@
+.calendar-view {
+  padding: 0;
+  overflow: visible;
+}
+
+.calendar-view__head {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-light, #f1f5f9);
+}
+
+.calendar-view__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.calendar-view__meta {
+  margin: 0.2rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.calendar-view app-calendar {
+  display: block;
+  padding: 1rem 1.25rem 1.25rem;
+}

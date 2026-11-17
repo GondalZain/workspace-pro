@@ -1,0 +1,109 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  padding: 1.25rem 1.35rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+.stat-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover .stat-icon-box {
+  transform: scale(1.05);
+}
+
+.stat-content-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.stat-header-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.stat-title-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-badge-chip {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-value-display {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+/* Variants */
+.variant-teal .stat-icon-box { background: rgba(15, 118, 110, 0.1); color: #0f766e; }
+.variant-teal .stat-badge-chip { background-color: rgba(15, 118, 110, 0.09); color: #0f766e; }
+.variant-teal:hover { border-color: rgba(15, 118, 110, 0.3); }
+
+.variant-emerald .stat-icon-box { background: rgba(16, 185, 129, 0.1); color: #059669; }
+.variant-emerald .stat-badge-chip { background-color: #d1fae5; color: #047857; }
+.variant-emerald:hover { border-color: rgba(16, 185, 129, 0.3); }
+
+.variant-indigo .stat-icon-box { background: rgba(79, 70, 229, 0.1); color: #4f46e5; }
+.variant-indigo .stat-badge-chip { background-color: #e0e7ff; color: #4338ca; }
+.variant-indigo:hover { border-color: rgba(79, 70, 229, 0.3); }
+
+.variant-sapphire .stat-icon-box { background: rgba(37, 99, 235, 0.1); color: #2563eb; }
+.variant-sapphire .stat-badge-chip { background-color: #dbeafe; color: #1d4ed8; }
+.variant-sapphire:hover { border-color: rgba(37, 99, 235, 0.3); }
+
+.variant-purple .stat-icon-box { background: rgba(124, 58, 237, 0.1); color: #7c3aed; }
+.variant-purple .stat-badge-chip { background-color: #f3e8ff; color: #6b21a8; }
+.variant-purple:hover { border-color: rgba(124, 58, 237, 0.3); }
+
+.variant-amber .stat-icon-box { background: rgba(217, 119, 6, 0.1); color: #d97706; }
+.variant-amber .stat-badge-chip { background-color: #fef3c7; color: #92400e; }
+.variant-amber:hover { border-color: rgba(217, 119, 6, 0.3); }

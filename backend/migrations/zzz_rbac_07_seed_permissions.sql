@@ -1,0 +1,1 @@
+INSERT IGNORE INTO permissions (name, description) VALUES ('users.manage', 'Create and manage roles, permissions, and user access'), ('tasks.read', 'View tasks'), ('tasks.create', 'Create tasks'), ('tasks.update', 'Edit and complete tasks'), ('tasks.delete', 'Delete tasks');

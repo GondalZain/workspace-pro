@@ -1,0 +1,1 @@
+INSERT IGNORE INTO roles (name, description) VALUES ('admin', 'Full system access'), ('editor', 'Can manage tasks'), ('user', 'Task access controlled by permissions'), ('viewer', 'Read-only task access');

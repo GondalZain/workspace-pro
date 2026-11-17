@@ -1,0 +1,108 @@
+@if (isOpen()) {
+  <div class="modal-backdrop" (click)="close()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <!-- Header -->
+      <header class="modal-header">
+        <div class="header-left">
+          <div class="header-badge">
+            <span class="badge-dot"></span>
+            WORKSPACE TIERS
+          </div>
+          <h2 class="modal-title">Upgrade Workspace Plan</h2>
+          <p class="modal-subtitle">
+            Current Workspace: <strong>{{ companyName() }}</strong>
+            <span class="tier-divider">·</span>
+            Active Plan: <span class="active-tier-pill">{{ currentPlanName() }}</span>
+          </p>
+        </div>
+        <button type="button" class="btn-close-modal" (click)="close()" aria-label="Close modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </header>
+
+      <!-- Member Advisory Banner if regular user -->
+      @if (!isAdmin()) {
+        <div class="member-role-banner">
+          <span class="banner-ico">ℹ️</span>
+          <span>Only workspace administrators can manage billing. Click below to contact your company administrator.</span>
+        </div>
+      }
+
+      <!-- 3 Plans Grid (Zero vertical scroll) -->
+      <div class="plans-grid-modal">
+        @for (plan of plans; track plan.id) {
+          <div
+            class="modal-plan-card"
+            [class.is-current]="currentPlanId() === plan.id"
+            [class.is-ultra]="plan.id === 'ultra'"
+            [class.is-pro]="plan.id === 'pro'"
+          >
+            @if (currentPlanId() === plan.id) {
+              <div class="plan-tag tag-current">Current Plan</div>
+            } @else if (plan.id === 'pro') {
+              <div class="plan-tag tag-pro">Popular</div>
+            } @else if (plan.id === 'ultra') {
+              <div class="plan-tag tag-ultra">Ultra Tier</div>
+            }
+
+            <div class="plan-head">
+              <h3 class="plan-title">{{ plan.name }}</h3>
+              <p class="plan-desc">{{ plan.note }}</p>
+            </div>
+
+            <div class="plan-price-wrap">
+              <span class="price-currency">{{ plan.price }}</span>
+              <span class="price-period">{{ plan.period }}</span>
+            </div>
+
+            <ul class="plan-features">
+              @for (feat of plan.features; track feat) {
+                <li class="feat-line">
+                  <svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>{{ feat }}</span>
+                </li>
+              }
+            </ul>
+
+            <div class="plan-footer-btn">
+              @if (currentPlanId() === plan.id) {
+                <button type="button" class="btn-tier btn-tier-active" disabled>
+                  ✓ Active Plan
+                </button>
+              } @else if (isAdmin()) {
+                <button
+                  type="button"
+                  class="btn-tier btn-tier-upgrade"
+                  [class.btn-ultra]="plan.id === 'ultra'"
+                  (click)="selectPlan(plan.id)"
+                >
+                  Upgrade to {{ plan.name }} →
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  class="btn-tier btn-tier-contact"
+                  (click)="selectPlan(plan.id)"
+                  title="Contact your workspace administrator to upgrade"
+                >
+                  Contact Admin →
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Compact Footer -->
+      <footer class="modal-footer">
+        <span class="footer-guarantee">🔒 Secure workspace subscription management · Instant feature unlock</span>
+        <button type="button" class="btn-done" (click)="close()">Close</button>
+      </footer>
+    </div>
+  </div>
+}

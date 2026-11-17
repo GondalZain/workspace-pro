@@ -1,0 +1,330 @@
+<div class="plugins-workspace">
+  <!-- Status Toast -->
+  @if (toast(); as t) {
+    <div class="toast-bar" [class.toast-bar--success]="t.type === 'success'" [class.toast-bar--error]="t.type === 'error'">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        @if (t.type === 'success') {
+          <polyline points="20 6 9 17 4 12"/>
+        } @else {
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+        }
+      </svg>
+      <span>{{ t.message }}</span>
+      <button type="button" class="btn-toast-close" (click)="toast.set(null)">×</button>
+    </div>
+  }
+
+  <!-- =========================================================================
+       ATTACH FORM & ATTACHED LIST
+       ========================================================================= -->
+  <div class="panel-box-stack">
+      <!-- Dependent Target Attachment: Type (Project/Task) -> Record -> Form -->
+      <div class="panel-box">
+        <div class="setting-meta">
+          <h4 class="setting-title">Attach Form to Project or Task</h4>
+          <p class="setting-sub">
+            Select Type (Project or Task), choose the record from your company, and attach a form template.
+          </p>
+        </div>
+
+        <div class="integration-grid" [class.integration-grid--task]="integrationTargetType() === 'task'">
+          <div class="integration-field">
+            <label class="integration-label" for="integration-type-select">1. Type</label>
+            <select
+              id="integration-type-select"
+              class="select-input"
+              [ngModel]="integrationTargetType()"
+              (ngModelChange)="onIntegrationTypeChange($event)"
+              [disabled]="isSaving()"
+            >
+              <option value="project">Project</option>
+              <option value="task">Task</option>
+            </select>
+          </div>
+
+          @if (integrationTargetType() === 'task') {
+            <div class="integration-field">
+              <label class="integration-label" for="integration-project-filter">2. Filter by Project</label>
+              <select
+                id="integration-project-filter"
+                class="select-input"
+                [ngModel]="integrationTaskProjectFilter()"
+                (ngModelChange)="onIntegrationProjectFilterChange($event)"
+                [disabled]="isSaving()"
+              >
+                <option [ngValue]="null">All Projects ({{ allProjects().length }})</option>
+                @for (proj of allProjects(); track proj.id) {
+                  <option [ngValue]="proj.id">#{{ proj.id }} — {{ proj.title }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          <div class="integration-field integration-field--wide">
+            <label class="integration-label" for="integration-target-select">
+              {{ integrationTargetType() === 'project' ? '2. Select Project' : '3. Select Task' }}
+            </label>
+            <select
+              id="integration-target-select"
+              class="select-input"
+              [ngModel]="integrationTargetId()"
+              (ngModelChange)="onIntegrationTargetChange($event)"
+              [disabled]="isSaving()"
+            >
+              <option [ngValue]="null">
+                {{ integrationTargetType() === 'project' ? '-- Select a Project --' : '-- Select a Task (' + filteredTasksForSelector().length + ') --' }}
+              </option>
+              @if (integrationTargetType() === 'project') {
+                @for (proj of allProjects(); track proj.id) {
+                  <option [ngValue]="proj.id">#{{ proj.id }} — {{ proj.title }}</option>
+                }
+              } @else {
+                @for (task of filteredTasksForSelector(); track task.id) {
+                  <option [ngValue]="task.id">
+                    #{{ task.id }} — {{ task.title }}{{ task.projectId ? ' (' + getProjectNameById(task.projectId) + ')' : '' }}
+                  </option>
+                }
+              }
+            </select>
+          </div>
+
+          <div class="integration-field integration-field--wide">
+            <label class="integration-label" for="integration-form-select">
+              {{ integrationTargetType() === 'project' ? '3. Select Form' : '4. Select Form' }}
+            </label>
+            <select
+              id="integration-form-select"
+              class="select-input"
+              [ngModel]="integrationTemplateId()"
+              (ngModelChange)="integrationTemplateId.set($event)"
+              [disabled]="isSaving() || !integrationTargetId()"
+            >
+              <option [ngValue]="null">Built-in Standard Form (Default)</option>
+              @for (tmpl of allCustomTemplates(); track tmpl.id) {
+                <option [ngValue]="tmpl.id">{{ tmpl.name }} ({{ tmpl.fieldsConfig.customFields.length }} Dynamic Fields)</option>
+              }
+            </select>
+          </div>
+
+          <div class="integration-action">
+            <button
+              type="button"
+              class="btn-action-primary"
+              [disabled]="!integrationTargetId() || isSaving()"
+              (click)="integrateSelectedTarget()"
+            >
+              {{ isSaving() ? 'Attaching...' : 'Attach Form' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attached Forms List (Only records with an attached form) -->
+      <div class="panel-box">
+        <div class="panel-head-simple">
+          <div>
+            <h4 class="setting-title">Attached Forms ({{ attachedIntegrations().length }})</h4>
+            <p class="setting-sub">
+              Projects and tasks that currently have a custom form template attached.
+            </p>
+          </div>
+
+          <div class="list-filter-controls">
+            <select
+              class="select-input list-type-filter"
+              [ngModel]="attachedTypeFilter()"
+              (ngModelChange)="attachedTypeFilter.set($event)"
+              aria-label="Filter attached items by type"
+            >
+              <option value="all">All (Projects &amp; Tasks)</option>
+              <option value="project">Projects Only</option>
+              <option value="task">Tasks Only</option>
+            </select>
+
+            <div class="search-field search-field--compact">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input
+                type="text"
+                placeholder="Search attached items..."
+                [ngModel]="projectSearch()"
+                (ngModelChange)="projectSearch.set($event)"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="matrix-table-head">
+          <div class="th-col th-col-project">
+            <span>TARGET (PROJECT / TASK)</span>
+          </div>
+          <div class="th-col th-col-template">ATTACHED FORM TEMPLATE</div>
+          <div class="th-col th-col-actions">ACTIONS</div>
+        </div>
+
+        <div class="matrix-table-body">
+          @for (item of attachedIntegrations(); track item.type + '-' + item.id) {
+            <div class="matrix-row">
+              <div class="td-col td-col-project">
+                <span class="type-pill" [class.type-pill--task]="item.type === 'task'">
+                  {{ item.type === 'project' ? 'Project' : 'Task' }}
+                </span>
+                <span class="id-pill">#{{ item.id }}</span>
+                <div class="project-info">
+                  <span class="proj-title">{{ item.title }}</span>
+                  <span class="proj-desc">{{ item.subtitle | slice:0:75 }}</span>
+                </div>
+              </div>
+
+              <div class="td-col td-col-template">
+                <select
+                  class="select-input project-template-dropdown"
+                  [ngModel]="item.formTemplateId"
+                  (ngModelChange)="updateAttachedTargetTemplate(item.type, item.id, $event)"
+                  [disabled]="isSaving()"
+                >
+                  <option [ngValue]="null">Built-in Standard Form (Detach)</option>
+                  @for (tmpl of allCustomTemplates(); track tmpl.id) {
+                    <option [ngValue]="tmpl.id">{{ tmpl.name }} ({{ tmpl.fieldsConfig.customFields.length }} Dynamic Fields)</option>
+                  }
+                </select>
+              </div>
+
+              <div class="td-col td-col-actions">
+                <button
+                  type="button"
+                  class="btn-detach-form"
+                  (click)="detachTarget(item.type, item.id)"
+                  [disabled]="isSaving()"
+                  title="Detach form from this item"
+                >
+                  Detach
+                </button>
+              </div>
+            </div>
+          } @empty {
+            <div class="matrix-empty">
+              No projects or tasks have a custom form attached yet. Select a Type, record, and Form above to attach one.
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+  <!-- =========================================================================
+       INTEGRATED FORM INSPECTOR MODAL
+       ========================================================================= -->
+  @if (inspectingProject(); as proj) {
+    <div class="modal-backdrop" (click)="closeInspectModal()">
+      <div class="inspect-modal-card" (click)="$event.stopPropagation()">
+        <!-- Modal Top Bar -->
+        <div class="modal-head">
+          <div class="modal-title-wrap">
+            <span class="modal-badge-tag">
+              {{ inspectingMode() === 'task' ? 'INTEGRATED TASK FORM' : 'INTEGRATED PROJECT FORM' }}
+            </span>
+            <h3 class="modal-main-title">{{ proj.title }} (#{{ proj.id }})</h3>
+            <span class="modal-tmpl-name">
+              Active Template: <strong>{{ inspectingTemplate()?.name || 'Built-in Standard Form' }}</strong>
+            </span>
+          </div>
+
+          <div class="modal-head-actions">
+            <button type="button" class="btn-close-modal" (click)="closeInspectModal()">×</button>
+          </div>
+        </div>
+
+        <!-- Modal Body: Fields Checklist -->
+        <div class="modal-body">
+          <div class="fields-intro-note">
+            <div>
+              <strong>Built-in {{ inspectingMode() === 'task' ? 'Task' : 'Project' }} Fields Control:</strong> Check or uncheck standard system fields to enable or disable them when work is created inside this project.
+            </div>
+            <div class="quick-toggle-actions">
+              <button type="button" class="btn-quick-toggle" (click)="enableAllFields()">Enable All</button>
+              <span class="sep">·</span>
+              <button type="button" class="btn-quick-toggle" (click)="disableOptionalFields()">Disable Optional</button>
+            </div>
+          </div>
+
+          <div class="fields-checklist-grid">
+            @for (field of inspectBuiltinToggles(); track field.key) {
+              <div class="field-toggle-card" [class.is-disabled]="!field.enabled">
+                <div class="toggle-card-left">
+                  <label class="toggle-switch">
+                    <input
+                      type="checkbox"
+                      [checked]="field.enabled"
+                      [disabled]="field.locked"
+                      (change)="toggleBuiltinField(field)"
+                    />
+                    <span class="switch-slider"></span>
+                  </label>
+
+                  <div class="toggle-meta">
+                    <span class="field-lbl">{{ field.label }}</span>
+                    <span class="field-cat">{{ field.category }}</span>
+                  </div>
+                </div>
+
+                <div class="toggle-card-right">
+                  @if (field.enabled) {
+                    <button
+                      type="button"
+                      class="btn-req-toggle"
+                      [class.active]="field.required"
+                      [disabled]="field.locked"
+                      (click)="toggleBuiltinRequired(field)"
+                    >
+                      {{ field.required ? 'Required *' : 'Optional' }}
+                    </button>
+                  } @else {
+                    <span class="tag-disabled-field">Disabled</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Dynamic Custom Fields Summary -->
+          <div class="dynamic-fields-section">
+            <h4 class="section-title">
+              Dynamic Custom Fields in this Form ({{ inspectingTemplate()?.fieldsConfig?.customFields?.length || 0 }})
+            </h4>
+            <div class="dynamic-chips-row">
+              @for (cf of inspectingTemplate()?.fieldsConfig?.customFields; track cf.fieldKey) {
+                <div class="dynamic-field-pill">
+                  <span class="cf-name">{{ cf.fieldName }}</span>
+                  <span class="cf-type">({{ cf.fieldType }})</span>
+                  <span class="cf-width">{{ cf.bsCol || 'col-12' }}</span>
+                </div>
+              } @empty {
+                <span class="empty-dynamic-note">No dynamic custom fields configured for this form yet.</span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel-modal" (click)="closeInspectModal()">Close</button>
+          <button
+            type="button"
+            class="btn-save-inspector"
+            [disabled]="isSaving()"
+            (click)="saveInspectorChanges()"
+          >
+            @if (isSaving()) {
+              <span>Saving Changes...</span>
+            } @else {
+              <span>Save Field Configuration</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

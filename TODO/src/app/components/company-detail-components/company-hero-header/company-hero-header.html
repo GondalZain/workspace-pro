@@ -1,0 +1,59 @@
+<header class="company-hero-card" [style.border-left-color]="primaryColor">
+  <div class="hero-content">
+    <div class="hero-avatar-wrapper">
+      @if (currentLogoUrl) {
+        <img [src]="currentLogoUrl" [alt]="company.name" class="hero-logo" [style.border-color]="primaryColor" />
+      } @else {
+        <div class="hero-logo-fallback" [style.background]="primaryColor">
+          {{ company.name.charAt(0).toUpperCase() }}
+        </div>
+      }
+    </div>
+
+    <div class="hero-info">
+      <div class="hero-title-row">
+        <h1>{{ company.name }}</h1>
+        <span class="status-pill" [class.active]="company.status === 'active'">
+          <span class="status-dot"></span>
+          {{ company.status }}
+        </span>
+      </div>
+      @if (company.title) {
+        <p class="hero-industry" [style.color]="primaryColor">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+          </svg>
+          <span>{{ company.title }}</span>
+        </p>
+      }
+      <div class="hero-meta-row">
+        <span class="meta-chip">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          Created {{ company.createdAt | date:'mediumDate' }}
+        </span>
+        <span class="meta-chip">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+          Multi-Tenant ID #{{ company.id }}
+        </span>
+        <span class="meta-chip accent" [style.color]="primaryColor">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          {{ company.admins.length || 0 }} Admins
+        </span>
+      </div>
+    </div>
+  </div>
+</header>

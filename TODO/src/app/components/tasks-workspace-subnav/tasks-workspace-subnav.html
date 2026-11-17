@@ -1,0 +1,13 @@
+<nav class="tasks-workspace-subnav" aria-label="Tasks views">
+  <a
+    [routerLink]="taskListLink()"
+    routerLinkActive="active"
+    [routerLinkActiveOptions]="{ exact: true }"
+    class="tasks-workspace-subnav__tab"
+  >
+    Task list
+  </a>
+  <a [routerLink]="kanbanLink()" routerLinkActive="active" class="tasks-workspace-subnav__tab">
+    Kanban board
+  </a>
+</nav>

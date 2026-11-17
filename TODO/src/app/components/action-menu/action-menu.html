@@ -1,0 +1,27 @@
+<details #menu class="action-menu">
+  <summary class="menu-button" [attr.aria-label]="label()" [title]="label()">
+    <span aria-hidden="true">&#8942;</span>
+  </summary>
+  <div class="menu-list" role="menu">
+    @for (item of items(); track item.id) {
+      @if (item.options && item.options.length > 0) {
+        <div class="menu-dropdown-group" (click)="$event.stopPropagation()">
+          <span class="dropdown-label">{{ item.label }}</span>
+          <select
+            class="menu-dropdown-select"
+            (change)="onSelectChange($event, menu)"
+          >
+            <option value="" disabled selected>Select status...</option>
+            @for (opt of item.options; track opt.id) {
+              <option [value]="opt.id">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+      } @else {
+        <button type="button" role="menuitem" [class.destructive]="item.destructive" (click)="selectAction(item.id, menu)">
+          {{ item.label }}
+        </button>
+      }
+    }
+  </div>
+</details>

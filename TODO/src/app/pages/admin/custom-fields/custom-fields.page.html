@@ -1,0 +1,455 @@
+<div class="admin-custom-fields-page">
+  <!-- Top Header with Actions -->
+  <div class="page-top">
+    <div class="page-top-left">
+      <div class="title-row">
+        <h2 class="page-title">Custom Fields Studio</h2>
+        @if (currentCompany(); as comp) {
+          <span class="company-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M3 21h18M3 7v14M21 7v14M6 7V3h12v4M9 11h2M13 11h2M9 15h2M13 15h2"/>
+            </svg>
+            <span>{{ comp.name }}</span>
+          </span>
+        }
+      </div>
+      <p class="page-subtitle">
+        Design dynamic custom fields for tasks and projects. View full templates in real time and place fields directly in designated sections.
+      </p>
+    </div>
+
+    <div class="page-top-right">
+      <button type="button" class="btn-add-field-primary" (click)="openCreateModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span>Add Custom Field</span>
+      </button>
+    </div>
+  </div>
+
+  @if (successMessage()) {
+    <div class="banner banner-success">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+  @if (errorMessage()) {
+    <div class="banner banner-error">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- Segmented Tabs Navigation -->
+  <div class="segmented-nav-bar">
+    <div class="nav-pills-group">
+      <button
+        type="button"
+        class="nav-tab-pill"
+        [class.active]="activeTab() === 'task'"
+        (click)="setActiveTab('task')"
+      >
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M9 11l3 3L22 4"/>
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        </svg>
+        <span>Task Form Template</span>
+        <span class="count-pill">{{ taskFields().length }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="nav-tab-pill"
+        [class.active]="activeTab() === 'project'"
+        (click)="setActiveTab('project')"
+      >
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span>Project Form Template</span>
+        <span class="count-pill">{{ projectFields().length }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="nav-tab-pill"
+        [class.active]="activeTab() === 'table'"
+        (click)="setActiveTab('table')"
+      >
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <line x1="8" y1="6" x2="21" y2="6"/>
+          <line x1="8" y1="12" x2="21" y2="12"/>
+          <line x1="8" y1="18" x2="21" y2="18"/>
+          <line x1="3" y1="6" x2="3.01" y2="6"/>
+          <line x1="3" y1="12" x2="3.01" y2="12"/>
+          <line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+        <span>Manage Fields List</span>
+        <span class="count-pill">{{ allFields().length }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- TAB 1: TASK FORM TEMPLATE -->
+  @if (activeTab() === 'task') {
+    <div class="designer-stage-card">
+      <div class="stage-top-banner">
+        <div class="stage-banner-left">
+          <div class="banner-badge-row">
+            <span class="live-dot"></span>
+            <span class="banner-kicker">LIVE TEMPLATE PREVIEW</span>
+            <span class="banner-entity-tag">Tasks</span>
+          </div>
+          <h3 class="stage-banner-title">Task Creation Form Structure</h3>
+          <p class="stage-banner-desc">
+            This is the identical form template users see when creating tasks. Custom fields are placed inside the <strong>General Information</strong> section below.
+          </p>
+        </div>
+
+        <button type="button" class="btn-stage-action" (click)="openCreateModal('task')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>Add Field to Tasks</span>
+        </button>
+      </div>
+
+      <div class="stage-canvas-body">
+        <app-task-editor
+          [showWayfinding]="false"
+          [isPreviewMode]="true"
+        />
+      </div>
+    </div>
+  }
+
+  <!-- TAB 2: PROJECT FORM TEMPLATE -->
+  @if (activeTab() === 'project') {
+    <div class="designer-stage-card">
+      <div class="stage-top-banner">
+        <div class="stage-banner-left">
+          <div class="banner-badge-row">
+            <span class="live-dot"></span>
+            <span class="banner-kicker">LIVE TEMPLATE PREVIEW</span>
+            <span class="banner-entity-tag">Projects</span>
+          </div>
+          <h3 class="stage-banner-title">Project Creation Form Structure</h3>
+          <p class="stage-banner-desc">
+            This is the identical form template users see when creating projects. Custom fields are placed inside the <strong>Project Details</strong> section below.
+          </p>
+        </div>
+
+        <button type="button" class="btn-stage-action" (click)="openCreateModal('project')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>Add Field to Projects</span>
+        </button>
+      </div>
+
+      <div class="stage-canvas-body">
+        <app-project-form
+          formHeading="Project details"
+          formSubtitle="Fill in title, description, and upload a cover banner image."
+          [showBack]="false"
+          [showCancel]="false"
+          [isPreviewMode]="true"
+          submitLabel="Save Project"
+        />
+      </div>
+    </div>
+  }
+
+  <!-- TAB 3: FIELDS MANAGEMENT TABLE -->
+  @if (activeTab() === 'table') {
+    <div class="management-table-card">
+      <div class="data-safety-callout">
+        <div class="safety-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <polyline points="9 12 11 14 15 10"></polyline>
+          </svg>
+        </div>
+        <div class="safety-text">
+          <strong>Zero Data Loss Protection:</strong> Deleting a custom field removes it from future forms only. All existing tasks and projects that already have data saved for that field will continue to preserve and display their values safely without any loss.
+        </div>
+      </div>
+
+      <div class="table-card-toolbar">
+        <div class="filter-pills-row">
+          <button
+            type="button"
+            class="filter-pill"
+            [class.active]="tableFilter() === 'all'"
+            (click)="tableFilter.set('all')"
+          >
+            All Fields ({{ allFields().length }})
+          </button>
+          <button
+            type="button"
+            class="filter-pill"
+            [class.active]="tableFilter() === 'task'"
+            (click)="tableFilter.set('task')"
+          >
+            Task Fields ({{ taskFields().length }})
+          </button>
+          <button
+            type="button"
+            class="filter-pill"
+            [class.active]="tableFilter() === 'project'"
+            (click)="tableFilter.set('project')"
+          >
+            Project Fields ({{ projectFields().length }})
+          </button>
+        </div>
+
+        <button type="button" class="btn-table-add" (click)="openCreateModal()">
+          + Add New Field
+        </button>
+      </div>
+
+      @if (isLoading()) {
+        <div class="table-empty-box">
+          <p>Loading custom fields...</p>
+        </div>
+      } @else if (filteredTableFields().length === 0) {
+        <div class="table-empty-box">
+          <div class="empty-icon-wrap">📋</div>
+          <h4>No custom fields found</h4>
+          <p>Create dynamic fields for tasks and projects to capture project-specific data.</p>
+          <button type="button" class="btn-add-field-primary" (click)="openCreateModal()">
+            + Create First Field
+          </button>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="enterprise-table">
+            <thead>
+              <tr>
+                <th width="40">#</th>
+                <th>Field Name &amp; Key</th>
+                <th>Target Form</th>
+                <th>Section</th>
+                <th>Type</th>
+                <th>Requirement</th>
+                <th>Placeholder / Options</th>
+                <th width="110" style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (field of filteredTableFields(); track field.id; let idx = $index) {
+                <tr>
+                  <td class="col-num">{{ idx + 1 }}</td>
+                  <td>
+                    <div class="field-title-name">{{ field.fieldName }}</div>
+                    <code class="field-key-tag">{{ field.fieldKey }}</code>
+                    @if (field.description) {
+                      <div class="field-desc-note">{{ field.description }}</div>
+                    }
+                  </td>
+                  <td>
+                    <span class="entity-badge" [class.badge-proj]="field.entityType === 'project'">
+                      {{ field.entityType === 'project' ? 'Project' : 'Task' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="section-location-tag">
+                      {{ field.entityType === 'project' ? 'Project Details' : 'General Information' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="type-pill">{{ field.fieldType }}</span>
+                  </td>
+                  <td>
+                    @if (field.isRequired) {
+                      <span class="req-badge req-true">Required</span>
+                    } @else {
+                      <span class="req-badge req-false">Optional</span>
+                    }
+                  </td>
+                  <td>
+                    @if (field.fieldType === 'dropdown' && field.options.length > 0) {
+                      <div class="options-tag-row">
+                        @for (opt of field.options; track opt) {
+                          <span class="opt-tag">{{ opt }}</span>
+                        }
+                      </div>
+                    } @else if (field.placeholder) {
+                      <span class="placeholder-text-muted">"{{ field.placeholder }}"</span>
+                    } @else {
+                      <span style="color: #cbd5e1;">-</span>
+                    }
+                  </td>
+                  <td>
+                    <div class="action-buttons-group">
+                      <button type="button" class="btn-action-pill btn-action-edit" title="Edit Field" (click)="openEditModal(field)">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        <span>Edit</span>
+                      </button>
+                      <button type="button" class="btn-action-pill btn-action-delete" title="Delete Field (Safely preserves existing data)" (click)="deleteField(field)">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Modal: Create / Edit Custom Field -->
+@if (isModalOpen()) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div class="modal-icon-wrap">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3>{{ editingField() ? 'Edit Custom Field' : 'Create Custom Field' }}</h3>
+            <p class="modal-sub">Defines a dynamic property for company forms.</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" (click)="closeModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        @if (editingField()) {
+          <div class="modal-edit-safety-banner">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <span><strong>Data Safe:</strong> Updating this field's label or options safely updates form displays. Existing saved records are completely preserved without data loss.</span>
+          </div>
+        }
+
+        <div class="form-group">
+          <label>Target Form Entity &amp; Section</label>
+          <select [(ngModel)]="modalEntity" [disabled]="!!editingField()">
+            <option value="task">Tasks Form (General Information Section)</option>
+            <option value="project">Projects Form (Project Details Section)</option>
+          </select>
+          <p class="field-hint">Specifies which form and section will display this field.</p>
+        </div>
+
+        <div class="form-group">
+          <label>Field Name / Label *</label>
+          <input
+            type="text"
+            [(ngModel)]="modalFieldName"
+            placeholder="e.g. Budget, Client PO, Target Sprint"
+            (ngModelChange)="onFieldNameChange($event)"
+          />
+          <p class="field-hint">The readable label displayed to users.</p>
+        </div>
+
+        <div class="form-group">
+          <label>Field Identifier (Key)</label>
+          <input
+            type="text"
+            [(ngModel)]="modalFieldKey"
+            placeholder="e.g. client_po, budget"
+            [disabled]="!!editingField()"
+          />
+          <p class="field-hint">Database property key for JSON storage.</p>
+        </div>
+
+        <div class="form-group">
+          <label>Field Type</label>
+          <div class="field-type-select-wrap">
+            <select [(ngModel)]="modalFieldType">
+              <option value="text">Text (Single Line)</option>
+              <option value="textarea">Long Text (Multi-Line Area)</option>
+              <option value="number">Number</option>
+              <option value="date">Date</option>
+              <option value="dropdown">Dropdown (Single Select)</option>
+              <option value="checkbox">Toggle / Checkbox (Yes / No)</option>
+            </select>
+          </div>
+          <p class="field-hint">Choose how users enter values for this dynamic field.</p>
+        </div>
+
+        @if (modalFieldType === 'dropdown') {
+          <div class="options-builder">
+            <label class="options-builder-label">
+              Dropdown Options *
+            </label>
+            <div class="option-add-row">
+              <input
+                type="text"
+                [(ngModel)]="newOptionInput"
+                placeholder="Type an option and press Add..."
+                (keydown.enter)="addOption()"
+              />
+              <button type="button" class="btn-add-opt" (click)="addOption()">Add</button>
+            </div>
+            <div class="options-chip-list">
+              @for (opt of modalOptions; track opt; let i = $index) {
+                <span class="option-chip">
+                  <span>{{ opt }}</span>
+                  <button type="button" class="btn-remove-chip" (click)="removeOption(i)">&times;</button>
+                </span>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="form-group">
+          <label>Placeholder (Optional)</label>
+          <input type="text" [(ngModel)]="modalPlaceholder" placeholder="e.g. Enter PO number..." />
+        </div>
+
+        <div class="form-group">
+          <label>Description / Help Tooltip (Optional)</label>
+          <input type="text" [(ngModel)]="modalDescription" placeholder="Short instructions for users..." />
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="modalIsRequired" />
+            <span>Make this field required</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeModal()">Cancel</button>
+        <button
+          type="button"
+          class="btn-primary"
+          [disabled]="isSaving() || !modalFieldName.trim() || (modalFieldType === 'dropdown' && modalOptions.length === 0)"
+          (click)="saveField()"
+        >
+          {{ isSaving() ? 'Saving...' : (editingField() ? 'Update Field' : 'Create Field') }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

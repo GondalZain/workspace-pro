@@ -1,0 +1,225 @@
+@if (layout() === 'table') {
+<div class="task-table-wrapper">
+<div class="task-table" [class.task-table--compact]="tableVariant() === 'compact'" aria-live="polite">
+  <div class="task-table__head" role="row">
+    <span class="task-table__col task-table__col--check" role="columnheader"></span>
+    <span class="task-table__col task-table__col--task" role="columnheader">Task</span>
+    <span class="task-table__col task-table__col--status" role="columnheader">Status</span>
+    <span class="task-table__col task-table__col--priority" role="columnheader">Priority</span>
+    <span class="task-table__col task-table__col--effort" role="columnheader">Est. Time</span>
+    <span class="task-table__col task-table__col--spent" role="columnheader">Spent</span>
+    <span class="task-table__col task-table__col--due" role="columnheader">Due Date</span>
+    <span class="task-table__col task-table__col--creator" role="columnheader">Creator</span>
+    <span class="task-table__col task-table__col--assignees" role="columnheader">Assignees</span>
+    <span class="task-table__col task-table__col--actions" role="columnheader"><span
+        class="visually-hidden">Actions</span></span>
+  </div>
+
+  @for (task of tasks(); track task.id) {
+  <div class="task-table__row" [class.is-complete]="task.completed" role="row" tabindex="0"
+    (click)="taskSelected.emit(task)" (keydown.enter)="taskSelected.emit(task)"
+    (keydown.space)="$event.preventDefault(); taskSelected.emit(task)">
+    <div class="task-table__col task-table__col--check" role="cell" (click)="$event.stopPropagation()">
+      @if (isOwner(task)) {
+      <button type="button" class="check-circle" [class.checked]="task.completed"
+        [attr.aria-label]="task.completed ? 'Mark incomplete' : 'Mark complete'" (click)="taskToggled.emit(task.id)">
+        @if (task.completed) {
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+        }
+      </button>
+      }
+    </div>
+
+    <div class="task-table__col task-table__col--task" role="cell">
+      <span class="task-table__title">{{ task.title }}</span>
+      @if (getTaskDisplayDescription(task) && tableVariant() !== 'compact') {
+      <span class="task-table__desc">{{ getTaskDisplayDescription(task) }}</span>
+      }
+    </div>
+
+    <div class="task-table__col task-table__col--status" role="cell">
+      <span class="status-tag"
+        [style.borderColor]="statusColor(task) + '55'"
+        [style.color]="statusColor(task)">
+        <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px;" [style.backgroundColor]="statusColor(task)"></span>
+        {{ tableVariant() === 'compact' ? statusLabelCompact(task) : statusLabel(task) }}
+      </span>
+    </div>
+
+    <div class="task-table__col task-table__col--priority" role="cell">
+      @if (task.priority) {
+        <span class="priority-tag" [class]="'priority-' + task.priority"
+          [attr.title]="tableVariant() === 'compact' ? task.priority : null">{{ tableVariant() === 'compact' ?
+          priorityShort(task.priority) : task.priority }}</span>
+      } @else {
+        <span class="task-table__muted">—</span>
+      }
+    </div>
+
+    <div class="task-table__col task-table__col--effort" role="cell">
+      <span class="task-table__effort" [class.task-table__muted]="!task.estimatedMinutes">{{ timeRequiredLabel(task)
+        }}</span>
+    </div>
+
+    <div class="task-table__col task-table__col--spent" role="cell">
+      <span class="task-table__spent" [class.task-table__muted]="getSpentMinutes(task) === 0">{{ getSpentLabel(task) }}</span>
+    </div>
+
+    <div class="task-table__col task-table__col--due" role="cell">
+      <span class="task-table__due" [class.overdue]="isOverdue(task)">{{ formatDue(task) }}</span>
+    </div>
+
+    <div class="task-table__col task-table__col--creator" role="cell">
+      @let creator = getCreator(task);
+      <div class="user-badge creator-badge" [title]="'Created by ' + creator.name">
+        @if (creator.avatarUrl) {
+          <img [src]="creator.avatarUrl" [alt]="creator.name" class="profile-avatar-img" />
+        } @else {
+          <span class="avatar">{{ creator.name.charAt(0).toUpperCase() }}</span>
+        }
+        <span class="username">{{ creator.name }}</span>
+      </div>
+    </div>
+
+    <div class="task-table__col task-table__col--assignees" role="cell">
+      @let assignees = getAssignees(task);
+      @if (assignees.length > 0) {
+        <div class="assignees-avatar-stack" [title]="'Assigned to: ' + assignees.map(a => a.name).join(', ')">
+          @for (assignee of assignees.slice(0, 3); track (assignee.id || assignee.name)) {
+            <div class="avatar-stack-item" [title]="assignee.name">
+              @if (assignee.avatarUrl) {
+                <img [src]="assignee.avatarUrl" [alt]="assignee.name" class="profile-avatar-img" />
+              } @else {
+                <span class="avatar-initial">{{ assignee.name.charAt(0).toUpperCase() }}</span>
+              }
+            </div>
+          }
+          @if (assignees.length > 3) {
+            <span class="avatar-stack-overflow">+{{ assignees.length - 3 }}</span>
+          }
+        </div>
+      } @else {
+        <span class="task-table__muted">—</span>
+      }
+    </div>
+
+    <div class="task-table__col task-table__col--actions" role="cell" (click)="$event.stopPropagation()">
+      <app-action-menu [label]="'Actions for ' + task.title"
+        [items]="isOwner(task) ? ownerTaskActions : viewerTaskActions"
+        (actionSelected)="selectTaskAction(task, $event)" />
+    </div>
+  </div>
+  } @empty {
+  <div class="empty-state task-table__empty">
+    <h3>No tasks found</h3>
+    <p>Adjust filters or create a task to get started.</p>
+  </div>
+  }
+</div>
+</div>
+} @else {
+<div class="task-grid" [class.layout-list]="layout() === 'list'" aria-live="polite">
+  @for (task of tasks(); track task.id) {
+  <article class="task-card" [class.is-complete]="task.completed" tabindex="0" (click)="taskSelected.emit(task)"
+    (keydown.enter)="taskSelected.emit(task)" (keydown.space)="$event.preventDefault(); taskSelected.emit(task)">
+    <div class="card-header">
+      <div class="badges-row">
+        <span class="status-tag" [class.status-to-do]="(task.status || 'pending') === 'pending' && !task.completed"
+          [class.status-progress]="task.status === 'in-progress'"
+          [class.status-done]="task.completed || task.status === 'completed'">
+          <span class="dot"></span>
+          <span>{{ statusLabel(task) }}</span>
+        </span>
+        <span class="priority-tag" [class]="'priority-' + task.priority">{{ task.priority }}</span>
+      </div>
+      <div class="card-actions" (click)="$event.stopPropagation()">
+        <app-action-menu [label]="'Actions for ' + task.title"
+          [items]="isOwner(task) ? ownerTaskActions : viewerTaskActions"
+          (actionSelected)="selectTaskAction(task, $event)" />
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="title-row">
+        @if (isOwner(task)) {
+        <button type="button" class="check-circle" [class.checked]="task.completed"
+          [attr.aria-label]="task.completed ? 'Mark task incomplete' : 'Mark task complete'"
+          (click)="$event.stopPropagation(); taskToggled.emit(task.id)">
+          @if (task.completed) {
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          }
+        </button>
+        }
+        <h3 class="task-title">{{ task.title }}</h3>
+      </div>
+      @if (getTaskDisplayDescription(task)) {
+      <p class="task-desc">{{ getTaskDisplayDescription(task) }}</p>
+      }
+    </div>
+    <div class="card-footer">
+      <div class="meta-left">
+        @if (task.category) {
+        <span class="meta-item category">{{ task.category }}</span>
+        }
+        @if (task.estimatedMinutes) {
+        <span class="meta-item meta-item--effort">{{ timeRequiredLabel(task) }}</span>
+        }
+        <span class="meta-item meta-item--spent" [class.muted]="getSpentMinutes(task) === 0">Spent: {{ getSpentLabel(task) }}</span>
+        @if (task.dueDate || task.dueTime) {
+        <span class="meta-item date" [class.overdue]="isOverdue(task)">
+          <span>{{ formatDue(task) }}</span>
+        </span>
+        }
+      </div>
+
+      <div class="card-users-row">
+        @let creator = getCreator(task);
+        @let assignees = getAssignees(task);
+
+        <div class="user-section user-section--creator">
+          <span class="user-section-label">Created by</span>
+          <div class="user-badge creator-badge" [title]="'Created by ' + creator.name">
+            @if (creator.avatarUrl) {
+              <img [src]="creator.avatarUrl" [alt]="creator.name" class="profile-avatar-img" />
+            } @else {
+              <span class="avatar">{{ creator.name.charAt(0).toUpperCase() }}</span>
+            }
+            <span class="username">{{ creator.name }}</span>
+          </div>
+        </div>
+
+        <div class="user-section user-section--assignees">
+          <span class="user-section-label">Assigned to</span>
+          @if (assignees.length > 0) {
+            <div class="assignees-avatar-stack" [title]="'Assigned to: ' + assignees.map(a => a.name).join(', ')">
+              @for (assignee of assignees.slice(0, 3); track (assignee.id || assignee.name)) {
+                <div class="avatar-stack-item" [title]="assignee.name">
+                  @if (assignee.avatarUrl) {
+                    <img [src]="assignee.avatarUrl" [alt]="assignee.name" class="profile-avatar-img" />
+                  } @else {
+                    <span class="avatar-initial">{{ assignee.name.charAt(0).toUpperCase() }}</span>
+                  }
+                </div>
+              }
+              @if (assignees.length > 3) {
+                <span class="avatar-stack-overflow">+{{ assignees.length - 3 }}</span>
+              }
+            </div>
+          } @else {
+            <span class="unassigned-text">—</span>
+          }
+        </div>
+      </div>
+    </div>
+  </article>
+  } @empty {
+  <div class="empty-state">
+    <h3>No tasks found</h3>
+    <p>Tasks will appear here once added or matched by active filters.</p>
+  </div>
+  }
+</div>
+}

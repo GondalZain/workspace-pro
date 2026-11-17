@@ -1,0 +1,50 @@
+<article
+  class="proj-card"
+  [class.proj-card--clickable]="clickable()"
+  (click)="onOpen()"
+  tabindex="0"
+  role="button"
+  (keydown.enter)="onOpen()"
+>
+  <!-- Full Upper Banner Section -->
+  <div class="proj-card-media-wrap">
+    @if (imageUrl; as img) {
+      <img [src]="img" [alt]="project().title" class="proj-card-media" />
+    } @else {
+      <div class="proj-card-media--empty">
+        <div class="proj-card-fallback-avatar">
+          {{ project().title.slice(0, 1).toUpperCase() }}
+        </div>
+      </div>
+    }
+
+    <span class="proj-type-badge">PROJECT</span>
+  </div>
+
+  <!-- Card Body -->
+  <div class="proj-card-body">
+    <h3 class="proj-card-title">{{ project().title }}</h3>
+    @if (project().description) {
+      <p class="proj-card-desc">{{ project().description }}</p>
+    }
+  </div>
+
+  <!-- Card Footer -->
+  <div class="proj-card-foot">
+    @if (clickable()) {
+      <button type="button" class="btn-open-proj" (click)="$event.stopPropagation(); onOpen()">
+        <span>Open project</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    }
+
+    @if (showActions()) {
+      <div class="proj-card-actions">
+        <button type="button" class="btn-card-action btn-edit" (click)="onEdit($event)" title="Edit project">Edit</button>
+        <button type="button" class="btn-card-action btn-delete" (click)="onDelete($event)" title="Delete project">Delete</button>
+      </div>
+    }
+  </div>
+</article>

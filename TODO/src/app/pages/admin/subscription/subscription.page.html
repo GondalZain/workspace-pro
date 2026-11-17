@@ -1,0 +1,720 @@
+<div class="sub-page-shell">
+  <!-- Page Header -->
+  <header class="sub-page-header">
+    <div class="header-content">
+      <div class="badge-pill">
+        <span class="dot"></span>
+        <span>WORKSPACE BILLING &amp; TIERS</span>
+      </div>
+      <h1 class="page-title">Subscription &amp; Plans Management</h1>
+      <p class="page-subtitle">
+        Manage active plan tiers, view billing invoices, and update subscription capabilities for <strong>{{ companyName() }}</strong>.
+      </p>
+    </div>
+
+    <!-- Active Subscription Highlight Card -->
+    @if (!loading()) {
+      <div class="current-plan-card">
+        <div class="card-left">
+          <div class="sub-badge-row">
+            <span class="sub-card-label">WORKSPACE ACTIVE SUBSCRIPTION</span>
+            <span class="plan-hero-status" [class.trial]="subscription()?.planId === 'trial'">
+              <span class="status-live-dot"></span>
+              {{ (subscription()?.subscriptionStatus || 'active') | uppercase }}
+            </span>
+          </div>
+          <div class="plan-hero-row">
+            <span class="plan-hero-name">{{ subscription()?.planName || 'Free Trial' }}</span>
+          </div>
+        </div>
+        <div class="card-right">
+          <div class="expiration-info-pill">
+            <svg class="exp-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <div class="exp-content">
+              <span class="exp-label">{{ expirationInfo().label }}:</span>
+              <strong class="exp-date">{{ expirationInfo().dateText }}</strong>
+            </div>
+            @if (expirationInfo().isTrial && expirationInfo().daysRemaining !== null) {
+              <span class="days-pill">{{ expirationInfo().daysRemaining }} days remaining</span>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </header>
+
+  <!-- Feedback Banner -->
+  @if (feedbackMessage()) {
+    <div class="feedback-alert" [class.success]="feedbackMessage()?.type === 'success'" [class.error]="feedbackMessage()?.type === 'error'">
+      <span class="alert-icon">{{ feedbackMessage()?.type === 'success' ? '✓' : '⚠️' }}</span>
+      <span class="alert-text">{{ feedbackMessage()?.text }}</span>
+      <button type="button" class="alert-dismiss" (click)="feedbackMessage.set(null)">×</button>
+    </div>
+  }
+
+  <!-- Tab Navigation -->
+  <div class="sub-tabs-bar">
+    <button
+      type="button"
+      class="sub-tab-btn"
+      [class.active]="activeTab() === 'plans'"
+      (click)="activeTab.set('plans')"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+      Available Plans &amp; Tiers
+    </button>
+    <button
+      type="button"
+      class="sub-tab-btn"
+      [class.active]="activeTab() === 'billing'"
+      (click)="activeTab.set('billing')"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="5" width="20" height="14" rx="2"/>
+        <line x1="2" y1="10" x2="22" y2="10"/>
+      </svg>
+      Billing History &amp; Invoices
+      @if (subscription()?.billingHistory?.length) {
+        <span class="tab-count">{{ subscription()?.billingHistory?.length }}</span>
+      }
+    </button>
+    <button
+      type="button"
+      class="sub-tab-btn"
+      [class.active]="activeTab() === 'cards'"
+      (click)="activeTab.set('cards')"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+        <line x1="1" y1="10" x2="23" y2="10"/>
+      </svg>
+      Manage Cards &amp; Payment Methods
+      @if (savedCards().length) {
+        <span class="tab-count">{{ savedCards().length }}</span>
+      }
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="sub-loading-skeleton">
+      <div class="spinner"></div>
+      <p>Loading workspace subscription details...</p>
+    </div>
+  } @else {
+    <!-- TAB 1: AVAILABLE PLANS & TIERS -->
+    @if (activeTab() === 'plans') {
+      <div class="plans-container">
+        <!-- Auto Payment Deduction Switch -->
+        <div class="auto-debit-banner">
+          <div class="auto-debit-info">
+            <span class="auto-debit-title">Auto Payment Deduction</span>
+            <span class="auto-debit-desc">Automatically renew workspace subscription using default card.</span>
+          </div>
+          <div class="auto-debit-switch-wrapper">
+            <button
+              type="button"
+              class="switch-btn"
+              [class.active]="autoDebitEnabled()"
+              (click)="toggleAutoDebit()"
+              [disabled]="updating()"
+            >
+              <span class="switch-handle"></span>
+            </button>
+            <span class="switch-label">{{ autoDebitEnabled() ? 'ENABLED' : 'PAUSED' }}</span>
+          </div>
+        </div>
+
+        <div class="plans-grid">
+          @for (plan of availablePlansList; track plan.id) {
+            <div
+              class="plan-card"
+              [class.is-current]="currentPlanId() === plan.id"
+              [class.is-popular]="plan.id === 'pro'"
+              [class.is-ultra]="plan.id === 'ultra'"
+            >
+              @if (currentPlanId() === plan.id) {
+                <div class="badge-ribbon current">✓ Active Plan</div>
+              } @else if (plan.id === 'pro') {
+                <div class="badge-ribbon popular">Popular</div>
+              } @else if (plan.id === 'ultra') {
+                <div class="badge-ribbon ultra">Ultra Tier</div>
+              }
+
+              <div class="card-head">
+                <h3 class="plan-title">{{ plan.name }}</h3>
+                <p class="plan-subnote">{{ plan.note }}</p>
+              </div>
+
+              <div class="pricing-row">
+                <span class="price-symbol">{{ plan.price }}</span>
+                <span class="price-cycle">{{ plan.period }}</span>
+              </div>
+
+              <!-- Features checklist -->
+              <ul class="features-checklist">
+                @for (feat of plan.features; track feat) {
+                  <li class="feat-item">
+                    <svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>{{ feat }}</span>
+                  </li>
+                }
+              </ul>
+
+              <!-- Action button -->
+              <div class="card-footer-action">
+                @if (currentPlanId() === plan.id) {
+                  <button type="button" class="btn-tier active" [class.expired-btn]="plan.id === 'trial' && isTrialExpired()" disabled>
+                    {{ plan.id === 'trial' && isTrialExpired() ? '⚠️ Trial Expired' : '✓ Current Active Tier' }}
+                  </button>
+                } @else if (plan.id === 'trial' && (subscription()?.trialUsed || isTrialExpired())) {
+                  <button type="button" class="btn-tier trial-expired" disabled title="The free trial is a one-time workspace offer and cannot be reused.">
+                    ⚠️ Free Trial Expired / Used
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="btn-tier change-to"
+                    [class.ultra-btn]="plan.id === 'ultra'"
+                    [disabled]="updating()"
+                    (click)="selectPlan(plan.id)"
+                  >
+                    Switch to {{ plan.name }} →
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Checkout Modal with Card Selection & Stripe Element for Paid Plans -->
+    @if (selectedCheckoutPlan()) {
+      <div class="checkout-modal-backdrop" (click)="closeCheckoutModal()">
+        <div class="checkout-modal-dialog" (click)="$event.stopPropagation()">
+          <div class="checkout-modal-header">
+            <div class="modal-title-box">
+              <span class="modal-badge">WORKSPACE UPGRADE</span>
+              <h2>Confirm &amp; Pay for {{ selectedCheckoutPlan()?.name }}</h2>
+            </div>
+            <button type="button" class="btn-close-modal" (click)="closeCheckoutModal()">×</button>
+          </div>
+
+          <div class="checkout-modal-body">
+            <!-- If user has saved cards on file, give option to select one or add new -->
+            @if (savedCards().length > 0) {
+              <div class="card-selection-section">
+                <label class="section-title">Select Payment Method</label>
+                <div class="cards-select-list">
+                  @for (c of savedCards(); track c.id) {
+                    <label class="card-select-option" [class.selected]="selectedPaymentCardId() === c.id">
+                      <input
+                        type="radio"
+                        name="checkoutCard"
+                        [value]="c.id"
+                        [checked]="selectedPaymentCardId() === c.id"
+                        (change)="selectedPaymentCardId.set(c.id)"
+                      />
+                      <div class="card-option-info">
+                        <span class="card-brand-tag">{{ c.brand }}</span>
+                        <strong>•••• •••• •••• {{ c.last4 }}</strong>
+                        <span class="card-holder-sub">{{ c.cardholder_name }} (Exp: {{ c.exp_month }}/{{ c.exp_year }})</span>
+                      </div>
+                      @if (c.is_default) {
+                        <span class="pill-default">DEFAULT</span>
+                      }
+                    </label>
+                  }
+
+                  <label class="card-select-option" [class.selected]="selectedPaymentCardId() === 'new'">
+                    <input
+                      type="radio"
+                      name="checkoutCard"
+                      value="new"
+                      [checked]="selectedPaymentCardId() === 'new'"
+                      (change)="selectedPaymentCardId.set('new')"
+                    />
+                    <div class="card-option-info">
+                      <strong>+ Enter a different credit or debit card</strong>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            }
+
+            <!-- Show Stripe Card input form only if entering a new card -->
+            @if (selectedPaymentCardId() === 'new') {
+              <app-stripe-card-element
+                [planName]="selectedCheckoutPlan()?.name || ''"
+                [price]="selectedCheckoutPlan()?.price || ''"
+                [cadence]="selectedCheckoutPlan()?.period || '/ month'"
+                (cardDetailsChange)="onCheckoutCardDetailsChange($event)"
+              ></app-stripe-card-element>
+
+              <!-- Card Storage & Auto-Renewal Consent Options (PCI-DSS & Payment Regulation Compliant) -->
+              <div class="checkout-options-box">
+                <label class="checkout-option-label">
+                  <input
+                    type="checkbox"
+                    [ngModel]="checkoutSaveCard()"
+                    (ngModelChange)="checkoutSaveCard.set($event)"
+                  />
+                  <span class="option-text">
+                    <strong>Save payment card for future workspace transactions</strong>
+                    <small>Only non-sensitive metadata (card brand, last 4 digits, expiry) will be stored in your workspace.</small>
+                  </span>
+                </label>
+              </div>
+            }
+
+            <div class="checkout-options-box auto-renew-box">
+              <label class="checkout-option-label">
+                <input
+                  type="checkbox"
+                  [ngModel]="checkoutAutoDebit()"
+                  (ngModelChange)="checkoutAutoDebit.set($event)"
+                />
+                <span class="option-text">
+                  <strong>Enable Auto-Renewal deduction</strong>
+                  <small>Automatically renew your subscription monthly until cancelled. You can pause this anytime.</small>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div class="checkout-modal-footer">
+            <button
+              type="button"
+              class="btn-checkout-cancel"
+              (click)="closeCheckoutModal()"
+              [disabled]="updating()"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn-checkout-confirm"
+              [disabled]="(selectedPaymentCardId() === 'new' && !isCardValid()) || updating()"
+              (click)="confirmPlanCheckout()"
+            >
+              @if (updating()) {
+                <span class="spinner-sm"></span> Processing Payment...
+              } @else {
+                Pay {{ selectedCheckoutPlan()?.price }} &amp; Activate Plan
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Newly Generated Payment Invoice Modal (View & Close to save in history) -->
+    @if (generatedInvoice() || selectedInvoice()) {
+      @let inv = generatedInvoice() || selectedInvoice();
+      <div class="checkout-modal-backdrop" (click)="closeInvoiceModal()">
+        <div class="invoice-modal-dialog" (click)="$event.stopPropagation()">
+          <div class="invoice-modal-header">
+            <div class="invoice-stamp">
+              <span class="stamp-icon">✓</span>
+              <span>PAYMENT SUCCESSFUL &amp; INVOICE GENERATED</span>
+            </div>
+            <button type="button" class="btn-close-modal" (click)="closeInvoiceModal()">×</button>
+          </div>
+
+          <div class="invoice-modal-body">
+            <div class="invoice-paper">
+              <div class="paper-top">
+                <div class="company-brand">
+                  <h2>{{ companyName() }}</h2>
+                  <span class="sub-label">Workspace Billing Invoice</span>
+                </div>
+                <div class="invoice-meta">
+                  <div class="meta-row">
+                    <span>Invoice #:</span>
+                    <strong>{{ inv.invoice_number }}</strong>
+                  </div>
+                  <div class="meta-row">
+                    <span>Date:</span>
+                    <strong>{{ formatDate(inv.billing_date) }}</strong>
+                  </div>
+                  <div class="meta-row">
+                    <span>Status:</span>
+                    <span class="pill-paid">{{ inv.status | uppercase }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="invoice-divider"></div>
+
+              <div class="invoice-details-grid">
+                <div class="col">
+                  <span class="detail-label">BILLED TO</span>
+                  <strong>{{ companyName() }}</strong>
+                  <span>Active Workspace Tier</span>
+                </div>
+                <div class="col">
+                  <span class="detail-label">PAYMENT METHOD</span>
+                  <strong>{{ inv.payment_method }}</strong>
+                  <span>Processed securely</span>
+                </div>
+              </div>
+
+              <table class="invoice-items-table">
+                <thead>
+                  <tr>
+                    <th>Item &amp; Description</th>
+                    <th>Billing Period</th>
+                    <th class="text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <strong>{{ inv.plan_name }} Subscription</strong>
+                      <p>Monthly workspace license and privileges</p>
+                    </td>
+                    <td>{{ formatDate(inv.period_start) }} – {{ formatDate(inv.period_end) }}</td>
+                    <td class="text-right amount-val">${{ inv.amount }} USD</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div class="invoice-total-row">
+                <span>Total Amount Paid:</span>
+                <span class="total-price">${{ inv.amount }} USD</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="invoice-modal-footer">
+            <button type="button" class="btn-close-invoice" (click)="closeInvoiceModal()">
+              Close &amp; View in History
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- TAB 2: BILLING HISTORY -->
+    @if (activeTab() === 'billing') {
+      <div class="billing-container">
+        @if (!subscription()?.billingHistory || subscription()?.billingHistory?.length === 0) {
+          <div class="empty-billing-state">
+            <div class="empty-icon">🧾</div>
+            <h3>No Invoices Yet</h3>
+            <p>Your workspace is currently on the free trial plan. Paid subscription invoices and receipt records will appear here automatically.</p>
+          </div>
+        } @else {
+          <div class="billing-table-card">
+            <table class="billing-table">
+              <thead>
+                <tr>
+                  <th>Invoice ID</th>
+                  <th>Plan Tier</th>
+                  <th>Billing Date</th>
+                  <th>Service Period</th>
+                  <th>Amount</th>
+                  <th>Payment Method</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (rec of subscription()?.billingHistory; track rec.id) {
+                  <tr>
+                    <td class="font-mono invoice-cell">
+                      <button type="button" class="btn-link-invoice" (click)="viewInvoice(rec)" title="Click to view detailed invoice">
+                        <span class="doc-icon">📄</span>
+                        {{ rec.invoice_number }}
+                      </button>
+                    </td>
+                    <td>
+                      <span class="plan-pill">{{ rec.plan_name }}</span>
+                    </td>
+                    <td>{{ formatDate(rec.billing_date) }}</td>
+                    <td>
+                      {{ formatDate(rec.period_start) }} — {{ formatDate(rec.period_end) }}
+                    </td>
+                    <td class="amount-cell">
+                      <strong>${{ rec.amount }}</strong> {{ rec.currency }}
+                    </td>
+                    <td>{{ rec.payment_method }}</td>
+                    <td>
+                      <span class="status-badge paid">{{ rec.status | uppercase }}</span>
+                    </td>
+                    <td>
+                      <button type="button" class="btn-view-inv" (click)="viewInvoice(rec)">
+                        View Invoice
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- TAB 3: MANAGE CARDS & PAYMENT METHODS -->
+    @if (activeTab() === 'cards') {
+      <div class="cards-management-container">
+        <!-- Top Toolbar with Auto-Deduction Switch and Add Card Button -->
+        <div class="cards-toolbar">
+          <div class="auto-debit-box">
+            <div class="switch-container">
+              <button
+                type="button"
+                class="switch-btn"
+                [class.active]="autoDebitEnabled()"
+                (click)="toggleAutoDebit()"
+                [disabled]="updating()"
+                title="Toggle automatic payment deduction"
+              >
+                <span class="switch-handle"></span>
+              </button>
+              <div class="switch-texts">
+                <strong>Auto Payment Deduction: {{ autoDebitEnabled() ? 'Active' : 'Paused' }}</strong>
+                <p>When enabled, renewals are debited automatically from your default card.</p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="btn-add-card"
+            (click)="isAddingCard.set(!isAddingCard())"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            <span>{{ isAddingCard() ? 'Cancel' : 'Add New Card' }}</span>
+          </button>
+        </div>
+
+        <!-- Add Card Inline Panel using Unified Stripe Card Component -->
+        @if (isAddingCard()) {
+          <div class="add-card-panel">
+            <app-stripe-card-element
+              mode="add_card"
+              [showSummary]="false"
+              (cardDetailsChange)="onNewCardDetailsChange($event)"
+            ></app-stripe-card-element>
+
+            <div class="add-card-default-toggle">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  [ngModel]="newCardData().isDefault"
+                  (ngModelChange)="newCardData.set({ cardholderName: newCardData().cardholderName, cardNumber: newCardData().cardNumber, expDate: newCardData().expDate, isDefault: $event })"
+                />
+                <span>Set as default card for automated workspace billing</span>
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <button
+                type="button"
+                class="btn-save-card"
+                [disabled]="!isNewCardValid() || updating()"
+                (click)="submitAddCard()"
+              >
+                {{ updating() ? 'Saving Card...' : 'Save Card' }}
+              </button>
+              <button
+                type="button"
+                class="btn-cancel"
+                (click)="isAddingCard.set(false)"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- Saved Cards Grid -->
+        @if (!savedCards().length) {
+          <div class="empty-cards-state">
+            <div class="empty-icon">💳</div>
+            <h3>No Cards on File</h3>
+            <p>Add a credit or debit card for seamless subscription renewals.</p>
+          </div>
+        } @else {
+          <div class="cards-grid">
+            @for (card of savedCards(); track card.id) {
+              <div class="card-item-wrapper">
+                <div class="real-credit-card" [class.is-default-card]="card.is_default" [attr.data-brand]="card.brand.toLowerCase()">
+                  <!-- Background Pattern Overlay -->
+                  <div class="card-glass-glow"></div>
+                  <div class="card-pattern"></div>
+
+                  <!-- Card Header -->
+                  <div class="credit-card-head">
+                    <div class="emv-chip-row">
+                      <div class="emv-chip">
+                        <span class="chip-line"></span>
+                        <span class="chip-line"></span>
+                        <span class="chip-line"></span>
+                      </div>
+                      <svg class="contactless-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M8.5 16.5a5 5 0 0 1 0-7"/>
+                        <path d="M12 19a8.5 8.5 0 0 0 0-14"/>
+                        <path d="M15.5 21.5a12 12 0 0 0 0-21"/>
+                      </svg>
+                    </div>
+
+                    <div class="card-brand-logo">
+                      @if (card.brand.toLowerCase().includes('visa')) {
+                        <span class="brand-text visa-logo">VISA</span>
+                      } @else if (card.brand.toLowerCase().includes('master')) {
+                        <div class="mastercard-circles">
+                          <span class="mc-red"></span>
+                          <span class="mc-orange"></span>
+                        </div>
+                      } @else if (card.brand.toLowerCase().includes('amex')) {
+                        <span class="brand-text amex-logo">AMEX</span>
+                      } @else {
+                        <span class="brand-text">{{ card.brand | uppercase }}</span>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Card Number -->
+                  <div class="card-number-digits">
+                    <span class="digit-group">••••</span>
+                    <span class="digit-group">••••</span>
+                    <span class="digit-group">••••</span>
+                    <span class="digit-group last-four">{{ card.last4 }}</span>
+                  </div>
+
+                  <!-- Card Bottom / Holder & Expiry -->
+                  <div class="credit-card-foot">
+                    <div class="card-foot-col">
+                      <span class="foot-label">CARDHOLDER</span>
+                      <strong class="foot-val">{{ card.cardholder_name }}</strong>
+                    </div>
+                    <div class="card-foot-col text-right">
+                      <span class="foot-label">EXPIRES</span>
+                      <strong class="foot-val">{{ card.exp_month < 10 ? '0' + card.exp_month : card.exp_month }}/{{ card.exp_year }}</strong>
+                    </div>
+                  </div>
+
+                  @if (card.is_default) {
+                    <div class="default-badge-ribbon">
+                      <span>✓ DEFAULT</span>
+                    </div>
+                  }
+                </div>
+
+                <!-- Card Actions Toolbar Below Card -->
+                <div class="card-toolbar-actions">
+                  <button
+                    type="button"
+                    class="btn-card-action edit"
+                    [disabled]="updating()"
+                    (click)="startEditCard(card)"
+                    title="Edit card details"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    Edit
+                  </button>
+
+                  @if (!card.is_default) {
+                    <button
+                      type="button"
+                      class="btn-card-action set-default"
+                      [disabled]="updating()"
+                      (click)="setDefaultCard(card.id)"
+                    >
+                      Make Default
+                    </button>
+                  }
+
+                  <button
+                    type="button"
+                    class="btn-card-action remove"
+                    [disabled]="updating()"
+                    (click)="deleteCard(card.id)"
+                    title="Remove card"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                    Remove
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Edit Card Modal -->
+        @if (editingCard()) {
+          <div class="checkout-modal-backdrop" (click)="cancelEditCard()">
+            <div class="checkout-modal-dialog edit-dialog" (click)="$event.stopPropagation()">
+              <div class="checkout-modal-header">
+                <div class="modal-title-box">
+                  <span class="modal-badge">UPDATE CARD</span>
+                  <h2>Edit Card Details (•••• {{ editingCard()?.last4 }})</h2>
+                </div>
+                <button type="button" class="btn-close-modal" (click)="cancelEditCard()">×</button>
+              </div>
+
+              <div class="checkout-modal-body">
+                <div class="edit-card-form-grid">
+                  <div class="form-group full">
+                    <label>Cardholder Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Alex Morgan"
+                      [ngModel]="editCardData().cardholderName"
+                      (ngModelChange)="editCardData.set({ cardholderName: $event, expDate: editCardData().expDate })"
+                    />
+                  </div>
+
+                  <div class="form-group full">
+                    <label>Expiry Date (MM/YY)</label>
+                    <input
+                      type="text"
+                      placeholder="MM/YY"
+                      maxlength="5"
+                      [ngModel]="editCardData().expDate"
+                      (ngModelChange)="editCardData.set({ cardholderName: editCardData().cardholderName, expDate: $event })"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="checkout-modal-footer">
+                <button type="button" class="btn-checkout-cancel" (click)="cancelEditCard()">Cancel</button>
+                <button
+                  type="button"
+                  class="btn-checkout-confirm"
+                  [disabled]="updating()"
+                  (click)="submitEditCard()"
+                >
+                  {{ updating() ? 'Saving...' : 'Update Card Details' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

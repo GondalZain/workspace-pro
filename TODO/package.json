@@ -1,0 +1,42 @@
+{
+  "name": "todo",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "env:encrypt": "node scripts/env-crypto.mjs encrypt",
+    "env:decrypt": "node scripts/env-crypto.mjs decrypt",
+    "load-env": "node scripts/load-env.mjs",
+    "load-env:development": "node scripts/load-env.mjs development",
+    "load-env:production": "node scripts/load-env.mjs production",
+    "start": "npm run load-env:development && ng serve --host 0.0.0.0",
+    "start:dist": "npx -y serve dist/TODO/browser -p 4200 --single",
+    "build": "npm run load-env:production && ng build && node scripts/deploy-xampp.mjs",
+    "build:vercel": "node scripts/load-env.mjs production && ng build --base-href /",
+    "deploy:xampp": "node scripts/deploy-xampp.mjs",
+    "build:development": "npm run load-env:development && ng build --configuration development",
+    "build:dev": "npm run build:development",
+    "build:prod": "npm run build",
+    "watch": "npm run load-env:development && ng build --watch --configuration development",
+    "test": "ng test"
+  },
+  "private": true,
+  "packageManager": "npm@10.9.3",
+  "dependencies": {
+    "@angular/common": "^21.2.0",
+    "@angular/compiler": "^21.2.0",
+    "@angular/core": "^21.2.0",
+    "@angular/forms": "^21.2.0",
+    "@angular/platform-browser": "^21.2.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.2.23",
+    "@angular/cli": "^21.2.23",
+    "@angular/compiler-cli": "^21.2.0",
+    "jsdom": "^28.0.0",
+    "prettier": "^3.8.1",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
+  }
+}

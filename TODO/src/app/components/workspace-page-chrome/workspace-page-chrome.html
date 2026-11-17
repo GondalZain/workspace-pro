@@ -1,0 +1,12 @@
+<header class="ws-chrome">
+  <nav class="ws-crumb" aria-label="Breadcrumb">
+    <a [routerLink]="rootLink()">{{ rootLabel() }}</a>
+    @if (currentLabel()) {
+      <span class="ws-crumb-sep" aria-hidden="true">/</span>
+      <span class="ws-crumb-current">{{ currentLabel() }}</span>
+    }
+  </nav>
+  <div class="ws-chrome-actions">
+    <ng-content />
+  </div>
+</header>

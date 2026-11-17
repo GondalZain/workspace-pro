@@ -1,0 +1,289 @@
+<section class="ws-panel task-detail">
+  <div class="task-detail__grid">
+    <article class="task-ticket" aria-labelledby="task-ticket-title">
+      <div class="task-ticket__bar">
+        <div class="task-ticket__bar-start">
+          <span class="task-ticket__id">Task #{{ task().id }}</span>
+          <span class="ws-chip" [class.ws-chip--success]="task().completed || task().status === 'completed'">
+            {{ statusLabel() }}
+          </span>
+          @if (!isOwner()) {
+            <span class="ws-chip ws-chip--muted">View only</span>
+          }
+        </div>
+        @if (standardFields().status.enabled !== false) {
+          <div class="ws-status-steps" role="group" aria-label="Update status">
+            @for (st of availableStatuses(); track st.id) {
+              <button
+                type="button"
+                class="ws-status-steps__btn"
+                [class.is-active]="(task().statusId != null && task().statusId === st.id) || task().status === st.name || (!task().status && st.isInitial)"
+                [disabled]="!isOwner()"
+                (click)="setStatus(st)"
+              >
+                {{ st.name }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <header class="task-ticket__head">
+        <h1 id="task-ticket-title" class="task-ticket__title">{{ task().title }}</h1>
+      </header>
+
+      <dl class="task-ticket__fields ws-meta-grid">
+        @if (standardFields().project.enabled !== false) {
+          <div>
+            <dt>Project</dt>
+            <dd>{{ projectTitle() }}</dd>
+          </div>
+        }
+        @if (standardFields().priority.enabled !== false) {
+          <div>
+            <dt>Priority</dt>
+            <dd>
+              <span class="ws-chip" [class]="'ws-chip--priority-' + task().priority">{{ task().priority }}</span>
+            </dd>
+          </div>
+        }
+        @if (standardFields().dueDate.enabled !== false || standardFields().dueTime.enabled !== false) {
+          <div>
+            <dt>Due</dt>
+            <dd>
+              @if (standardFields().dueDate.enabled !== false && task().dueDate) {
+                {{ formatDate(task().dueDate) }}
+                @if (standardFields().dueTime.enabled !== false && task().dueTime) {
+                  · {{ task().dueTime }}
+                }
+              } @else if (standardFields().dueTime.enabled !== false && task().dueTime) {
+                {{ task().dueTime }}
+              } @else if (standardFields().dueDate.enabled !== false) {
+                No date
+              } @else {
+                —
+              }
+            </dd>
+          </div>
+        }
+        @if (standardFields().estimatedTime.enabled !== false) {
+          <div>
+            <dt>Time required</dt>
+            <dd [class.task-ticket__effort]="estimatedDurationLabel()">{{ estimatedDurationLabel() || '—' }}</dd>
+          </div>
+        }
+        <div>
+          <dt>Time spent</dt>
+          <dd style="color: #dc2626; font-weight: 600;">{{ spentDurationLabel() }}</dd>
+        </div>
+        @if (standardFields().category.enabled !== false && task().category) {
+          <div>
+            <dt>Category</dt>
+            <dd>{{ task().category }}</dd>
+          </div>
+        }
+      </dl>
+
+      <!-- Separate People / Team Section: Created By & Assigned To -->
+      <div class="task-detail__people-section">
+        <div class="task-detail__people-grid">
+          <!-- CREATED BY -->
+          <div class="task-detail__person-group">
+            <span class="task-detail__person-label">Created By</span>
+            <div class="task-detail__user-card">
+              <div class="task-detail__avatar">
+                @if (getAvatarUrl(creatorUser()?.profileImagePath); as avatar) {
+                  <img [src]="avatar" [alt]="creatorUser()?.username" />
+                } @else {
+                  <span class="task-detail__avatar-badge task-detail__avatar-badge--creator">
+                    {{ getInitials(creatorUser()?.username || task().creatorUsername || 'Admin') }}
+                  </span>
+                }
+              </div>
+              <div class="task-detail__user-details">
+                <span class="task-detail__user-name">&#64;{{ creatorUser()?.username || task().creatorUsername || 'System' }}</span>
+                <span class="task-detail__user-role">{{ creatorUser()?.role || 'Creator' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ASSIGNED TO -->
+          @if (standardFields().assignees.enabled !== false) {
+            <div class="task-detail__person-group">
+              <span class="task-detail__person-label">Assigned To ({{ assignedUsers().length }})</span>
+              @if (assignedUsers().length > 0) {
+                <div class="task-detail__assignees-row">
+                  @for (user of assignedUsers(); track user.id) {
+                    <div class="task-detail__user-card">
+                      <div class="task-detail__avatar">
+                        @if (getAvatarUrl(user.profileImagePath); as avatar) {
+                          <img [src]="avatar" [alt]="user.username" />
+                        } @else {
+                          <span class="task-detail__avatar-badge" [style.background-color]="getUserColor(user.id)">
+                            {{ getInitials(user.username) }}
+                          </span>
+                        }
+                      </div>
+                      <div class="task-detail__user-details">
+                        <span class="task-detail__user-name">&#64;{{ user.username }}</span>
+                        @if (user.role) {
+                          <span class="task-detail__user-role">{{ user.role }}</span>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="task-detail__unassigned-tag">No assignees selected</div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (standardFields().description.enabled !== false || customFieldItems().length > 0) {
+        <section class="task-ticket__section" aria-labelledby="task-ticket-desc">
+          @if (standardFields().description.enabled !== false) {
+            <h2 id="task-ticket-desc" class="ws-subheading">Description</h2>
+            <p class="task-ticket__body">{{ task().description || 'No description provided.' }}</p>
+          }
+
+          @if (customFieldItems().length > 0) {
+            <div class="task-ticket__custom-fields">
+              @if (sectionTitle(); as secTitle) {
+                <h3 class="task-ticket__custom-section-title">{{ secTitle }}</h3>
+              }
+              <div class="task-ticket__custom-fields-grid">
+                @for (field of customFieldItems(); track field.key) {
+                  <div
+                    class="task-ticket__custom-field"
+                    [class.span-full]="field.bsCol === 'col-12' || field.columnWidth === 'full' || (!field.bsCol && !field.columnWidth && field.type === 'textarea')"
+                    [class.span-two-thirds]="field.bsCol === 'col-md-8'"
+                    [class.span-half]="field.bsCol === 'col-md-6' || field.columnWidth === 'half' || (!field.bsCol && !field.columnWidth && field.type !== 'textarea')"
+                    [class.span-third]="field.bsCol === 'col-md-4' || field.columnWidth === 'third'"
+                    [class.span-quarter]="field.bsCol === 'col-md-3' || field.columnWidth === 'quarter'"
+                    [class.field-size-sm]="field.fieldSize === 'sm'"
+                    [class.field-size-lg]="field.fieldSize === 'lg'"
+                  >
+                    <span class="task-ticket__custom-field-label">{{ field.label }}</span>
+                    @if (field.type === 'textarea') {
+                      <div class="task-ticket__custom-field-textarea">{{ field.value }}</div>
+                    } @else if (field.type === 'checkbox') {
+                      <div>
+                        <span class="ws-chip" [class.ws-chip--success]="field.value === 'Yes'" [class.ws-chip--muted]="field.value !== 'Yes'">
+                          {{ field.value }}
+                        </span>
+                      </div>
+                    } @else {
+                      <div class="task-ticket__custom-field-value">{{ field.value }}</div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </section>
+      }
+
+      @if (standardFields().tags.enabled !== false && task().tags.length) {
+        <footer class="task-ticket__footer">
+          @for (tag of task().tags; track tag) {
+            <span class="ws-chip ws-chip--muted">#{{ tag }}</span>
+          }
+        </footer>
+      }
+
+      @if (standardFields().attachments.enabled !== false && task().attachments.length) {
+        <section class="task-ticket__section task-ticket__section--border" aria-label="Attachments">
+          <h2 class="ws-subheading">Attachments ({{ task().attachments.length }})</h2>
+          @if (imageAttachments().length) {
+            <div class="task-detail__thumbs">
+              @for (attachment of imageAttachments(); track attachment.id) {
+                <button type="button" class="task-detail__thumb" (click)="openImage(attachment.dataUrl)">
+                  <img [src]="attachmentUrl(attachment.dataUrl)" [alt]="attachment.name" />
+                  <span>{{ attachment.name }}</span>
+                </button>
+              }
+            </div>
+          }
+          @if (pdfAttachments().length || excelAttachments().length || otherAttachments().length) {
+            <ul class="task-detail__files">
+              @for (attachment of pdfAttachments(); track attachment.id) {
+                <li>
+                  <button type="button" class="task-detail__file" (click)="downloadFile(attachment.dataUrl, attachment.name)">
+                    {{ attachment.name }}
+                    <span class="task-detail__file-action">Download</span>
+                  </button>
+                </li>
+              }
+              @for (attachment of excelAttachments(); track attachment.id) {
+                <li>
+                  <a class="task-detail__file" [href]="attachmentUrl(attachment.dataUrl)" [download]="attachment.name" target="_blank" rel="noopener noreferrer">
+                    {{ attachment.name }}
+                    <span class="task-detail__file-action">Download</span>
+                  </a>
+                </li>
+              }
+              @for (attachment of otherAttachments(); track attachment.id) {
+                <li>
+                  <a class="task-detail__file" [href]="attachmentUrl(attachment.dataUrl)" [download]="attachment.name" target="_blank" rel="noopener noreferrer">
+                    {{ attachment.name }}
+                    <span class="task-detail__file-action">Download</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      }
+    </article>
+
+    <aside class="task-detail__aside" aria-label="Activity log">
+      <app-task-notes [taskId]="task().id" />
+    </aside>
+  </div>
+
+  <!-- Timesheet Section utilizing FULL width across both columns -->
+  <section class="task-detail__timesheet-full" aria-label="Timesheet log">
+    @if (canLogTime()) {
+      <app-timesheet-form
+        [presetTaskTitle]="task().title"
+        [presetProjectTitle]="projectTitle() !== '—' ? projectTitle() : ''"
+        [buttonAlign]="'left'"
+        (entryAdded)="onAddTimesheetEntry($event)"
+      />
+    } @else {
+      <div class="task-detail-timesheet-locked">
+        <div class="locked-info">
+          <span class="locked-icon">⏱️</span>
+          <span class="locked-text">
+            Timesheet & work hours logging is locked in Free Trial. Upgrade your plan to log hours.
+          </span>
+        </div>
+        <button type="button" class="btn-upgrade-timesheet" (click)="openUpgradeModal()">
+          Upgrade Plan →
+        </button>
+      </div>
+    }
+
+    <app-timesheet-table
+      [entries]="taskTimesheetEntries()"
+      [hideTaskAndProject]="true"
+      [readonly]="!canLogTime()"
+      (entryUpdated)="onUpdateTimesheetEntry($event)"
+      (entryDeleted)="onDeleteTimesheetEntry($event)"
+    />
+  </section>
+</section>
+
+@if (selectedImage(); as imageUrl) {
+  <div class="task-detail-lightbox" (click)="closeImage()">
+    <div class="task-detail-lightbox__box" (click)="$event.stopPropagation()">
+      <div class="ws-form-actions">
+        <button type="button" class="btn-secondary" (click)="downloadSelectedImage()">Download</button>
+        <button type="button" class="btn-secondary" (click)="closeImage()">Close</button>
+      </div>
+      <img [src]="imageUrl" alt="Attachment preview" />
+    </div>
+  </div>
+}

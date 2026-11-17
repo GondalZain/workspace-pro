@@ -1,0 +1,125 @@
+@if (project(); as currentProject) {
+  <section class="ws-panel proj-detail">
+    <div class="proj-detail__grid">
+      <aside class="proj-detail__overview" aria-label="Project overview">
+        <div class="proj-detail__cover">
+          @if (currentProject.imagePath | projectImage; as imageUrl) {
+            <img [src]="imageUrl" [alt]="currentProject.title" class="proj-detail__media" />
+          } @else {
+            <div class="proj-detail__media proj-detail__media--empty">No cover image</div>
+          }
+        </div>
+
+        <div class="proj-detail__content">
+          <section class="proj-detail__section" aria-labelledby="proj-detail-title-heading">
+            <h2 id="proj-detail-title-heading" class="proj-detail__heading">Project title</h2>
+            <p class="proj-detail__title-text">{{ currentProject.title }}</p>
+          </section>
+
+          <section class="proj-detail__section" aria-labelledby="proj-detail-desc-heading">
+            <h2 id="proj-detail-desc-heading" class="proj-detail__heading">Description</h2>
+            <p class="proj-detail__desc">
+              {{ currentProject.description || 'No description provided.' }}
+            </p>
+          </section>
+
+          <!-- Attached Form Section & Custom Fields placed directly under Description -->
+          @if (customFieldItems().length > 0) {
+            <div class="proj-detail__custom-fields-wrap">
+              @if (sectionTitle(); as secTitle) {
+                <h2 class="proj-detail__section-title">{{ secTitle }}</h2>
+              }
+              <div class="proj-detail__custom-fields-grid">
+                @for (item of customFieldItems(); track item.key) {
+                  <section
+                    class="proj-detail__section proj-detail__custom-field-section"
+                    [class.span-full]="item.bsCol === 'col-12' || item.columnWidth === 'full' || (!item.bsCol && !item.columnWidth && item.type === 'textarea')"
+                    [class.span-two-thirds]="item.bsCol === 'col-md-8'"
+                    [class.span-half]="item.bsCol === 'col-md-6' || item.columnWidth === 'half' || (!item.bsCol && !item.columnWidth && item.type !== 'textarea')"
+                    [class.span-third]="item.bsCol === 'col-md-4' || item.columnWidth === 'third'"
+                    [class.span-quarter]="item.bsCol === 'col-md-3' || item.columnWidth === 'quarter'"
+                    [class.field-size-sm]="item.fieldSize === 'sm'"
+                    [class.field-size-lg]="item.fieldSize === 'lg'"
+                  >
+                    <h2 class="proj-detail__heading">{{ item.label }}</h2>
+                    @if (item.type === 'textarea') {
+                      <p class="proj-detail__desc proj-detail__custom-field-desc">{{ item.value }}</p>
+                    } @else if (item.type === 'checkbox') {
+                      <div>
+                        <span class="proj-detail__chip-pill" [class.proj-detail__chip-pill--active]="item.value === 'Yes'">
+                          {{ item.value }}
+                        </span>
+                      </div>
+                    } @else {
+                      <p class="proj-detail__value-text">{{ item.value }}</p>
+                    }
+                  </section>
+                }
+              </div>
+            </div>
+          }
+
+          <ul class="proj-detail__meta">
+            <li>
+              <span class="proj-detail__meta-key">Created</span>
+              <span class="proj-detail__meta-val">{{ currentProject.createdAt ? (currentProject.createdAt | date:'mediumDate') : '—' }}</span>
+            </li>
+            @if (currentProject.creatorUsername) {
+              <li>
+                <span class="proj-detail__meta-key">Owner</span>
+                <span class="proj-detail__meta-val">{{ currentProject.creatorUsername }}</span>
+              </li>
+            }
+            <li>
+              <span class="proj-detail__meta-key">Tasks</span>
+              <span class="proj-detail__meta-val">{{ tasks().length }}</span>
+            </li>
+          </ul>
+        </div>
+      </aside>
+
+      <div class="proj-detail__tasks">
+        <header class="proj-detail__tasks-head">
+          <div>
+            <p class="proj-detail__heading">Project tasks</p>
+            <p class="proj-detail__tasks-meta">
+              {{ tasks().length }} linked to this project
+            </p>
+          </div>
+          <button type="button" class="btn-primary" (click)="newTask.emit()">New task</button>
+        </header>
+
+        @if (tasks().length > 0) {
+          <div class="proj-detail__tasks-table">
+          <app-task-list
+            layout="table"
+            tableVariant="compact"
+            [tasks]="tasks()"
+            [allTasksCount]="tasks().length"
+            [selectedFilter]="'all'"
+            [currentUserId]="currentUserId()"
+            [currentUsername]="currentUsername()"
+            [isAdmin]="isAdmin()"
+            (taskSelected)="taskSelected.emit($event)"
+            (taskToggled)="taskToggled.emit($event)"
+            (taskStatusChanged)="taskStatusChanged.emit($event)"
+            (taskDeleted)="taskDeleted.emit($event)"
+            (taskEdited)="taskEdited.emit($event)"
+          />
+          </div>
+        } @else {
+          <div class="proj-detail__empty">
+            <p>No tasks on this project yet.</p>
+            <button type="button" class="btn-secondary" (click)="newTask.emit()">Create first task</button>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+} @else {
+  <section class="ws-panel proj-detail proj-detail--missing">
+    <p class="proj-detail__heading">Project</p>
+    <p><strong>Project not found</strong></p>
+    <p class="proj-detail__desc">It may have been removed or the link is invalid.</p>
+  </section>
+}

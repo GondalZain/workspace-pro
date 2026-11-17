@@ -1,0 +1,57 @@
+RewriteEngine On
+RewriteBase /todo/
+
+# 1. SECURITY HEADERS (Allows HTTP & HTTPS API/Asset connections for XAMPP & Production)
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set X-XSS-Protection "1; mode=block"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  Header always set Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' http: https: data: blob: ws: wss:;"
+  Header unset Server
+  Header unset X-Powered-By
+</IfModule>
+
+# 2. GZIP / DEFLATE COMPRESSION
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/json application/xml image/svg+xml font/woff2
+  SetOutputFilter DEFLATE
+</IfModule>
+
+# 3. CACHE-CONTROL & EXPIRES FOR STATIC & VERSIONED ASSETS
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType application/json "access plus 0 seconds"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/x-icon "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+  # Long cache for hashed/versioned static assets
+  <FilesMatch \.(js|css|ico|jpg|jpeg|png|gif|svg|woff|woff2|ttf|eot|avif|webp)$>
+    Header set Cache-Control "max-age=31536000, public, immutable"
+  </FilesMatch>
+  # Dynamic HTML and runtime env.js must never be stale-cached
+  <FilesMatch ^(index\.html|env\.js)$>
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires 0
+  </FilesMatch>
+</IfModule>
+
+# 4. Handle audit 404 probe URLs with genuine 404 status
+RewriteRule ^seo-checker-not-found-page - [R=404,L]
+
+# 5. Serve existing files and directories normally.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# 6. Angular SPA fallback for known application routes
+RewriteRule ^ index.html [L]

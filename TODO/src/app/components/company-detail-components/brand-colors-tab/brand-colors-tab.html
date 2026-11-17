@@ -1,0 +1,213 @@
+<section class="card detail-card">
+  <div class="card-head">
+    <div class="head-title">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/>
+        <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/>
+        <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/>
+        <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/>
+        <path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 3.582 8 8 8 1.105 0 2-.895 2-2 0-.486-.173-.928-.464-1.272A1.996 1.996 0 0 1 11 15.5c0-1.105.895-2 2-2h1.5C18.642 13.5 22 10.142 22 6c0-2.209-4.477-4-10-4z"/>
+      </svg>
+      <h3>Brand Colors &amp; Theme System</h3>
+    </div>
+    <p>Configure custom primary accent and secondary container theme colors for <strong>{{ companyName }}</strong>.</p>
+  </div>
+
+  <form (ngSubmit)="saveColors.emit()" class="card-body">
+    <!-- SECTION 1: COLOR PICKERS GRID -->
+    <div class="theme-config-section">
+      <div class="section-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2v20M2 12h20"/>
+        </svg>
+        <h4>Brand Color Pickers</h4>
+      </div>
+
+      <div class="color-pickers-grid">
+        <!-- Primary Accent Color Card -->
+        <div class="color-picker-card">
+          <div class="picker-card-header">
+            <div class="picker-label-group">
+              <span class="picker-title">Primary Brand Color</span>
+              <span class="picker-subtitle">Buttons, Active Badges, CTAs &amp; Highlights</span>
+            </div>
+            <span class="color-preview-swatch" [style.background]="primaryColor()"></span>
+          </div>
+
+          <div class="color-input-group">
+            <div class="picker-box-wrapper">
+              <input
+                type="color"
+                [(ngModel)]="primaryColor"
+                (ngModelChange)="onPrimaryChange($event)"
+                name="primaryColorPicker"
+                class="native-color-input"
+                title="Choose Primary Color"
+              />
+            </div>
+            <div class="hex-input-wrapper">
+              <span class="hex-prefix">HEX</span>
+              <input
+                type="text"
+                [(ngModel)]="primaryColor"
+                (ngModelChange)="onPrimaryChange($event)"
+                name="primaryColorHex"
+                class="hex-text-input"
+                placeholder="#0F766E"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Secondary Surface Color Card -->
+        <div class="color-picker-card">
+          <div class="picker-card-header">
+            <div class="picker-label-group">
+              <span class="picker-title">Secondary Brand Color</span>
+              <span class="picker-subtitle">Surfaces, Card Headers &amp; Containers</span>
+            </div>
+            <span class="color-preview-swatch" [style.background]="secondaryColor()" style="border: 1px solid #cbd5e1;"></span>
+          </div>
+
+          <div class="color-input-group">
+            <div class="picker-box-wrapper">
+              <input
+                type="color"
+                [(ngModel)]="secondaryColor"
+                (ngModelChange)="onSecondaryChange($event)"
+                name="secondaryColorPicker"
+                class="native-color-input"
+                title="Choose Secondary Color"
+              />
+            </div>
+            <div class="hex-input-wrapper">
+              <span class="hex-prefix">HEX</span>
+              <input
+                type="text"
+                [(ngModel)]="secondaryColor"
+                (ngModelChange)="onSecondaryChange($event)"
+                name="secondaryColorHex"
+                class="hex-text-input"
+                placeholder="#FFFFFF"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2: QUICK COLOR PRESETS -->
+      <div class="preset-section">
+        <div class="preset-header">
+          <span class="preset-title">Quick Palette Presets:</span>
+          <span class="preset-hint">Click a preset to instantly apply pre-curated color schemes</span>
+        </div>
+
+        <div class="preset-grid">
+          @for (preset of presetColors; track preset.name) {
+            <button
+              type="button"
+              class="preset-card-chip"
+              [class.active]="isPresetActive(preset)"
+              (click)="setPreset.emit({ primary: preset.primary, secondary: preset.secondary })"
+            >
+              <div class="preset-dots-pair">
+                <span class="dot-primary" [style.background]="preset.primary"></span>
+                <span class="dot-secondary" [style.background]="preset.secondary"></span>
+              </div>
+              <span class="preset-name">{{ preset.name }}</span>
+              @if (isPresetActive(preset)) {
+                <svg class="active-check-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              }
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- SECTION 3: RICH INTERACTIVE LIVE THEME PREVIEW MOCKUP -->
+      <div class="live-preview-section">
+        <div class="preview-header-bar">
+          <div class="preview-badge-tag" [style.background]="primaryColor()">
+            <span class="pulse-ring"></span>
+            <span>Live Workspace Theme Preview</span>
+          </div>
+          <span class="tenant-name-tag">{{ companyName || 'Company Workspace' }}</span>
+        </div>
+
+        <!-- Realistic Workspace UI Mockup Box -->
+        <div class="mock-workspace-card" [style.background]="secondaryColor()" [style.border-color]="primaryColor()">
+          <div class="mock-sidebar" [style.border-right-color]="primaryColor() + '30'">
+            <div class="mock-brand" [style.color]="primaryColor()">
+              <div class="mock-logo-dot" [style.background]="primaryColor()"></div>
+              <span>{{ companyName || 'Workspace' }}</span>
+            </div>
+            <div class="mock-nav-item active" [style.background]="primaryColor() + '18'" [style.color]="primaryColor()">
+              <div class="mock-nav-dot" [style.background]="primaryColor()"></div>
+              <span>Dashboard</span>
+            </div>
+            <div class="mock-nav-item">
+              <span>Tasks &amp; Projects</span>
+            </div>
+            <div class="mock-nav-item">
+              <span>Team Members</span>
+            </div>
+          </div>
+
+          <div class="mock-main-content">
+            <div class="mock-top-bar">
+              <span class="mock-heading" [style.color]="primaryColor()">Project Overview</span>
+              <button type="button" class="mock-btn-cta" [style.background]="primaryColor()">
+                + New Task
+              </button>
+            </div>
+
+            <div class="mock-card-sample">
+              <div class="mock-card-header">
+                <span class="mock-card-title">Active Sprint #12</span>
+                <span class="mock-pill-tag" [style.background]="primaryColor() + '20'" [style.color]="primaryColor()">In Progress</span>
+              </div>
+              <p class="mock-card-desc">All UI components, active state highlights, buttons, and navigation drawers dynamically adapt to this theme.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD FOOTER ACTIONS -->
+    <div class="card-foot">
+      @if (successMessage) {
+        <span class="inline-success-toast">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span>{{ successMessage }}</span>
+        </span>
+      }
+      @if (errorMessage) {
+        <span class="inline-error-toast">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>{{ errorMessage }}</span>
+        </span>
+      }
+
+      <button type="submit" class="btn-save" [disabled]="isSaving" [style.background]="primaryColor()">
+        @if (isSaving) {
+          <span class="btn-spinner"></span>
+          <span>Saving Theme...</span>
+        } @else {
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          <span>Save Brand Colors &amp; Theme</span>
+        }
+      </button>
+    </div>
+  </form>
+</section>

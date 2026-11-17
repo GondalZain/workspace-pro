@@ -1,0 +1,19 @@
+CREATE TABLE IF NOT EXISTS projects (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id BIGINT UNSIGNED NULL,
+  title VARCHAR(255) NOT NULL,
+  description TEXT NULL,
+  image_path VARCHAR(500) NULL,
+  created_at DATETIME NOT NULL,
+  PRIMARY KEY (id),
+  INDEX index_projects_user_id (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE tasks
+  ADD COLUMN IF NOT EXISTS project_id BIGINT UNSIGNED NULL AFTER user_id;
+
+ALTER TABLE tasks
+  ADD CONSTRAINT fk_tasks_project
+  FOREIGN KEY (project_id) REFERENCES projects(id)
+  ON DELETE SET NULL
+  ON UPDATE CASCADE;

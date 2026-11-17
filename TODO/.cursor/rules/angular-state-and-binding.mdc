@@ -1,0 +1,62 @@
+---
+description: Angular state — signals internally, model() at component boundaries for two-way UI
+globs: src/app/**/*.{ts,html}
+alwaysApply: false
+---
+
+# Angular state & binding (Option B)
+
+Signals everywhere; **`model()` only where parent and child share the same live UI value.**
+
+## Where to use what
+
+| Need | API | Template |
+|------|-----|----------|
+| Internal / page-only state | `signal()`, `computed()` | `count()` in template |
+| Store or service data | inject store signals | `taskStore.tasks()` |
+| Shared UI state with parent | `model()` on child **and** parent | `[(searchTerm)]="searchTerm"` |
+| Read-only config | `input()` | `[showSort]="true"` |
+| Actions (save, delete, navigate) | `output()` | `(submitted)="onSave($event)"` |
+
+Do **not** convert `isLoading`, `errorMessage`, or store lists to `model()` — nothing to two-way bind.
+
+**Internal-only state** (no parent uses `[(prop)]` on this component) → `signal()`. Wiring to a child `model()`:
+
+```html
+<app-search-field [query]="searchQuery()" (queryChange)="searchQuery.set($event)" />
+```
+
+**Page ↔ reusable child** shared state → both use `model()` + `[(prop)]`.
+
+## Reactive forms + parent binding
+
+In the child constructor (injection context):
+
+```typescript
+linkFormGroupToModels(this.form, {
+  searchTerm: this.searchTerm,
+  priority: this.selectedPriority,
+});
+```
+
+Single control: `linkFormControlToModel(control, this.query)`.
+
+Use `patchFormIfChanged` when syncing **into** forms from external data (avoid cursor jump).
+
+## Anti-patterns
+
+```typescript
+// ❌ Same value as input + *Changed output — use model() instead
+readonly searchTerm = input('');
+readonly searchChanged = output<string>();
+
+// ❌ model() for one-shot events
+readonly saved = model<NewTask>(); // use output<NewTask>()
+```
+
+## New presentational component checklist
+
+1. Config / data in → `input()` or `input.required()`.
+2. User actions out → `output()`.
+3. Parent must hold same value (search, filters, picker) → `model()` + document `[(prop)]` in selector comment.
+4. Form inside → builders in `core/forms/` + link helpers above.

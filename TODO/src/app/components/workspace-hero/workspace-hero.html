@@ -1,0 +1,25 @@
+<div class="welcome-hero" [class.compact]="compact()">
+  <div class="welcome-content">
+    @if (badge()) {
+      <div class="welcome-badge">
+        <span class="pulse-indicator"></span>
+        <span>{{ badge() }}</span>
+        @if (badgeMeta()) {
+          <span class="badge-separator">•</span>
+          <span class="date-text">{{ badgeMeta() }}</span>
+        }
+      </div>
+    }
+    @if (title()) {
+      <h1 class="welcome-title">{{ title() }}</h1>
+    } @else {
+      <ng-content select="[heroTitle]" />
+    }
+    @if (subtitle()) {
+      <p class="welcome-subtitle">{{ subtitle() }}</p>
+    }
+  </div>
+  <div class="welcome-actions">
+    <ng-content select="[heroActions]" />
+  </div>
+</div>

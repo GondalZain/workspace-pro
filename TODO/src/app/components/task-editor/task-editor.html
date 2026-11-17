@@ -1,0 +1,381 @@
+<div class="task-page">
+  @if (showWayfinding()) {
+  <div class="page-nav">
+    <button type="button" class="back-btn" (click)="cancelled.emit()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="19" y1="12" x2="5" y2="12" />
+        <polyline points="12 19 5 12 12 5" />
+      </svg>
+      <span>{{ backLabel() }}</span>
+    </button>
+    <div class="page-actions">
+      <button type="button" class="btn-secondary" (click)="cancelled.emit()">Cancel</button>
+      <button type="button" class="btn-primary" (click)="save()">Save Changes</button>
+    </div>
+  </div>
+  }
+
+  <div class="task-header-card">
+    <div class="header-top-row">
+      <div class="badge-row">
+        <span class="chip chip-mode">{{ task() ? 'Edit Task' : 'New Task' }}</span>
+        @if (task()) {
+        <span class="chip chip-status" [class.completed]="form.controls.status.value === 'completed'">{{
+          form.controls.status.value }}</span>
+        <span class="chip chip-priority" [class]="'priority-' + form.controls.priority.value">{{
+          form.controls.priority.value }} Priority</span>
+        }
+      </div>
+    </div>
+
+    <h1 class="task-main-title">{{ task() ? ('Editing: ' + (task()?.title || '')) : 'Create New Task' }}</h1>
+    <p class="header-subtitle">
+      @if (selectedTemplate(); as activeTmpl) {
+      @if (activeTmpl.description) {
+      {{ activeTmpl.description }}
+      } @else {
+      Update task details, schedule, tags, and file attachments.
+      }
+      } @else {
+      Update task details, schedule, tags, and file attachments.
+      }
+    </p>
+  </div>
+
+  <!-- Structured 2-Column Form Driven by Chosen Template -->
+  <form class="editor-grid" [formGroup]="form" (ngSubmit)="save()">
+    <!-- Left Column: Main Details & Attachments -->
+    <div class="main-col">
+      <!-- General Information -->
+      <div class="card">
+        <h2 class="card-heading">General Information</h2>
+
+        <!-- Task Title: Always Required -->
+        <div class="form-group">
+          <label for="task-title">Task Title <span class="required-star">*</span></label>
+          <input id="task-title" class="form-input" formControlName="title" placeholder="Task title..." />
+          <app-form-field-error [control]="form.controls.title" fieldLabel="Task title"
+            [showAfterSubmit]="submitAttempted()" />
+        </div>
+
+        <!-- Description (Conditional on Template) -->
+        @if (standardFields().description.enabled) {
+        <div class="form-group">
+          <label for="task-desc">
+            Description
+            @if (standardFields().description.required) {
+            <span class="required-star">*</span>
+            }
+          </label>
+          <textarea id="task-desc" class="form-textarea" rows="5" formControlName="description"
+            placeholder="Add task description or context..."></textarea>
+        </div>
+        }
+
+        <!-- Custom Fields Defined in this Form Template -->
+        @if (templateCustomFields().length > 0) {
+        <div class="template-custom-fields-container">
+          <div class="custom-fields-subhead">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+            <span>{{ selectedTemplate()?.fieldsConfig?.sectionTitle || 'Custom Fields' }}</span>
+          </div>
+
+          <div class="custom-fields-grid">
+            @for (field of templateCustomFields(); track field.fieldKey) {
+            <div class="form-group"
+              [class.span-full]="field.bsCol === 'col-12' || field.columnWidth === 'full' || (!field.bsCol && !field.columnWidth && field.fieldType === 'textarea')"
+              [class.span-half]="field.bsCol === 'col-md-6' || field.columnWidth === 'half' || (!field.bsCol && !field.columnWidth && field.fieldType !== 'textarea')"
+              [class.span-third]="field.bsCol === 'col-md-4' || field.columnWidth === 'third'"
+              [class.span-quarter]="field.bsCol === 'col-md-3' || field.columnWidth === 'quarter'"
+              [class.field-size-sm]="field.fieldSize === 'sm'" [class.field-size-lg]="field.fieldSize === 'lg'">
+              <label [for]="'cf-' + field.fieldKey">
+                {{ field.fieldName }}
+                @if (field.isRequired) {
+                <span class="required-star">*</span>
+                }
+              </label>
+
+              <!-- Text / Email / Phone / URL / Time Inputs -->
+              @if (field.fieldType === 'text' || field.fieldType === 'email' || field.fieldType === 'phone' ||
+              field.fieldType === 'url' || field.fieldType === 'time') {
+              <input [id]="'cf-' + field.fieldKey" [type]="
+                        field.fieldType === 'email' ? 'email' :
+                        field.fieldType === 'phone' ? 'tel' :
+                        field.fieldType === 'url' ? 'url' :
+                        field.fieldType === 'time' ? 'time' : 'text'
+                      " class="form-input" [placeholder]="field.placeholder || ''" [readonly]="!!field.isReadonly"
+                [ngModel]="customFields()[field.fieldKey] ?? field.defaultValue ?? ''"
+                (ngModelChange)="onCustomFieldChange(field.fieldKey, $event)" [ngModelOptions]="{ standalone: true }" />
+              }
+
+              <!-- Textarea Input -->
+              @if (field.fieldType === 'textarea') {
+              <textarea [id]="'cf-' + field.fieldKey" class="form-textarea" rows="3"
+                [placeholder]="field.placeholder || ''" [readonly]="!!field.isReadonly"
+                [ngModel]="customFields()[field.fieldKey] ?? field.defaultValue ?? ''"
+                (ngModelChange)="onCustomFieldChange(field.fieldKey, $event)"
+                [ngModelOptions]="{ standalone: true }"></textarea>
+              }
+
+              <!-- Number Input -->
+              @if (field.fieldType === 'number') {
+              <input [id]="'cf-' + field.fieldKey" type="number" class="form-input"
+                [placeholder]="field.placeholder || '0'" [readonly]="!!field.isReadonly"
+                [ngModel]="customFields()[field.fieldKey] ?? field.defaultValue"
+                (ngModelChange)="onCustomFieldChange(field.fieldKey, $event)" [ngModelOptions]="{ standalone: true }" />
+              }
+
+              <!-- Date Input -->
+              @if (field.fieldType === 'date') {
+              <input [id]="'cf-' + field.fieldKey" type="date" class="form-input" [readonly]="!!field.isReadonly"
+                [ngModel]="customFields()[field.fieldKey] ?? field.defaultValue ?? ''"
+                (ngModelChange)="onCustomFieldChange(field.fieldKey, $event)" [ngModelOptions]="{ standalone: true }" />
+              }
+
+              <!-- Dropdown Input -->
+              @if (field.fieldType === 'dropdown') {
+              <select [id]="'cf-' + field.fieldKey" class="form-select" [disabled]="!!field.isReadonly"
+                [ngModel]="customFields()[field.fieldKey] ?? field.defaultValue ?? ''"
+                (ngModelChange)="onCustomFieldChange(field.fieldKey, $event)" [ngModelOptions]="{ standalone: true }">
+                <option value="">{{ field.placeholder || 'Select an option...' }}</option>
+                @for (opt of field.options; track opt) {
+                <option [value]="opt">{{ opt }}</option>
+                }
+              </select>
+              }
+
+              <!-- Radio Buttons Input -->
+              @if (field.fieldType === 'radio') {
+              <div class="custom-radio-group" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                @for (opt of field.options || []; track opt) {
+                <label class="custom-checkbox-row" style="margin: 0;">
+                  <input type="radio" [name]="'cf-radio-' + field.fieldKey" [value]="opt"
+                    [disabled]="!!field.isReadonly"
+                    [checked]="(customFields()[field.fieldKey] ?? field.defaultValue) === opt"
+                    (change)="onCustomFieldChange(field.fieldKey, opt)" />
+                  <span>{{ opt }}</span>
+                </label>
+                }
+              </div>
+              }
+
+              <!-- Checkbox Input -->
+              @if (field.fieldType === 'checkbox') {
+              <label class="custom-checkbox-row">
+                <input type="checkbox" [id]="'cf-' + field.fieldKey" [disabled]="!!field.isReadonly"
+                  [ngModel]="customFields()[field.fieldKey] === true || customFields()[field.fieldKey] === 'true' || (customFields()[field.fieldKey] === undefined && field.defaultValue === 'true')"
+                  (ngModelChange)="onCustomFieldChange(field.fieldKey, $event)"
+                  [ngModelOptions]="{ standalone: true }" />
+                <span>{{ field.placeholder || 'Yes, confirmed' }}</span>
+              </label>
+              }
+
+              @if (field.description) {
+              <span class="field-help-text">{{ field.description }}</span>
+              }
+
+              @if (field.isRequired && submitAttempted() && !customFields()[field.fieldKey]) {
+              <span class="field-error-text">{{ field.fieldName }} is required.</span>
+              }
+            </div>
+            }
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- Attachments Section (Conditional on Template) -->
+      @if (standardFields().attachments.enabled) {
+      <app-file-attachment-uploader [disabled]="isPreviewMode()" [attachments]="attachments()"
+        (attachmentsChange)="onAttachmentsChange($event)" />
+      }
+    </div>
+
+    <!-- Right Column: Settings & Actions -->
+    <div class="side-col">
+      <!-- Master Card: Project & Status -->
+      <div class="card">
+        <h2 class="card-heading">Project &amp; Status</h2>
+        <div class="form-group">
+          <label for="task-project">Project <span class="required-star">*</span></label>
+          <select id="task-project" class="form-select" formControlName="projectId" (change)="onProjectChange()">
+            <option [ngValue]="null" disabled>Select a project</option>
+            @for (project of projectOptions(); track project.id) {
+            <option [ngValue]="project.id">{{ project.title }}</option>
+            }
+          </select>
+          <app-form-field-error [control]="form.controls.projectId" fieldLabel="Project"
+            [showAfterSubmit]="submitAttempted()" />
+        </div>
+
+        <!-- Status & Priority (Independent checks based on template) -->
+        @if (standardFields().status.enabled && standardFields().priority.enabled) {
+        <div class="grid-2col-sm">
+          <div class="form-group">
+            <label for="task-status">Status</label>
+            <select id="task-status" class="form-select" formControlName="status">
+              @for (st of statusOptions(); track (st.id || st.name)) {
+              <option [value]="st.name">{{ st.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="task-priority">
+              Priority
+              @if (standardFields().priority.required) {
+              <span class="required-star">*</span>
+              }
+            </label>
+            <select id="task-priority" class="form-select" formControlName="priority">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+        </div>
+        } @else if (standardFields().status.enabled) {
+        <div class="form-group">
+          <label for="task-status">Status</label>
+          <select id="task-status" class="form-select" formControlName="status">
+            @for (st of statusOptions(); track (st.id || st.name)) {
+            <option [value]="st.name">{{ st.name }}</option>
+            }
+          </select>
+        </div>
+        } @else if (standardFields().priority.enabled) {
+        <div class="form-group">
+          <label for="task-priority">
+            Priority
+            @if (standardFields().priority.required) {
+            <span class="required-star">*</span>
+            }
+          </label>
+          <select id="task-priority" class="form-select" formControlName="priority">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+        }
+      </div>
+
+      <!-- Creator & Assignees Section (Conditional on Template) -->
+      @if (standardFields().assignees.enabled) {
+      <app-user-assignee-picker [task]="task()" [assigneeIds]="form.controls.assigneeIds.value"
+        (assigneeIdsChange)="onAssigneeIdsChange($event)" />
+      }
+
+      <!-- Schedule & Effort (Conditional on Template) -->
+      @if (standardFields().dueDate.enabled || standardFields().dueTime.enabled ||
+      standardFields().estimatedTime.enabled) {
+      <div class="card">
+        <h2 class="card-heading">Schedule &amp; Effort</h2>
+
+        @if (standardFields().dueDate.enabled && standardFields().dueTime.enabled) {
+        <div class="grid-2col-sm">
+          <div class="form-group">
+            <label for="task-date">
+              Due Date
+              @if (standardFields().dueDate.required) {
+              <span class="required-star">*</span>
+              }
+            </label>
+            <input id="task-date" type="date" class="form-input" formControlName="dueDate" />
+          </div>
+          <div class="form-group">
+            <label for="task-time">Due Time</label>
+            <input id="task-time" type="time" class="form-input" formControlName="dueTime" />
+          </div>
+        </div>
+        } @else if (standardFields().dueDate.enabled) {
+        <div class="form-group">
+          <label for="task-date">
+            Due Date
+            @if (standardFields().dueDate.required) {
+            <span class="required-star">*</span>
+            }
+          </label>
+          <input id="task-date" type="date" class="form-input" formControlName="dueDate" />
+        </div>
+        } @else if (standardFields().dueTime.enabled) {
+        <div class="form-group">
+          <label for="task-time">Due Time</label>
+          <input id="task-time" type="time" class="form-input" formControlName="dueTime" />
+        </div>
+        }
+
+        @if (standardFields().estimatedTime.enabled) {
+        <div class="form-group">
+          <label for="task-estimated-hours">
+            Estimated Time
+            @if (standardFields().estimatedTime.required) {
+            <span class="required-star">*</span>
+            }
+          </label>
+          <div class="duration-picker-box">
+            <div class="duration-input-group">
+              <input id="task-estimated-hours" type="number" class="duration-field" formControlName="estimatedHours"
+                min="0" max="999" placeholder="0" aria-label="Estimated hours" />
+              <span class="duration-unit">hrs</span>
+            </div>
+            <div class="duration-input-group">
+              <input id="task-estimated-minutes" type="number" class="duration-field"
+                formControlName="estimatedMinutesPart" min="0" max="59" placeholder="0"
+                aria-label="Estimated minutes" />
+              <span class="duration-unit">mins</span>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+      }
+
+      <!-- Organization (Conditional on Template) -->
+      @if (standardFields().category.enabled || standardFields().tags.enabled) {
+      <div class="card">
+        <h2 class="card-heading">Organization</h2>
+        @if (standardFields().category.enabled) {
+        <div class="form-group">
+          <label for="task-category">
+            Category
+            @if (standardFields().category.required) {
+            <span class="required-star">*</span>
+            }
+          </label>
+          <input id="task-category" class="form-input" formControlName="category"
+            placeholder="Category (e.g. Bug, Feature, Support)..." />
+        </div>
+        }
+        @if (standardFields().tags.enabled) {
+        <div class="form-group">
+          <label for="task-tags">Tags</label>
+          <input id="task-tags" class="form-input" formControlName="tags" placeholder="comma, separated..." />
+        </div>
+        @if (parsedTags().length) {
+        <div class="tag-chips">
+          @for (tag of parsedTags(); track tag) {
+          <span class="tag">#{{ tag }}</span>
+          }
+        </div>
+        }
+        }
+      </div>
+      }
+
+      <!-- Save Actions -->
+      <div class="card actions-card">
+        <button type="submit" class="btn-primary-block" [disabled]="isPreviewMode()">
+          {{ task() ? 'Save Changes' : 'Create Task' }}
+        </button>
+        <button type="button" class="btn-secondary-block" [disabled]="isPreviewMode()"
+          (click)="!isPreviewMode() && cancelled.emit()">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,112 @@
+<div class="timesheet-card">
+  <!-- Professional Header Bar -->
+  <div class="timesheet-card-header">
+    <div class="header-title-group">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+        <line x1="16" y1="2" x2="16" y2="6" />
+        <line x1="8" y1="2" x2="8" y2="6" />
+        <line x1="3" y1="10" x2="21" y2="10" />
+      </svg>
+      <h3>Timesheet Log</h3>
+    </div>
+    <div class="header-meta">
+      <span class="count-badge">Total Entries: <strong>{{ entries.length }}</strong></span>
+    </div>
+  </div>
+
+  <!-- Table Container -->
+  <div class="table-responsive">
+    <table class="timesheet-table">
+      <thead>
+        <tr>
+          <th class="col-seq">#</th>
+          <th class="col-title">Title</th>
+          <th class="col-desc">Description</th>
+          @if (!hideTaskAndProject) {
+          <th class="col-task">Task</th>
+          <th class="col-project">Project</th>
+          }
+          <th class="col-time">Time Spent</th>
+          <th class="col-date">Date</th>
+          @if (!readonly) {
+          <th class="col-actions">Actions</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (entry of entries; track entry.id) {
+        @if (editingId() === entry.id) {
+        <!-- Edit Row -->
+        <tr class="row-editing">
+          <td class="col-seq">{{ entry.seqNo }}</td>
+          <td>
+            <input type="text" [(ngModel)]="editBuffer.title" class="table-input" placeholder="Title" />
+          </td>
+          <td>
+            <input type="text" [(ngModel)]="editBuffer.description" class="table-input" placeholder="Description" />
+          </td>
+          @if (!hideTaskAndProject) {
+          <td>
+            <input type="text" [(ngModel)]="editBuffer.task" class="table-input" placeholder="Task" />
+          </td>
+          <td>
+            <input type="text" [(ngModel)]="editBuffer.project" class="table-input" placeholder="Project" />
+          </td>
+          }
+          <td>
+            <input type="text" [(ngModel)]="editBuffer.time" class="table-input" placeholder="Time" />
+          </td>
+          <td>
+            <input type="date" [(ngModel)]="editBuffer.date" class="table-input" />
+          </td>
+          <td class="col-actions">
+            <button type="button" class="btn-save" (click)="saveEdit(entry.id)" title="Save changes">✓</button>
+            <button type="button" class="btn-cancel-edit" (click)="cancelEdit()" title="Cancel">✕</button>
+          </td>
+        </tr>
+        } @else {
+        <!-- Read-only Row -->
+        <tr class="row-data">
+          <td class="col-seq">{{ entry.seqNo }}</td>
+          <td class="font-medium text-dark">{{ entry.title }}</td>
+          <td class="text-secondary">{{ entry.description || '-' }}</td>
+          @if (!hideTaskAndProject) {
+          <td>
+            <span class="tag-badge tag-task">{{ entry.task || '-' }}</span>
+          </td>
+          <td>
+            <span class="tag-badge tag-project">{{ entry.project || '-' }}</span>
+          </td>
+          }
+          <td class="font-semibold text-accent">{{ entry.time }}</td>
+          <td class="text-muted font-sm">{{ entry.date || '-' }}</td>
+          @if (!readonly) {
+          <td class="col-actions">
+            <button type="button" class="btn-icon" (click)="startEdit(entry)" title="Edit Entry">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 1 2 2h14a2 2 0 0 1 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </button>
+            <button type="button" class="btn-icon btn-delete" (click)="deleteEntry(entry.id)" title="Delete Entry">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+            </button>
+          </td>
+          }
+        </tr>
+        }
+        } @empty {
+        <tr>
+          <td [attr.colspan]="hideTaskAndProject ? (readonly ? 5 : 6) : (readonly ? 7 : 8)" class="empty-state">
+            No timesheet entries logged yet. Click <strong>"Add Timesheet Entry"</strong> above to record a new entry.
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,50 @@
+<section class="ws-panel ws-panel--flush kanban-shell" aria-labelledby="kanban-board-heading">
+  <div class="kanban-shell__command">
+    <header class="kanban-shell__head">
+      <div>
+        <h2 id="kanban-board-heading" class="kanban-shell__title">Kanban board</h2>
+        <p class="kanban-shell__meta">
+          {{ tasks().length }}@if (totalCount() !== null && totalCount() !== tasks().length) {
+            of {{ totalCount() }}
+          } tasks · drag cards between columns to update status
+        </p>
+      </div>
+      @if (canDragDrop()) {
+        <span class="ws-chip ws-chip--muted">Drag &amp; drop enabled</span>
+      } @else {
+        <button type="button" class="ws-chip ws-chip--locked" (click)="openUpgradeModal()" title="Upgrade to Ultra Plan to enable Drag & Drop">
+          🔒 Drag &amp; drop in Ultra Plan
+        </button>
+      }
+    </header>
+
+    <div class="kanban-shell__toolbar-row">
+      <app-task-board-toolbar
+        class="kanban-shell__toolbar"
+        [inline]="true"
+        [searchPlaceholder]="searchPlaceholder()"
+        [showScopeToggle]="showScopeToggle()"
+        [(searchTerm)]="searchTerm"
+        [(selectedPriority)]="selectedPriority"
+        [(selectedScope)]="selectedScope"
+      />
+      @if (canCreateTasks()) {
+        <a class="btn-create-task" [routerLink]="taskNewUrl">New task</a>
+      }
+    </div>
+  </div>
+
+  <div class="kanban-shell__body">
+    <app-kanban-board
+      [tasks]="tasks()"
+      [currentUserId]="currentUserId()"
+      [currentUsername]="currentUsername()"
+      [isAdmin]="isAdmin()"
+      (taskSelected)="taskSelected.emit($event)"
+      (taskEdited)="taskEdited.emit($event)"
+      (taskDeleted)="taskDeleted.emit($event)"
+      (quickAddClicked)="quickAddClicked.emit($event)"
+      (taskStatusChanged)="taskStatusChanged.emit($event)"
+    />
+  </div>
+</section>

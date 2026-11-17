@@ -1,0 +1,51 @@
+<div class="user-mention-container" [class.has-active-mention]="hasMentionActive()">
+  @if (showMentionMenu()) {
+    <div class="mention-dropdown">
+      <div class="mention-header">
+        <span>Tag a team member</span>
+        @if (mentionQuery()) {
+          <span class="query-badge">Searching "{{ mentionQuery() }}"</span>
+        }
+      </div>
+
+      @if (filteredUsers().length === 0) {
+        <div class="mention-empty">
+          No team members found matching "{{ mentionQuery() }}"
+        </div>
+      } @else {
+        @for (user of filteredUsers(); track user.id; let i = $index) {
+          <div
+            class="mention-item"
+            [class.selected]="i === mentionSelectedIndex()"
+            (mousedown)="selectMentionUser(user); $event.preventDefault()"
+            (mouseenter)="mentionSelectedIndex.set(i)"
+          >
+            <div class="mention-avatar-sm">
+              @if (avatarUrl(user.profileImagePath); as src) {
+                <img [src]="src" [alt]="user.username" />
+              } @else {
+                <span>{{ getInitials(user.username) }}</span>
+              }
+            </div>
+            <div class="mention-info">
+              <span class="mention-username">@{{ user.username }}</span>
+              <span class="mention-email">{{ user.email || user.username }}</span>
+            </div>
+            <span class="mention-role-badge">{{ user.role || 'Member' }}</span>
+          </div>
+        }
+      }
+    </div>
+  }
+
+  <div
+    #editorRef
+    contenteditable="true"
+    class="note-editor form-textarea"
+    [attr.data-placeholder]="placeholder"
+    (input)="onEditorInput()"
+    (keyup)="onEditorInput()"
+    (click)="onEditorInput()"
+    (keydown)="onKeyDown($event)"
+  ></div>
+</div>

@@ -1,0 +1,8 @@
+:host { display: block; }
+.profile-image-field { display: grid; gap: .45rem; color: #27332d; font: 600 .72rem "DM Mono", monospace; text-transform: uppercase; letter-spacing: .06em; }
+.profile-image-field small { color: #78827c; font-size: .62rem; letter-spacing: 0; text-transform: none; }
+.profile-image-field input { border: 1px solid #dfe4e0; border-radius: 8px; padding: .7rem .8rem; font: 500 .92rem "Inter", sans-serif; }
+.selected-name { color: #4f7760; }
+.profile-preview-wrap { position: relative; display: inline-flex; width: fit-content; margin-bottom: .25rem; }
+.profile-preview-image { display: block; width: 88px; height: 88px; object-fit: cover; border: 2px solid #dfe4e0; border-radius: 50%; background: #f4f7f5; box-shadow: 0 4px 12px rgba(39, 51, 45, .08); }
+.remove-image-button { position: absolute; top: -6px; right: -6px; display: grid; place-items: center; width: 24px; height: 24px; border: 2px solid #ffffff; border-radius: 50%; background: #27332d; color: #fff; font-size: 1rem; line-height: 1; cursor: pointer; box-shadow: 0 4px 12px rgba(39, 51, 45, .18); }

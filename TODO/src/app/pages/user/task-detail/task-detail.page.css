@@ -1,0 +1,28 @@
+.task-not-found {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 2.5rem;
+  text-align: center;
+}
+
+.task-not-found h2 {
+  margin: 0 0 0.5rem;
+  color: #0f172a;
+}
+
+.task-not-found p {
+  margin: 0 0 1.25rem;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.btn-back {
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
+  border: none;
+  background: #0f766e;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+}

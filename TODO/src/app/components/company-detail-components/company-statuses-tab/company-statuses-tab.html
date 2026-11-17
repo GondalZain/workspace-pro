@@ -1,0 +1,254 @@
+<div class="statuses-tab-container">
+  <!-- Tab Header Banner -->
+  <div class="tab-header">
+    <div class="header-left">
+      <div class="icon-wrap" [style.background-color]="primaryColor + '15'" [style.color]="primaryColor">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <path d="m9 12 2 2 4-4"/>
+        </svg>
+      </div>
+      <div>
+        <h3 class="tab-title">Task Workflow & Statuses</h3>
+        <p class="tab-subtitle">
+          Configure, modify, or add new lifecycle task statuses assigned to <strong>{{ companyName || 'this company' }}</strong>.
+        </p>
+      </div>
+    </div>
+
+    <!-- Quick Reset to Standard -->
+    <div class="presets-row">
+      <button type="button" class="btn-preset" (click)="resetToStandard()">
+        ↺ Reset to Standard (3 Stages)
+      </button>
+    </div>
+  </div>
+
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="alert alert-error">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- Main Card -->
+  <div class="status-card">
+    <!-- Add Status Sub-Bar -->
+    <div class="add-bar">
+      <div class="form-group flex-3">
+        <label>Stage Name</label>
+        <input
+          type="text"
+          class="form-control"
+          placeholder="e.g. In Review, QA Ready"
+          [value]="newName()"
+          (input)="newName.set($any($event.target).value)"
+          (keydown.enter)="addStatus()"
+        />
+      </div>
+
+      <div class="form-group flex-1">
+        <label>Status Color</label>
+        <div class="color-picker-wrapper">
+          <input
+            type="color"
+            class="input-color"
+            [value]="newColor()"
+            (input)="newColor.set($any($event.target).value)"
+          />
+          <span class="color-hex-tag">{{ newColor() }}</span>
+        </div>
+      </div>
+
+      <div class="form-group flex-2">
+        <label>Stage Behavior</label>
+        <select
+          class="form-control select-control"
+          [value]="newStageType()"
+          (change)="newStageType.set($any($event.target).value)"
+        >
+          <option value="normal">Normal / In-Progress</option>
+          <option value="initial">★ Initial (Starting stage)</option>
+          <option value="completed">✓ Completed (Done stage)</option>
+        </select>
+      </div>
+
+      <div class="form-group form-actions">
+        <button type="button" class="btn-add" (click)="addStatus()">
+          + Add Stage
+        </button>
+      </div>
+    </div>
+
+    <!-- Statuses Table -->
+    <div class="table-container">
+      @if (isLoading()) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <span>Loading statuses...</span>
+        </div>
+      } @else {
+        <table class="status-table">
+          <thead>
+            <tr>
+              <th class="th-num">#</th>
+              <th class="th-color">Color</th>
+              <th>Status Name</th>
+              <th class="th-behavior">Stage Type</th>
+              <th class="th-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (st of statuses(); track st.id; let i = $index) {
+              <tr class="status-row">
+                <td class="td-num">
+                  <span class="order-badge">#{{ i + 1 }}</span>
+                </td>
+
+                <td class="td-color">
+                  @if (editingIndex() === i) {
+                    <input
+                      type="color"
+                      class="row-color-input"
+                      [value]="st.color || '#3b82f6'"
+                      (change)="updateStatusColor(i, $any($event.target).value)"
+                      (input)="updateStatusColor(i, $any($event.target).value)"
+                      title="Change stage color"
+                    />
+                  } @else {
+                    <span
+                      class="color-indicator-circle"
+                      [style.backgroundColor]="st.color || '#3b82f6'"
+                    ></span>
+                  }
+                </td>
+
+                <td>
+                  @if (editingIndex() === i) {
+                    <input
+                      type="text"
+                      class="table-input"
+                      [value]="st.name"
+                      (input)="updateStatusName(i, $any($event.target).value)"
+                      (change)="updateStatusName(i, $any($event.target).value)"
+                      placeholder="Status Name"
+                    />
+                  } @else {
+                    <span class="static-name">{{ st.name }}</span>
+                  }
+                </td>
+
+                <td>
+                  @if (editingIndex() === i) {
+                    <select
+                      class="table-select"
+                      [value]="getStageType(st)"
+                      (change)="updateStageType(i, $any($event.target).value)"
+                    >
+                      <option value="normal">In-Progress</option>
+                      <option value="initial">★ Initial State</option>
+                      <option value="completed">✓ Completed State</option>
+                    </select>
+                  } @else {
+                    <span class="static-stage-badge" [class.badge-initial]="st.isInitial" [class.badge-completed]="st.isCompleted">
+                      @if (st.isInitial) { ★ Initial State }
+                      @else if (st.isCompleted) { ✓ Completed State }
+                      @else { In-Progress }
+                    </span>
+                  }
+                </td>
+
+                <td class="td-actions">
+                  <div class="action-buttons">
+                    <button
+                      type="button"
+                      class="btn-icon btn-edit"
+                      [class.btn-active-edit]="editingIndex() === i"
+                      (click)="toggleEditRow(i)"
+                      [title]="editingIndex() === i ? 'Done Editing' : 'Edit Status'"
+                    >
+                      @if (editingIndex() === i) {
+                        ✓
+                      } @else {
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                      }
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-icon"
+                      [disabled]="i === 0"
+                      (click)="moveUp(i)"
+                      title="Move Up"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-icon"
+                      [disabled]="i === statuses().length - 1"
+                      (click)="moveDown(i)"
+                      title="Move Down"
+                    >
+                      ▼
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-icon btn-delete"
+                      (click)="removeStatus(i)"
+                      title="Remove Status"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="empty-state">
+                  No statuses configured for this company yet. Click a template above or add a stage.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+
+    <!-- Footer Actions -->
+    <div class="card-footer">
+      <div class="footer-info">
+        <span class="count-badge">{{ statuses().length }} stages configured</span>
+        <span class="company-tag">Target: {{ companyName }}</span>
+      </div>
+
+      <div class="footer-btn-group">
+        <button
+          type="button"
+          class="btn-save"
+          [style.background-color]="primaryColor"
+          [disabled]="isSaving()"
+          (click)="saveStatuses()"
+        >
+          {{ isSaving() ? 'Saving Statuses...' : 'Save & Assign Statuses to Company' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

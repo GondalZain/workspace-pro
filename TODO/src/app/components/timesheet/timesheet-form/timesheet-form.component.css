@@ -1,0 +1,199 @@
+.timesheet-form-container {
+  margin-bottom: 1.15rem;
+}
+
+.timesheet-form-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.timesheet-form-header.align-left {
+  justify-content: flex-start;
+}
+
+.btn-add-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-color: var(--brand-primary);
+  color: #ffffff;
+  border: none;
+  padding: 0.58rem 1.15rem;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--brand-primary) 28%, transparent);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-add-entry:hover {
+  background-color: var(--brand-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--brand-primary) 38%, transparent);
+}
+
+.btn-add-entry:active {
+  transform: translateY(0);
+}
+
+.timesheet-card-form {
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-base, #e2e8f0);
+  border-top: 3px solid var(--brand-primary);
+  border-radius: 16px;
+  padding: 1.35rem 1.5rem;
+  margin-top: 0.85rem;
+  box-shadow: 0 4px 18px -4px rgba(15, 23, 42, 0.05);
+}
+
+.form-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-primary, #1e293b);
+  margin-bottom: 1.1rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--border-light, #f1f5f9);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-secondary, #475569);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.56rem 0.85rem;
+  font-size: 0.85rem;
+  border: 1px solid var(--border-base, #e2e8f0);
+  border-radius: 9px;
+  background-color: var(--bg-app, #f8fafc);
+  color: var(--text-primary, #0f172a);
+  outline: none;
+  transition: all 0.18s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--brand-primary);
+  background-color: var(--bg-surface, #ffffff);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 14%, transparent);
+}
+
+.form-group select option {
+  color: var(--text-primary, #0f172a);
+  background-color: var(--bg-surface, #ffffff);
+}
+
+.form-group input.is-invalid {
+  border-color: #ef4444;
+  background-color: #fef2f2;
+}
+
+.error-msg {
+  font-size: 0.75rem;
+  color: #dc2626;
+}
+
+.time-duration-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.time-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.time-input-group input {
+  flex: 1;
+  min-width: 50px;
+}
+
+.time-unit {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted, #64748b);
+  user-select: none;
+}
+
+/* Remove up/down spinner arrows from number inputs */
+.time-input-group input[type=number]::-webkit-outer-spin-button,
+.time-input-group input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.time-input-group input[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
+
+.btn-cancel {
+  background: var(--bg-subtle, #f1f5f9);
+  border: 1px solid var(--border-base, #e2e8f0);
+  color: var(--text-secondary, #475569);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-cancel:hover {
+  background: var(--bg-hover, #e2e8f0);
+  color: var(--text-primary, #0f172a);
+}
+
+.btn-submit {
+  background: var(--brand-primary);
+  border: none;
+  color: #ffffff;
+  padding: 0.5rem 1.15rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--brand-primary) 26%, transparent);
+  transition: all 0.18s ease;
+}
+
+.btn-submit:hover {
+  background: var(--brand-primary-hover);
+  transform: translateY(-1px);
+}

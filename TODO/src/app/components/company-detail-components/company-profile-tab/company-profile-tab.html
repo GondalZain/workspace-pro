@@ -1,0 +1,174 @@
+<section class="card detail-card">
+  <div class="card-head">
+    <div class="head-title">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16"/>
+        <path d="M15 21v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
+        <path d="M9 7h1"/>
+        <path d="M9 11h1"/>
+        <path d="M14 7h1"/>
+        <path d="M14 11h1"/>
+      </svg>
+      <h3>Edit Company Profile</h3>
+    </div>
+    <p>Update company identity, tenant status, description, and brand logo.</p>
+  </div>
+
+  <form (ngSubmit)="saveProfile.emit()" class="card-body">
+    <!-- LOGO UPLOAD & PREVIEW SECTION -->
+    <div class="logo-upload-card">
+      <label class="section-label">Company Logo &amp; Identity</label>
+      <div class="logo-upload-wrapper">
+        <!-- Avatar Preview Container -->
+        <div class="logo-avatar-box">
+          @if (currentLogoUrl) {
+            <img [src]="currentLogoUrl" [alt]="companyName()" class="logo-avatar-img" />
+          } @else {
+            <div class="logo-avatar-placeholder" [style.background]="primaryColor">
+              <span>{{ companyName() ? companyName().charAt(0).toUpperCase() : 'C' }}</span>
+            </div>
+          }
+          @if (logoFile) {
+            <span class="upload-badge-indicator" title="New logo ready to save">New</span>
+          }
+        </div>
+
+        <!-- Upload Actions & Details -->
+        <div class="logo-actions-content">
+          <div class="logo-btn-group">
+            <label class="btn-file-upload" [style.background]="primaryColor">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <span>Upload Logo File</span>
+              <input type="file" (change)="fileSelected.emit($event)" accept="image/*" class="hidden-file" />
+            </label>
+
+            @if (currentLogoUrl || logoFile) {
+              <button type="button" class="btn-remove-logo" (click)="clearLogo.emit()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+                <span>Remove Logo</span>
+              </button>
+            }
+          </div>
+
+          @if (logoFile) {
+            <div class="selected-file-chip">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+              <span class="file-name">{{ logoFile.name }}</span>
+              <span class="file-size">({{ (logoFile.size / 1024).toFixed(1) }} KB)</span>
+            </div>
+          } @else if (currentLogoUrl) {
+            <p class="logo-status-text success">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Active logo uploaded and saved.
+            </p>
+          } @else {
+            <p class="logo-hint-text">No custom logo uploaded yet. High-resolution PNG, JPG, WEBP or SVG recommended (max 2MB).</p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group flex-1">
+        <label>Company Name <span class="req">*</span></label>
+        <input type="text" [(ngModel)]="companyName" name="companyName" class="form-input" placeholder="e.g. Tangent Technologies" required />
+      </div>
+
+      <div class="form-group flex-1">
+        <label>Industry Tag / Subtitle</label>
+        <input type="text" [(ngModel)]="title" name="title" placeholder="e.g. Core Workspace, Technology" class="form-input" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Description</label>
+      <textarea [(ngModel)]="description" name="description" rows="3" placeholder="Overview of company operations and tenant workspace scope..." class="form-input"></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group flex-1">
+        <label style="display: flex; align-items: center; justify-content: space-between; font-weight: 600;">
+          <span>Company Email Domain / Abbreviation Suffix</span>
+          <span style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-weight: 600;">e.g. @company.com</span>
+        </label>
+        <input type="text" [(ngModel)]="emailDomain" name="emailDomain" placeholder="e.g. @acme.com (leave empty for general/gmail)" class="form-input" />
+        @if (emailDomain()) {
+          <small class="form-hint" style="color: #0f766e; font-size: 0.82rem; display: block; margin-top: 4px; font-weight: 500;">
+            💡 New admin emails will automatically use suffix: <strong>{{ emailDomain() }}</strong>
+          </small>
+        } @else {
+          <small class="form-hint" style="color: #64748b; font-size: 0.82rem; display: block; margin-top: 4px; font-weight: 500;">
+            Optional: Keep empty if users/admins register with general emails like Gmail.
+          </small>
+        }
+      </div>
+
+      <div class="form-group flex-1">
+        <label style="display: flex; align-items: center; justify-content: space-between; font-weight: 600;">
+          <span>Custom Access Domain (Hostname)</span>
+          <span style="font-size: 0.75rem; background: #ecfdf5; color: #047857; padding: 2px 8px; border-radius: 4px; font-weight: 600;">e.g. acme.localhost</span>
+        </label>
+        <input type="text" [(ngModel)]="domain" name="domain" placeholder="e.g. acme.localhost or acme.com" class="form-input" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group flex-1">
+        <label>Tenant Access Status</label>
+        <select [(ngModel)]="status" name="status" class="form-input select-status">
+          <option value="active">Active (Access Enabled)</option>
+          <option value="pending">Pending Approval (Access Blocked)</option>
+          <option value="rejected">Rejected (Registration Declined)</option>
+          <option value="suspended">Suspended (Access Disabled)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card-foot">
+      @if (successMessage) {
+        <span class="inline-success-toast">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span>{{ successMessage }}</span>
+        </span>
+      }
+      @if (errorMessage) {
+        <span class="inline-error-toast">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>{{ errorMessage }}</span>
+        </span>
+      }
+
+      <button type="submit" class="btn-save" [disabled]="isSaving" [style.background]="primaryColor">
+        @if (isSaving) {
+          <span class="btn-spinner"></span>
+          <span>Saving Changes...</span>
+        } @else {
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          <span>Save Profile Details</span>
+        }
+      </button>
+    </div>
+  </form>
+</section>

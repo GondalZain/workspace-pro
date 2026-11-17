@@ -1,0 +1,70 @@
+<!-- Fixed Header -->
+<header class="page-header">
+  <div class="brand-group">
+    <a routerLink="/landing" class="brand-link">
+      <svg class="brand-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+        <path d="M2 17l10 5 10-5"></path>
+        <path d="M2 12l10 5 10-5"></path>
+      </svg>
+      <span class="brand-title">TaskFlow</span>
+    </a>
+  </div>
+
+  <nav class="nav-links">
+    <a routerLink="/landing" class="nav-link">Home</a>
+    <a routerLink="/team" class="nav-link active">Your Team</a>
+    <a routerLink="/pricing" class="nav-link">Pricing</a>
+  </nav>
+
+  <div class="header-actions">
+    <a routerLink="/login" class="login-link">Log In</a>
+    <a routerLink="/register" class="join-btn">Join Now</a>
+  </div>
+</header>
+
+<main class="team-page">
+  <!-- Hero Section -->
+  <section class="team-hero">
+    <span class="team-pill">MEET THE BUILDERS</span>
+    <h1 class="team-title">The Minds Behind Your Workspace</h1>
+    <p class="team-subtitle">
+      We are engineers, designers, and operators passionate about eliminating workplace friction and helping cross-functional teams accomplish great work.
+    </p>
+  </section>
+
+  <!-- Team Members Grid -->
+  <section class="members-grid">
+    @for (member of teamMembers; track member.name) {
+      <div class="member-card">
+        <div class="avatar-wrapper" [style.background]="member.avatarBg">
+          <span>{{ member.avatarText }}</span>
+        </div>
+
+        <h2 class="member-name">{{ member.name }}</h2>
+        <p class="member-role">{{ member.role }}</p>
+        <p class="member-bio">{{ member.bio }}</p>
+
+        <div class="tags-container">
+          @for (tag of member.tags; track tag) {
+            <span class="tag-pill">{{ tag }}</span>
+          }
+        </div>
+      </div>
+    }
+  </section>
+
+  <!-- Join Us / Culture Section -->
+  <section class="culture-card">
+    <div class="culture-content">
+      <h2 class="culture-title">Want to build the future of work with us?</h2>
+      <p class="culture-desc">
+        We're a global, remote-first team committed to deep work, transparent communication, and shipping remarkable products.
+      </p>
+      <div class="culture-actions">
+        <a routerLink="/register" class="culture-primary-btn">Create Team Workspace</a>
+        <a routerLink="/pricing" class="culture-secondary-btn">Explore Plans</a>
+      </div>
+    </div>
+  </section>
+</main>

@@ -1,0 +1,260 @@
+.task-list-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.task-list-page__view-switch {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.task-list-page__meta--lead {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--brand-primary, #0f766e);
+  background: color-mix(in srgb, var(--brand-primary, #0f766e) 9%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--brand-primary, #0f766e) 22%, transparent);
+  padding: 0.3rem 0.78rem;
+  border-radius: 999px;
+}
+
+.task-list-page__meta--lead::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand-primary, #0f766e);
+}
+
+.task-list-page__command {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border-light, #f1f5f9);
+}
+
+.task-list-page__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.task-list-page__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.task-list-page__meta {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.task-list-page__toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 0.75rem;
+}
+
+.task-list-page__board-toolbar {
+  flex: 1 1 min(100%, 520px);
+  min-width: 0;
+}
+
+.task-list-page__new-task {
+  flex-shrink: 0;
+  min-height: 2.4rem;
+  padding-left: 1.05rem;
+  padding-right: 1.15rem;
+  margin-left: auto;
+}
+
+.task-list-page__filters .toolbar {
+  margin: 0;
+  padding: 0.55rem 0 0;
+  border-bottom: none;
+  border-top: 1px solid var(--border-light, #f1f5f9);
+}
+
+@media (max-width: 720px) {
+  .task-list-page__toolbar-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .task-list-page__new-task {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.task-list-page__date-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.82rem;
+  color: var(--brand-primary);
+  background: var(--brand-primary-soft);
+  border: 1px solid var(--brand-primary-border);
+  border-radius: 10px;
+}
+
+/* Planning row: calendar + upcoming */
+.task-list-page__planning {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(240px, 1fr);
+  gap: 1.15rem;
+  align-items: stretch;
+}
+
+.task-list-page__calendar,
+.task-list-page__upcoming {
+  padding: 1.2rem 1.35rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.task-list-page__calendar-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.45rem 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-light, #f1f5f9);
+}
+
+.task-list-page__section-label {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brand-primary, #0f766e);
+}
+
+.task-list-page__calendar-hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.task-list-page__calendar-link {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--brand-primary);
+  text-decoration: none;
+  padding: 0.28rem 0.65rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--brand-primary) 9%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 22%, transparent);
+  transition: all 0.15s ease;
+}
+
+.task-list-page__calendar-link:hover {
+  background: var(--brand-primary);
+  color: #ffffff;
+}
+
+.task-list-page__calendar app-calendar {
+  flex: 1;
+  width: 100%;
+}
+
+.task-list-page__upcoming .task-list-page__section-label {
+  margin-bottom: 0.9rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-light, #f1f5f9);
+}
+
+.task-list-page__deadlines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.task-list-page__deadline {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.68rem 0.85rem;
+  border: 1px solid var(--border-base, #e2e8f0);
+  border-left: 3px solid var(--brand-primary, #0f766e);
+  border-radius: 10px;
+  background: var(--bg-app, #f8fafc);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  transition: all 0.16s ease;
+}
+
+.task-list-page__deadline:hover {
+  border-color: var(--brand-primary);
+  background: var(--bg-surface, #ffffff);
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+}
+
+.task-list-page__deadline-title {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.task-list-page__deadline-date {
+  font-size: 0.73rem;
+  font-weight: 600;
+  color: var(--brand-primary, #0f766e);
+  background: color-mix(in srgb, var(--brand-primary, #0f766e) 9%, #ffffff);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.task-list-page__deadlines-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.75rem 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-align: center;
+  border: 1.5px dashed var(--border-base, #e2e8f0);
+  border-radius: 10px;
+  background: var(--bg-app, #f8fafc);
+}
+
+@media (max-width: 960px) {
+  .task-list-page__planning {
+    grid-template-columns: 1fr;
+  }
+}

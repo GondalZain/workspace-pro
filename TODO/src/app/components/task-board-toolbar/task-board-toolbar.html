@@ -1,0 +1,51 @@
+<div class="board-toolbar" [class.board-toolbar--inline]="inline()" [formGroup]="form">
+  <div class="search-input-wrap">
+    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input
+      type="search"
+      [placeholder]="searchPlaceholder()"
+      formControlName="searchTerm"
+    />
+  </div>
+
+  <div class="filters-group">
+    <select aria-label="Filter by priority" class="select-control" formControlName="priority">
+      <option value="all">All Priorities</option>
+      <option value="high">High Priority</option>
+      <option value="medium">Medium Priority</option>
+      <option value="low">Low Priority</option>
+    </select>
+
+    @if (showSort()) {
+      <select aria-label="Sort tasks" class="select-control" formControlName="sortBy">
+        <option value="created">Recently added</option>
+        <option value="due">Due date</option>
+        <option value="priority">Priority</option>
+      </select>
+    }
+
+    @if (showScopeToggle()) {
+      <div class="scope-toggle">
+        <button
+          type="button"
+          class="scope-btn"
+          [class.active]="selectedScope() === 'all'"
+          (click)="selectedScope.set('all')"
+        >
+          All Tasks
+        </button>
+        <button
+          type="button"
+          class="scope-btn"
+          [class.active]="selectedScope() === 'my'"
+          (click)="selectedScope.set('my')"
+        >
+          My Tasks
+        </button>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,25 @@
+<div class="admin-view" id="admin-user-edit-page">
+  <app-admin-page-header
+    title="Edit User Account"
+    description="Modify username, email, profile avatar, and assign security roles."
+  >
+    <a adminActions [routerLink]="url.adminUsers" class="btn-secondary" title="Return to users list">&larr; Back to Users</a>
+  </app-admin-page-header>
+
+  @if (errorMessage()) {
+    <div class="error-banner" role="alert">{{ errorMessage() }}</div>
+  }
+
+  <div class="card">
+    @if (user()) {
+      <app-admin-user-settings
+        [user]="user()"
+        [roles]="roles()"
+        (profileSaved)="saveUser($event)"
+        (closed)="goBack()"
+      />
+    } @else {
+      <div class="loading-state">Loading user details...</div>
+    }
+  </div>
+</div>

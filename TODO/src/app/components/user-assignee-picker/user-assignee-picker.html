@@ -1,0 +1,116 @@
+<div class="card assignment-card">
+  @if (showHeaderCount()) {
+    <div class="card-header-with-count">
+      <h2 class="card-heading">Assignment &amp; Ownership</h2>
+      <span class="user-count-badge" [class.active]="selectedAssigneeUsers().length > 0">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>{{ selectedAssigneeUsers().length }} Assigned</span>
+      </span>
+    </div>
+  }
+
+  <!-- Creator Box -->
+  @if (showCreator()) {
+    <div class="form-group">
+      <label class="field-label-sm">Task Creator</label>
+      <div class="creator-badge-box">
+        @if (profileImageUrl(creatorUser()?.profileImagePath); as imgUrl) {
+          <img [src]="imgUrl" [alt]="creatorName()" class="user-avatar-img" />
+        } @else {
+          <span class="user-avatar-initial">{{ creatorName().charAt(0).toUpperCase() }}</span>
+        }
+        <div class="user-details">
+          <span class="creator-name-text">{{ creatorName() }}</span>
+          <span class="creator-subtext">Ticket Author</span>
+        </div>
+        <span class="badge-role-tag">Creator</span>
+      </div>
+    </div>
+  }
+
+  <!-- Assignees Custom Dropdown & Selected Users List -->
+  <div class="form-group">
+    <div class="assignee-header-flex">
+      <label class="field-label-sm">Assign Ticket To</label>
+      @if (currentUser() && currentUser()?.role !== 'admin') {
+        <button type="button" class="btn-assign-self" (click)="assignSelf()">+ Assign to me</button>
+      }
+    </div>
+
+    <!-- Custom Professional Dropdown Selector -->
+    <div class="custom-dropdown-container">
+      <button
+        type="button"
+        class="custom-dropdown-trigger"
+        (click)="toggleDropdown()"
+        aria-haspopup="listbox"
+        [attr.aria-expanded]="isDropdownOpen()"
+      >
+        <div class="trigger-left">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="select-icon"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+          <span>Select user to assign...</span>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="dropdown-chevron"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+
+      <!-- Dropdown Menu Popup -->
+      @if (isDropdownOpen()) {
+        <div class="custom-dropdown-menu" role="listbox">
+          @for (user of nonAdminUsers(); track user.id) {
+            <button
+              type="button"
+              class="dropdown-user-option"
+              [class.is-assigned]="isAssigneeSelected(user.id)"
+              [disabled]="isAssigneeSelected(user.id)"
+              (click)="selectAssignee(user.id)"
+              role="option"
+            >
+              @if (profileImageUrl(user.profileImagePath); as imgUrl) {
+                <img [src]="imgUrl" [alt]="user.username" class="user-avatar-img" />
+              } @else {
+                <span class="user-avatar-initial">{{ user.username.charAt(0).toUpperCase() }}</span>
+              }
+              <div class="user-option-info">
+                <span class="user-name-text">{{ user.username }}</span>
+                @if (user.email) {
+                  <span class="user-email-text">{{ user.email }}</span>
+                }
+              </div>
+              @if (isAssigneeSelected(user.id)) {
+                <span class="badge-assigned-tag">&check; Assigned</span>
+              } @else {
+                <span class="btn-add-tag">+ Assign</span>
+              }
+            </button>
+          } @empty {
+            <div class="empty-dropdown-option">No team members available</div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Backdrop to close dropdown when clicking outside -->
+    @if (isDropdownOpen()) {
+      <div class="dropdown-backdrop" (click)="closeDropdown()"></div>
+    }
+
+    <!-- Assigned Users Chips Section Below Dropdown -->
+    @if (selectedAssigneeUsers().length) {
+      <div class="assignees-chips-wrap">
+        @for (user of selectedAssigneeUsers(); track user.id) {
+          <div class="assignee-chip-item">
+            @if (profileImageUrl(user.profileImagePath); as imgUrl) {
+              <img [src]="imgUrl" [alt]="user.username" class="user-avatar-xs" />
+            } @else {
+              <span class="user-avatar-initial-xs">{{ user.username.charAt(0).toUpperCase() }}</span>
+            }
+            <span class="chip-username">{{ user.username }}</span>
+            <button type="button" class="btn-remove-chip" (click)="toggleAssignee(user.id)" title="Remove user">
+              &times;
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

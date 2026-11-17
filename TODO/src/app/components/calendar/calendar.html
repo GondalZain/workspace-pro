@@ -1,0 +1,109 @@
+@if (variant() === 'picker') {
+  <div class="calendar-picker">
+    <div class="calendar-picker__toolbar">
+      <p class="calendar-picker__month">{{ calendarMonthLabel() }}</p>
+      <div class="calendar-picker__nav">
+        <button type="button" class="cal-nav-btn" (click)="onCalendarPrevMonth()" aria-label="Previous month">‹</button>
+        <button type="button" class="cal-nav-btn cal-nav-btn--text" (click)="onCalendarJumpToday()" aria-label="Today">Today</button>
+        <button type="button" class="cal-nav-btn" (click)="onCalendarNextMonth()" aria-label="Next month">›</button>
+      </div>
+    </div>
+
+    <div class="calendar-grid">
+      <span class="weekday">Mon</span>
+      <span class="weekday">Tue</span>
+      <span class="weekday">Wed</span>
+      <span class="weekday">Thu</span>
+      <span class="weekday">Fri</span>
+      <span class="weekday">Sat</span>
+      <span class="weekday">Sun</span>
+      @for (empty of effectiveEmptyDays(); track $index) {
+        <span class="empty-day" aria-hidden="true"></span>
+      }
+      @for (day of effectiveCalendarDays(); track day) {
+        <button
+          type="button"
+          class="day-cell"
+          [class.today]="day === effectiveToday()"
+          [class.selected]="day === selectedDay()"
+          [class.has-task]="hasTask(day)"
+          (click)="selectDay(day)"
+          [attr.aria-label]="day + ' ' + calendarMonthLabel()"
+          [attr.aria-pressed]="day === selectedDay()"
+        >
+          {{ day }}
+        </button>
+      }
+    </div>
+  </div>
+} @else {
+  <div class="schedule-layout">
+    <aside class="schedule-layout__month" aria-labelledby="calendar-month-label">
+      <div class="schedule-month__head">
+        <div>
+          <p id="calendar-month-label" class="schedule-month__label">{{ calendarMonthLabel() }}</p>
+          <h3 class="schedule-month__title">Month</h3>
+        </div>
+        <div class="schedule-month__nav">
+          <button type="button" class="cal-nav-btn" (click)="onCalendarPrevMonth()" aria-label="Previous month">‹</button>
+          <button type="button" class="cal-nav-btn" (click)="onCalendarJumpToday()" aria-label="Today">Today</button>
+          <button type="button" class="cal-nav-btn" (click)="onCalendarNextMonth()" aria-label="Next month">›</button>
+          <app-action-menu [label]="'Calendar actions'" [items]="menuItems()" (actionSelected)="onMenuAction($event)" />
+        </div>
+      </div>
+
+      <div class="calendar-grid">
+        <span class="weekday">Mon</span>
+        <span class="weekday">Tue</span>
+        <span class="weekday">Wed</span>
+        <span class="weekday">Thu</span>
+        <span class="weekday">Fri</span>
+        <span class="weekday">Sat</span>
+        <span class="weekday">Sun</span>
+        @for (empty of effectiveEmptyDays(); track $index) {
+          <span class="empty-day" aria-hidden="true"></span>
+        }
+        @for (day of effectiveCalendarDays(); track day) {
+          <button
+            type="button"
+            class="day-cell"
+            [class.today]="day === effectiveToday()"
+            [class.selected]="day === selectedDay()"
+            [class.has-task]="hasTask(day)"
+            (click)="selectDay(day)"
+            [attr.aria-label]="day + ' ' + calendarMonthLabel()"
+            [attr.aria-pressed]="day === selectedDay()"
+          >
+            {{ day }}
+          </button>
+        }
+      </div>
+    </aside>
+
+    <section class="schedule-layout__agenda" aria-labelledby="agenda-day-title">
+      <header class="schedule-agenda__head">
+        <div>
+          <p class="schedule-agenda__label">Day agenda</p>
+          <h3 id="agenda-day-title" class="schedule-agenda__title">{{ selectedCalendarDateFormatted() }}</h3>
+        </div>
+        <span class="schedule-agenda__count">{{ selectedDateTasks().length }} tasks</span>
+      </header>
+
+      <app-task-list
+        layout="table"
+        tableVariant="compact"
+        [tasks]="selectedDateTasks()"
+        [allTasksCount]="tasks().length"
+        [selectedFilter]="'all'"
+        [currentUserId]="currentUserId()"
+        [currentUsername]="currentUsername()"
+        [isAdmin]="isAdmin()"
+        (taskToggled)="toggleTask($event)"
+        (taskStatusChanged)="onStatusChanged($event)"
+        (taskDeleted)="deleteTask($event)"
+        (taskEdited)="editTask($event)"
+        (taskSelected)="openTaskDetail($event)"
+      />
+    </section>
+  </div>
+}

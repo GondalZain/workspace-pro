@@ -1,0 +1,207 @@
+<div class="two-col-grid">
+  <!-- Registered Admins List Card -->
+  <section class="card detail-card">
+    <div class="card-head">
+      <div class="head-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <h3>Registered Company Admins</h3>
+      </div>
+      <p>Manage admin credentials and assign specific roles to administrators for <strong>{{ companyName }}</strong>.</p>
+    </div>
+
+    <div class="card-body">
+      <div class="admin-accounts-list">
+        @for (adm of admins; track adm.id) {
+          <div class="admin-card-row">
+            <!-- ADMIN AVATAR: Render profile image if uploaded, or fallback initial circle -->
+            <div class="adm-avatar-wrapper">
+              @if (getAdminAvatarUrl(adm); as avatarUrl) {
+                <img
+                  [src]="avatarUrl"
+                  [alt]="adm.username"
+                  class="adm-avatar-img"
+                  [style.border-color]="primaryColor"
+                />
+              } @else {
+                <div class="adm-avatar-circle" [style.background]="primaryColor">
+                  <span>{{ adm.username ? adm.username.charAt(0).toUpperCase() : 'A' }}</span>
+                </div>
+              }
+            </div>
+
+            <div class="adm-details">
+              <span class="adm-username">{{ adm.username }}</span>
+              <span class="adm-email-address">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+                <span>{{ adm.email }}</span>
+              </span>
+
+              <div class="adm-role-assignment">
+                <label class="role-select-label">ROLE:</label>
+                <select [ngModel]="adm.roleId" (change)="changeAdminRole.emit({ admin: adm, targetRoleIdStr: $any($event.target).value })" class="form-input role-select-inline">
+                  @for (roleItem of allRoles; track roleItem.id) {
+                    <option [value]="roleItem.id">{{ roleItem.name | uppercase }} — {{ roleItem.description || 'Full system access' }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <div class="adm-action-right" style="display: flex; gap: 8px; align-items: center;">
+              <button type="button" class="btn-edit-adm" (click)="openEditAdminModal(adm)" title="Edit Admin Credentials &amp; Role">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                <span>Edit</span>
+              </button>
+
+              @if (admins.length > 1) {
+                <button type="button" class="btn-delete-adm" (click)="removeAdmin.emit(adm)" title="Remove Admin Access">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                  <span>Remove</span>
+                </button>
+              } @else {
+                <span class="badge-primary-admin" [style.color]="primaryColor">Primary Admin</span>
+              }
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-admins">
+            <p>No admin accounts registered yet.</p>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Add New Company Admin Form Card -->
+  <section class="card detail-card add-admin-card">
+    <div class="card-head">
+      <div class="head-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="8.5" cy="7" r="4"/>
+          <line x1="20" y1="8" x2="20" y2="14"/>
+          <line x1="17" y1="11" x2="23" y2="11"/>
+        </svg>
+        <h3>Add New Company Admin</h3>
+      </div>
+      <p>Create an admin user credential and assign a custom role for {{ companyName }}.</p>
+    </div>
+
+    <form (ngSubmit)="submitAddAdmin.emit()" class="card-body">
+      @if (adminError) {
+        <div class="alert alert-danger">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>{{ adminError }}</span>
+        </div>
+      }
+
+      <div class="form-group">
+        <label>Admin Username <span class="req">*</span></label>
+        <input type="text" [ngModel]="newAdminUsername()" (ngModelChange)="onUsernameInput($event)" name="newAdminUsername" placeholder="e.g. John Admin" class="form-input" required />
+      </div>
+
+      <div class="form-group">
+        <label>Admin Email Address <span class="req">*</span> @if (emailDomain) { <small style="font-weight: 500; color: #0f766e;">(Domain: {{ emailDomain }})</small> }</label>
+        <input type="email" [(ngModel)]="newAdminEmail" name="newAdminEmail" placeholder="admin@company.com" class="form-input" required />
+      </div>
+
+      <div class="form-group">
+        <label>Admin Password <span class="req">*</span></label>
+        <input type="password" [(ngModel)]="newAdminPassword" name="newAdminPassword" placeholder="Minimum 8 characters" class="form-input" required />
+      </div>
+
+      <div class="form-group">
+        <label>Assign Role to New Admin <span class="req">*</span></label>
+        <select [(ngModel)]="selectedRoleIdForNewAdmin" name="selectedRoleIdForNewAdmin" class="form-input">
+          @for (roleItem of allRoles; track roleItem.id) {
+            <option [value]="roleItem.id">{{ roleItem.name | uppercase }} — {{ roleItem.description || 'Default permissions' }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="card-foot">
+        <button type="submit" class="btn-save btn-add-adm" [disabled]="isAddingAdmin" [style.background]="primaryColor">
+          @if (isAddingAdmin) {
+            <span class="btn-spinner"></span>
+            <span>Creating Account...</span>
+          } @else {
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            <span>Create Admin Account</span>
+          }
+        </button>
+      </div>
+    </form>
+  </section>
+</div>
+
+<!-- Modal: Edit Registered Company Admin -->
+@if (editingAdmin(); as targetAdmin) {
+  <div class="modal-backdrop" (click)="closeEditAdminModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <header class="modal-head">
+        <div class="modal-title-group">
+          <span class="modal-eyebrow">Company Admin Management</span>
+          <h3>Edit Admin: {{ targetAdmin.username }}</h3>
+        </div>
+        <button type="button" class="btn-close" (click)="closeEditAdminModal()">×</button>
+      </header>
+
+      <form (ngSubmit)="saveEditAdmin()" class="modal-body">
+        @if (editAdminError) {
+          <div class="form-error-alert">{{ editAdminError }}</div>
+        }
+
+        <div class="form-group">
+          <label>Admin Username <span class="req">*</span></label>
+          <input type="text" [ngModel]="editAdminUsername()" (ngModelChange)="editAdminUsername.set($event)" name="editAdminUsername" class="form-input" required />
+        </div>
+
+        <div class="form-group">
+          <label>Admin Email Address <span class="req">*</span></label>
+          <input type="email" [ngModel]="editAdminEmail()" (ngModelChange)="editAdminEmail.set($event)" name="editAdminEmail" class="form-input" required />
+        </div>
+
+        <div class="form-group">
+          <label>New Password <small style="color: #64748b; font-weight: 400;">(Leave blank to keep unchanged)</small></label>
+          <input type="password" [ngModel]="editAdminPassword()" (ngModelChange)="editAdminPassword.set($event)" name="editAdminPassword" placeholder="Minimum 8 characters" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Assign Role <span class="req">*</span></label>
+          <select [ngModel]="editAdminRoleId()" (ngModelChange)="editAdminRoleId.set($any($event))" name="editAdminRoleId" class="form-input">
+            @for (roleItem of allRoles; track roleItem.id) {
+              <option [value]="roleItem.id">{{ roleItem.name | uppercase }} — {{ roleItem.description || 'System role' }}</option>
+            }
+          </select>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeEditAdminModal()">Cancel</button>
+          <button type="submit" class="btn-save" [disabled]="isSavingAdminEdit" [style.background]="primaryColor">
+            {{ isSavingAdminEdit ? 'Saving Admin Details...' : 'Save Admin Details' }}
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}

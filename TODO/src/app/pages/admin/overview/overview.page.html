@@ -1,0 +1,53 @@
+<div class="admin-view" id="admin-overview">
+  <app-admin-page-header
+    [title]="headerTitle()"
+    [description]="headerDesc()"
+  >
+    <div adminActions class="header-action-group">
+      <a [routerLink]="url.adminNewRole" class="btn-primary-action">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        <span>Create Role</span>
+      </a>
+      <a [routerLink]="url.adminUsers" class="btn-secondary-action">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="8.5" cy="7" r="4"/>
+          <line x1="20" y1="8" x2="20" y2="14"/>
+          <line x1="17" y1="11" x2="23" y2="11"/>
+        </svg>
+        <span>Manage Accounts</span>
+      </a>
+    </div>
+  </app-admin-page-header>
+
+  @if (errorMessage()) {
+    <div class="error-banner" role="alert">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- Section 1: KPI Metrics -->
+  <section class="metrics-section" aria-label="Key Performance Indicators">
+    <app-metric-cards [cards]="metricCards()" />
+  </section>
+
+  <!-- Section 2: Recent Registered Users -->
+  <div class="overview-grid">
+    <section class="users-card ws-panel">
+      <div class="card-head">
+        <div class="card-title-wrap">
+          <h2 class="card-title">Recent Registered Users</h2>
+          <span class="card-count">{{ users().length }} accounts</span>
+        </div>
+        <a [routerLink]="url.adminUsers" class="card-link">View all &rarr;</a>
+      </div>
+      <div class="users-card-body">
+        <app-admin-users [users]="users()" [roles]="roles()" />
+      </div>
+    </section>
+  </div>
+</div>

@@ -1,0 +1,14 @@
+<app-workspace-shell>
+  <div class="admin-shell-layout">
+    <app-admin-sidebar
+      [companyName]="companyName()"
+      [companyTitle]="companyTitle()"
+      [companyLogo]="companyLogo()"
+      [companyDescription]="companyDescription()"
+    />
+
+    <section class="admin-content-outlet">
+      <router-outlet />
+    </section>
+  </div>
+</app-workspace-shell>

@@ -1,0 +1,115 @@
+:host {
+  display: inline-block;
+}
+
+.action-menu {
+  position: relative;
+  z-index: 1;
+  opacity: 1 !important;
+}
+
+.action-menu[open] {
+  z-index: 200;
+}
+
+.menu-button {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  list-style: none;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.menu-button::-webkit-details-marker {
+  display: none;
+}
+
+.menu-button:hover, .action-menu[open] .menu-button {
+  color: #0f172a;
+}
+
+.menu-list {
+  position: absolute;
+  z-index: 1000;
+  top: calc(100% + 0.25rem);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 165px;
+  padding: 0.35rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+  opacity: 1 !important;
+  color: #0f172a !important;
+}
+
+.menu-list button {
+  border: none;
+  padding: 0.45rem 0.7rem;
+  border-radius: 4px;
+  background: transparent;
+  color: #334155;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 600;
+  width: 100%;
+}
+
+.menu-list button:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.menu-list button.destructive {
+  color: #dc2626;
+}
+
+.menu-list button.destructive:hover {
+  background: #fef2f2;
+}
+
+.menu-dropdown-group {
+  padding: 5px 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  margin: 2px 0;
+}
+
+.dropdown-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #334155 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.menu-dropdown-select {
+  width: 100%;
+  padding: 5px 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid #94a3b8;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  cursor: pointer;
+  outline: none;
+}
+
+.menu-dropdown-select:focus {
+  border-color: #0f766e;
+}

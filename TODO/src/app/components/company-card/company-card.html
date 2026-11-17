@@ -1,0 +1,116 @@
+<article
+  class="company-card"
+  [style.border-top-color]="company.primaryColor || 'var(--accent, #0f766e)'"
+  (click)="onManage()"
+  tabindex="0"
+  role="button"
+  (keydown.enter)="onManage()"
+>
+  <!-- Card Top Header: Logo & Status -->
+  <div class="company-card-top">
+    <div class="company-logo-wrap">
+      @if (logoUrl; as logo) {
+        <img [src]="logo" [alt]="company.name" class="company-logo-img" />
+      } @else {
+        <div class="company-logo-fallback" [style.background]="company.primaryColor || 'var(--accent, #0f766e)'">
+          {{ company.name.charAt(0).toUpperCase() }}
+        </div>
+      }
+    </div>
+
+    <div class="status-group" style="display: flex; align-items: center; gap: 6px;">
+      <span class="company-plan-badge" style="padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
+        {{ company.planId || 'free trial' }}
+      </span>
+      @if (company.status) {
+        <span class="company-status-badge" [class.active]="company.status === 'active'" [class.pending]="company.status === 'pending'" [class.rejected]="company.status === 'rejected'" [class.suspended]="company.status === 'suspended'">
+          <span class="status-dot"></span>
+          <span>{{ company.status }}</span>
+        </span>
+      }
+    </div>
+  </div>
+
+  @if (company.status === 'pending') {
+    <div class="pending-approval-banner" (click)="$event.stopPropagation()">
+      <div class="banner-text">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span>Workspace registration awaits approval</span>
+      </div>
+      <div class="banner-actions">
+        <button type="button" class="btn-approve" (click)="onApprove($event)" title="Approve workspace">
+          ✓ Accept
+        </button>
+        <button type="button" class="btn-reject" (click)="onReject($event)" title="Reject workspace">
+          ✕ Reject
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Card Body -->
+  <div class="company-card-body">
+    <h3 class="company-name">{{ company.name }}</h3>
+
+    @if (company.domain) {
+      <a [href]="getDomainUrl(company.domain)" target="_blank" class="company-domain-link" (click)="$event.stopPropagation()">
+        🌐 {{ company.domain }} ↗
+      </a>
+    }
+
+    @if (company.title) {
+      <span class="company-title-tag" [style.color]="company.primaryColor || 'var(--accent, #0f766e)'">
+        {{ company.title }}
+      </span>
+    }
+
+    @if (company.description) {
+      <p class="company-desc">{{ company.description }}</p>
+    }
+  </div>
+
+  <!-- Company Admins List -->
+  @if (company.admins && company.admins.length) {
+    <div class="company-admins-section">
+      <span class="section-label">Admins</span>
+      <div class="admins-chips">
+        @for (adm of company.admins; track adm.id) {
+          <span class="admin-chip" [attr.title]="adm.email">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <span>{{ adm.username }}</span>
+          </span>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Card Footer -->
+  <div class="company-card-foot">
+    <div class="user-stat-chip">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+      </svg>
+      <span>{{ company.totalUsers || 0 }} users</span>
+    </div>
+
+    @if (company.status === 'rejected') {
+      <span class="rejected-history-pill">
+        <span>Rejected Entry</span>
+      </span>
+    } @else {
+      <button type="button" class="btn-manage-company" [style.background]="company.primaryColor || 'var(--accent, #0f766e)'" (click)="$event.stopPropagation(); onManage()">
+        <span>Manage</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    }
+  </div>
+</article>

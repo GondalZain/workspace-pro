@@ -1,0 +1,12 @@
+/* Project-specific layout (shared controls live in workspace-ui.css) */
+
+.proj-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 1.35rem;
+  align-items: stretch;
+}
+
+.proj-empty--inline {
+  padding: 1.5rem 0.75rem;
+}

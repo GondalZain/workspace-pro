@@ -1,0 +1,235 @@
+.timesheet-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 18px -4px rgba(15, 23, 42, 0.045), 0 1px 3px rgba(15, 23, 42, 0.02);
+}
+
+.timesheet-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.35rem;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.header-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--brand-primary, #0f766e);
+}
+
+.header-title-group h3 {
+  font-size: 1rem;
+  font-weight: 800;
+  margin: 0;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.count-badge {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--brand-primary, #0f766e);
+  background: color-mix(in srgb, var(--brand-primary, #0f766e) 9%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--brand-primary, #0f766e) 22%, transparent);
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.timesheet-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  text-align: left;
+}
+
+.timesheet-table th {
+  background-color: #f8fafc;
+  color: #64748b;
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.85rem 1.15rem;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.timesheet-table td {
+  padding: 0.85rem 1.15rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.row-data {
+  transition: background-color 0.15s ease;
+}
+
+.row-data:hover {
+  background-color: #f8fafc;
+}
+
+.row-editing {
+  background-color: #fefce8;
+}
+
+.col-seq {
+  width: 40px;
+  text-align: center;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.col-title {
+  min-width: 120px;
+}
+
+.col-desc {
+  min-width: 140px;
+  word-break: break-word;
+}
+
+.col-task {
+  min-width: 100px;
+}
+
+.col-project {
+  min-width: 100px;
+}
+
+.col-time {
+  min-width: 80px;
+  white-space: nowrap;
+}
+
+.col-date {
+  min-width: 90px;
+  white-space: nowrap;
+}
+
+.col-actions {
+  width: 80px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.font-semibold {
+  font-weight: 700;
+}
+
+.font-sm {
+  font-size: 0.8125rem;
+}
+
+.text-dark {
+  color: #0f172a;
+}
+
+.text-secondary {
+  color: #475569;
+}
+
+.text-muted {
+  color: #64748b;
+}
+
+.text-accent {
+  color: var(--brand-primary, #0d9488);
+}
+
+/* Badges */
+.tag-badge {
+  display: inline-block;
+  padding: 0.22rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.tag-task {
+  background-color: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+}
+
+.tag-project {
+  background-color: color-mix(in srgb, var(--brand-primary, #0f766e) 9%, #ffffff);
+  color: var(--brand-primary, #0f766e);
+  border: 1px solid color-mix(in srgb, var(--brand-primary, #0f766e) 22%, transparent);
+}
+
+/* Inline Editing Input */
+.table-input {
+  width: 100%;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.84rem;
+  border: 1px solid var(--brand-primary, #0d9488);
+  border-radius: 6px;
+  background-color: #ffffff;
+  outline: none;
+}
+
+/* Action Buttons */
+.btn-icon {
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  padding: 0.3rem 0.45rem;
+  color: #64748b;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon:hover {
+  color: #0f172a;
+  background-color: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+.btn-icon.btn-delete:hover {
+  color: #dc2626;
+  background-color: #fee2e2;
+  border-color: #fecaca;
+}
+
+.btn-save {
+  background-color: var(--brand-primary, #10b981);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.55rem;
+  cursor: pointer;
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+.btn-cancel-edit {
+  background-color: #94a3b8;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.55rem;
+  cursor: pointer;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem !important;
+  color: #64748b;
+  font-size: 0.875rem;
+}

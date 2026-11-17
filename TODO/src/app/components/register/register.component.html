@@ -1,0 +1,241 @@
+<!-- 1. SHARED PUBLIC NAVBAR (View Pricing links directly to /pricing) -->
+<app-public-navbar buttonText="View Pricing" buttonLink="/pricing"></app-public-navbar>
+
+<!-- 2. FULL-SCREEN ONE-SCREEN REGISTRATION VIEWPORT -->
+<main class="register-viewport">
+  <div class="register-stage">
+    <!-- LEFT HERO & CLEAN PLAN SHOWCASE CARD -->
+    <section class="stage-left">
+      <!-- Top Back Navigation & Live Badge -->
+      <div class="stage-top-bar">
+        <a routerLink="/" class="back-pill" title="Return to Landing Page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Back to Home</span>
+        </a>
+
+        <div class="live-status-pill">
+          <span class="pulse-dot"></span>
+          <span>{{ selectedPlan().badge }}</span>
+        </div>
+      </div>
+
+      <!-- Main Hero Headline -->
+      <div class="hero-copy">
+        <h1 class="stage-headline">
+          Launch Your Team<br />
+          <span class="highlight-text">{{ selectedPlan().name }} Workspace</span>
+        </h1>
+        <p class="stage-subcopy">
+          Centralize projects, automate Kanban status pipelines, and keep every department aligned in real time.
+        </p>
+      </div>
+
+      <!-- Clean White Plan Summary Card (Matching Pricing Page Cards) -->
+      <div class="plan-summary-card">
+        <div class="plan-card-header">
+          <div class="plan-pricing-group">
+            <span class="plan-label">{{ selectedPlan().name }}</span>
+            <div class="price-row">
+              <span class="price-val">{{ selectedPlan().price }}</span>
+              <span class="price-period">{{ selectedPlan().cadence }}</span>
+            </div>
+          </div>
+
+          <!-- Interactive Plan Selector Pills -->
+          <div class="plan-tabs" role="tablist" aria-label="Select Workspace Plan">
+            @for (plan of availablePlans; track plan.id) {
+              <button
+                type="button"
+                role="tab"
+                class="plan-tab-btn"
+                [attr.aria-selected]="selectedPlan().id === plan.id"
+                [class.active]="selectedPlan().id === plan.id"
+                (click)="changePlan(plan.id)"
+              >
+                {{ plan.name }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <hr class="card-divider" />
+
+        <!-- Dynamic Plan Features Grid -->
+        <ul class="plan-features-grid">
+          @for (feature of selectedPlan().features; track feature) {
+            <li class="feature-row">
+              <span class="check-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </span>
+              <span class="feature-text">{{ feature }}</span>
+            </li>
+          }
+        </ul>
+
+        <div class="plan-card-footer">
+          <div class="trust-metric">
+            <div class="avatar-stack">
+              <span class="mini-avatar" style="background: #0f766e;">S</span>
+              <span class="mini-avatar" style="background: #0284c7;">A</span>
+              <span class="mini-avatar" style="background: #7c3aed;">M</span>
+            </div>
+            <span>Trusted by <strong>2,400+</strong> teams</span>
+          </div>
+
+          <a routerLink="/pricing" class="compare-link">
+            <span>Compare all plans</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: CLEAN, SIMPLE & ATTRACTIVE REGISTRATION FORM CARD -->
+    <section class="stage-right">
+      <div class="register-form-card">
+        <!-- Card Top Header -->
+        <div class="form-card-header">
+          <div class="header-titles">
+            <div class="title-with-badge">
+              <h2 class="form-title">Create Admin Account</h2>
+              <span class="tier-pill">{{ selectedPlan().name }}</span>
+            </div>
+            <p class="form-subtitle">Set up your company workspace in under 60 seconds.</p>
+          </div>
+        </div>
+
+        <!-- Alerts -->
+        @if (successMessage()) {
+          <div class="registration-success-alert" role="status">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <div>
+              <strong>Registration Received!</strong>
+              <p>{{ successMessage() }}</p>
+            </div>
+          </div>
+        }
+
+        @if (errorMessage()) {
+          <div class="registration-error-alert" role="alert">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <!-- Registration Form -->
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate class="registration-form">
+          <div class="form-fields-grid">
+            <!-- Company Name -->
+            <div class="form-group">
+              <label for="companyName" class="form-label">Company Name</label>
+              <input
+                id="companyName"
+                type="text"
+                class="clean-input"
+                formControlName="companyName"
+                placeholder="Acme Technologies, Inc."
+                [class.input-error]="isFieldInvalid('companyName')"
+              />
+              @if (isFieldInvalid('companyName')) {
+                <span class="error-text">Company name is required.</span>
+              }
+            </div>
+
+            <!-- Work Email & Full Name Row -->
+            <div class="form-row-split" [class.compact-split]="isPaidPlan()">
+              <!-- Work Email -->
+              <div class="form-group">
+                <label for="workEmail" class="form-label">Work Email</label>
+                <input
+                  id="workEmail"
+                  type="email"
+                  class="clean-input"
+                  formControlName="workEmail"
+                  placeholder="alex@company.com"
+                  [class.input-error]="isFieldInvalid('workEmail')"
+                />
+                @if (isFieldInvalid('workEmail')) {
+                  <span class="error-text">
+                    @if (registerForm.get('workEmail')?.hasError('required')) {
+                      Work email is required.
+                    } @else {
+                      Enter a valid work email.
+                    }
+                  </span>
+                }
+              </div>
+
+              <!-- Full Name -->
+              <div class="form-group">
+                <label for="fullName" class="form-label">Full Name</label>
+                <input
+                  id="fullName"
+                  type="text"
+                  class="clean-input"
+                  formControlName="fullName"
+                  placeholder="Alex Morgan"
+                  [class.input-error]="isFieldInvalid('fullName')"
+                />
+                @if (isFieldInvalid('fullName')) {
+                  <span class="error-text">Full name is required.</span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Clean Card Element (Shown when Pro or Ultra plan is selected) -->
+          @if (isPaidPlan()) {
+            <app-stripe-card-element
+              [planName]="selectedPlan().name"
+              [price]="selectedPlan().price"
+              [cadence]="selectedPlan().cadence"
+              (cardValidated)="onCardValidated($event)"
+            ></app-stripe-card-element>
+          }
+
+          <!-- Primary CTA Submit Button -->
+          <button
+            type="submit"
+            class="primary-submit-btn"
+            [disabled]="registerForm.invalid || (isPaidPlan() && !isCardValid()) || isSubmitting"
+          >
+            @if (isSubmitting) {
+              <span>{{ isPaidPlan() ? 'Processing Payment & Creating...' : 'Provisioning Workspace...' }}</span>
+            } @else {
+              <span>{{ isPaidPlan() ? 'Pay ' + selectedPlan().price + ' & Create Workspace' : 'Start Free 1-Month Trial' }}</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            }
+          </button>
+
+          <!-- Footer Security & Sign-In Bar -->
+          <div class="form-footer-bar">
+            <div class="security-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              <span>{{ isPaidPlan() ? '256-bit SSL encrypted checkout • Cancel anytime' : 'Free 1-month trial • No credit card required' }}</span>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+</main>

@@ -1,0 +1,22 @@
+<div class="admin-view" id="admin-roles-page">
+  <app-admin-page-header
+    title="Roles & Permissions"
+    description="Configure security roles and assign granular system permissions."
+  >
+    <a adminActions [routerLink]="url.adminNewRole" class="btn-primary" title="Create a new role">+ New Role</a>
+  </app-admin-page-header>
+
+  @if (errorMessage()) {
+    <div class="error-banner" role="alert">{{ errorMessage() }}</div>
+  }
+
+  <div class="card">
+    <app-admin-roles
+      [roles]="roles()"
+      [permissions]="permissions()"
+      [showCreateForm]="false"
+      (roleUpdated)="saveRole($event)"
+      (roleDeleted)="deleteRole($event)"
+    />
+  </div>
+</div>

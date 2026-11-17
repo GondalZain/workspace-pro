@@ -1,0 +1,398 @@
+/* =========================================================================
+   DYNAMIC FIELDS RENDERER (Native Form Integration)
+   Blends seamlessly as built-in form controls.
+   ========================================================================= */
+
+:host {
+  display: block;
+}
+
+.dynamic-fields-container {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Match Native Form Group Spacing & Typography */
+.custom-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.85rem;
+}
+
+.field-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.15rem;
+}
+
+.label-with-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.custom-field-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.12rem 0.45rem;
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  color: #0f766e;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.field-admin-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-field-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 5px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.btn-field-edit {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #e2e8f0;
+}
+
+.btn-field-edit:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.btn-field-delete {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fee2e2;
+}
+
+.btn-field-delete:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.custom-field-group label,
+.custom-field-group .form-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0;
+}
+
+.required-star {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+/* Match Native Input Controls */
+.custom-field-group .form-input,
+.custom-field-group .form-textarea,
+.custom-field-group .form-select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.88rem;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.custom-field-group .form-input:focus,
+.custom-field-group .form-textarea:focus,
+.custom-field-group .form-select:focus {
+  border-color: var(--brand-primary, #0f766e);
+  box-shadow: 0 0 0 2px var(--brand-primary-glow, rgba(15, 118, 110, 0.12));
+}
+
+.custom-field-group .form-textarea {
+  resize: vertical;
+  min-height: 85px;
+  line-height: 1.5;
+}
+
+.custom-field-group .checkbox-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  padding: 0.35rem 0;
+}
+
+.custom-field-group .checkbox-toggle-container input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--brand-primary, #0f766e);
+  cursor: pointer;
+}
+
+.custom-field-group .checkbox-toggle-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.field-help-text {
+  font-size: 0.74rem;
+  color: #64748b;
+  margin: 0.15rem 0 0;
+}
+
+/* Admin Studio: Subtle slot shown only in preview mode if 0 fields exist */
+.preview-add-slot {
+  margin-top: 1rem;
+  padding: 0.85rem 1.25rem;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  color: #64748b;
+  font-size: 0.84rem;
+  transition: all 0.15s ease;
+}
+
+.preview-add-slot:hover {
+  background: #f1f5f9;
+  border-color: #0f766e;
+  color: #0f766e;
+}
+
+.slot-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #334155;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.preview-add-slot:hover .slot-plus {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+/* Inline Field Creator (Admin only) */
+.inline-field-creator-card {
+  margin-top: 1rem;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-left: 4px solid var(--brand-primary, #0f766e);
+  border-radius: 9px;
+  padding: 1.15rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.creator-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.9rem;
+}
+
+.creator-card-header h5 {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.badge-role {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #0f766e;
+  background: #ccfbf1;
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+}
+
+.creator-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.creator-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.creator-col--checkbox {
+  padding-bottom: 0.5rem;
+}
+
+.creator-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.creator-input,
+.creator-select {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  font-size: 0.84rem;
+  color: #0f172a;
+  outline: none;
+  font-family: inherit;
+}
+
+.creator-input:focus,
+.creator-select:focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.12);
+}
+
+.creator-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.creator-options-box {
+  margin-top: 0.75rem;
+  background: #ffffff;
+  padding: 0.75rem;
+  border-radius: 7px;
+  border: 1px solid #e2e8f0;
+}
+
+.creator-option-row {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.4rem;
+}
+
+.creator-option-row input {
+  flex: 1;
+}
+
+.btn-opt-add {
+  padding: 0.5rem 0.85rem;
+  background: #0f766e;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.creator-chips-wrap {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.creator-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #1e293b;
+}
+
+.btn-chip-del {
+  border: none;
+  background: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.btn-chip-del:hover {
+  color: #dc2626;
+}
+
+.creator-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 0.85rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-cancel-creator {
+  padding: 0.45rem 0.85rem;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-save-creator {
+  padding: 0.45rem 1.05rem;
+  background: #0f766e;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-save-creator:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+/* Validation Error Styles */
+.custom-field-error-text {
+  margin: 0.15rem 0 0;
+  font-size: 0.76rem;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.form-control-invalid {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}

@@ -1,0 +1,6 @@
+{
+  "files.associations": {
+    "*.htaccess": "ignore",
+    ".htaccess": "ignore"
+  }
+}

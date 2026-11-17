@@ -1,0 +1,21 @@
+<div class="admin-view" id="admin-new-role-page">
+  <app-admin-page-header
+    title="Create Role"
+    description="Define a new access role and select associated granular permissions."
+  >
+    <a adminActions [routerLink]="url.adminRoles" class="btn-secondary" title="Back to all roles">&larr; All Roles</a>
+  </app-admin-page-header>
+
+  @if (errorMessage()) {
+    <div class="error-banner" role="alert">{{ errorMessage() }}</div>
+  }
+
+  <div class="card">
+    <app-admin-roles
+      [roles]="roles()"
+      [permissions]="permissions()"
+      [(showCreateForm)]="showCreateForm"
+      (roleCreated)="createRole($event)"
+    />
+  </div>
+</div>

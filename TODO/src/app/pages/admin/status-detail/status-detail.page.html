@@ -1,0 +1,216 @@
+<div class="admin-view" id="admin-status-detail-page">
+  <div class="page-top">
+    <div style="display: flex; align-items: center; gap: 0.85rem;">
+      <a [routerLink]="url.adminStatuses" class="btn-back" title="Back to task statuses">
+        &larr; Back to Statuses
+      </a>
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <h2 class="page-title">{{ template()?.name || 'Task Statuses Details' }}</h2>
+          @if (isCurrentCompanyActive()) {
+            <span class="active-badge">✓ Active Statuses</span>
+          }
+        </div>
+        <p class="page-subtitle">Configure stages, reorder sequence, customize colors, and manage initial/completion states.</p>
+      </div>
+    </div>
+
+    @if (!isCurrentCompanyActive()) {
+      @if (canManageStatuses()) {
+        <button
+          type="button"
+          class="btn-apply-company"
+          [disabled]="isSaving()"
+          (click)="applyToCompany()"
+        >
+          {{ isSaving() ? 'Applying...' : 'Apply Statuses' }}
+        </button>
+      } @else {
+        <button
+          type="button"
+          class="btn-apply-company"
+          style="background: #f59e0b; border-color: #d97706;"
+          (click)="openUpgradeModal()"
+          title="Custom status pipelines require Monthly or Pro Plan"
+        >
+          🔒 Upgrade to Apply
+        </button>
+      }
+    }
+  </div>
+
+  @if (successMessage()) {
+    <div class="banner banner-success">{{ successMessage() }}</div>
+  }
+
+  @if (errorMessage()) {
+    <div class="banner banner-error">{{ errorMessage() }}</div>
+  }
+
+  <!-- Pipeline Editor Card -->
+  <div class="status-card">
+    <!-- Clean Add Status Header Bar -->
+    <div class="add-bar">
+      <div class="form-field flex-2">
+        <label>Stage Name</label>
+        <input
+          type="text"
+          class="input-name"
+          placeholder="e.g. In Review, QA"
+          [value]="newName()"
+          (input)="newName.set($any($event.target).value)"
+          (keydown.enter)="addStatus()"
+        />
+      </div>
+
+      <div class="form-field form-field-color">
+        <label>Color</label>
+        <div style="display: flex; align-items: center; gap: 0.4rem;">
+          <input
+            type="color"
+            class="input-color"
+            [value]="newColor()"
+            (input)="newColor.set($any($event.target).value)"
+            title="Status Color"
+          />
+        </div>
+      </div>
+
+      <div class="form-field form-field-type">
+        <label>Stage Type</label>
+        <select
+          class="select-type"
+          [value]="newStageType()"
+          (change)="newStageType.set($any($event.target).value)"
+        >
+          <option value="normal">In Progress (Normal)</option>
+          <option value="initial">★ Initial (Starting stage)</option>
+          <option value="completed">✓ Completed (Done stage)</option>
+        </select>
+      </div>
+
+      <div class="form-field-action">
+        <button type="button" class="btn-add" (click)="addStatus()">
+          + Add Stage
+        </button>
+      </div>
+    </div>
+
+    <!-- Proper Structured Table View -->
+    <div class="table-container">
+      @if (isLoading()) {
+        <div class="empty-state">Loading pipeline stages...</div>
+      } @else {
+        <table class="status-table">
+          <thead>
+            <tr>
+              <th style="width: 50px; text-align: center;">#</th>
+              <th style="width: 70px; text-align: center;">Color</th>
+              <th>Status Name</th>
+              <th style="width: 220px;">Stage Behavior</th>
+              <th style="width: 140px; text-align: center;">Order & Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (st of statuses(); track st.id; let i = $index) {
+              <tr>
+                <td style="text-align: center;" class="cell-num">
+                  #{{ i + 1 }}
+                </td>
+
+                <td style="text-align: center;">
+                  <div style="display: inline-flex; align-items: center; justify-content: center;">
+                    <input
+                      type="color"
+                      class="row-color-picker"
+                      [value]="st.color || '#3b82f6'"
+                      (change)="updateStatusColor(i, $any($event.target).value)"
+                      (input)="updateStatusColor(i, $any($event.target).value)"
+                      title="Click to change status color"
+                    />
+                  </div>
+                </td>
+
+                <td>
+                  <input
+                    type="text"
+                    class="editable-status-name"
+                    [value]="st.name"
+                    (change)="updateStatusName(i, $any($event.target).value)"
+                    title="Status display name"
+                    placeholder="Status Name"
+                  />
+                </td>
+
+                <td>
+                  <!-- Dropdown for Initial / Normal / Completed -->
+                  <select
+                    class="table-select-type"
+                    [value]="getStageType(st)"
+                    (change)="updateStageType(i, $any($event.target).value)"
+                  >
+                    <option value="normal">In Progress (Normal)</option>
+                    <option value="initial">★ Initial (Starting stage)</option>
+                    <option value="completed">✓ Completed (Done stage)</option>
+                  </select>
+                </td>
+
+                <td>
+                  <div class="col-actions" style="justify-content: center;">
+                    <button
+                      type="button"
+                      class="btn-sort"
+                      [disabled]="i === 0"
+                      (click)="moveUp(i)"
+                      title="Move Up"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-sort"
+                      [disabled]="i === statuses().length - 1"
+                      (click)="moveDown(i)"
+                      title="Move Down"
+                    >
+                      ▼
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-del"
+                      (click)="removeStatus(i)"
+                      title="Delete Status"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="empty-state">No status stages found.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+
+    <!-- Bottom Action Bar -->
+    <div class="card-footer">
+      <span class="footer-hint">{{ statuses().length }} status stages configured</span>
+      <div style="display: flex; gap: 0.5rem;">
+        <a [routerLink]="url.adminStatuses" class="btn-cancel">Cancel</a>
+        @if (canManageStatuses()) {
+          <button type="button" class="btn-save" [disabled]="isSaving()" (click)="saveChanges()">
+            {{ isSaving() ? 'Saving Changes...' : 'Save Statuses' }}
+          </button>
+        } @else {
+          <button type="button" class="btn-save" style="background: #f59e0b; border-color: #d97706;" (click)="openUpgradeModal()" title="Custom status pipelines require Monthly or Pro Plan">
+            🔒 Upgrade to Save
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+</div>

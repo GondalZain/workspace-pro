@@ -1,0 +1,16 @@
+<div class="profile-image-field">
+  <span>Profile image <small>JPG, PNG, WEBP, or GIF up to 5 MB</small></span>
+
+  @if (previewUrl()) {
+    <div class="profile-preview-wrap">
+      <img class="profile-preview-image" [src]="previewUrl()" alt="Profile preview" />
+      <button type="button" class="remove-image-button" aria-label="Remove profile image" (click)="clearSelection()">×</button>
+    </div>
+  }
+
+  <input id="profile-image-picker" name="profileImage" type="file" accept="image/jpeg,image/png,image/webp,image/gif" (change)="onFileSelected($event)" />
+
+  @if (selectedFileName()) {
+    <small class="selected-name">Selected: {{ selectedFileName() }}</small>
+  }
+</div>

@@ -1,0 +1,83 @@
+<div class="stripe-payment-box" [class.liquid-glass]="variant === 'liquid-glass'">
+  <div class="payment-header">
+    <div class="payment-title-row">
+      <div class="stripe-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="5" width="20" height="14" rx="2" />
+          <line x1="2" y1="10" x2="22" y2="10" />
+        </svg>
+        <span>{{ mode === 'add_card' ? 'Payment Method' : 'Card Details' }}</span>
+      </div>
+      @if (mode === 'checkout' && price) {
+        <div class="plan-price-pill">
+          <span>Total: <strong>{{ price }}</strong>{{ cadence }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Clean, Simple, Professional Card Entry -->
+  <form [formGroup]="cardForm" class="card-details-grid">
+    <!-- Card Number -->
+    <div class="card-field full-width">
+      <label for="stripeCardNumber">Card Number</label>
+      <div class="input-with-brands">
+        <input
+          id="stripeCardNumber"
+          type="text"
+          inputmode="numeric"
+          autocomplete="cc-number"
+          placeholder="4242 4242 4242 4242"
+          formControlName="cardNumber"
+          (input)="formatCardNumber($event)"
+          maxlength="19"
+        />
+        <div class="card-brands">
+          <span class="brand-chip visa">VISA</span>
+          <span class="brand-chip mc">MC</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Name on Card, Expiry & CVC -->
+    <div class="card-sub-row">
+      <div class="card-field name-col">
+        <label for="stripeCardholder">Cardholder Name</label>
+        <input
+          id="stripeCardholder"
+          type="text"
+          autocomplete="cc-name"
+          placeholder="Alex Morgan"
+          formControlName="cardholderName"
+        />
+      </div>
+
+      <div class="card-field exp-col">
+        <label for="stripeExpDate">Expiry</label>
+        <input
+          id="stripeExpDate"
+          type="text"
+          inputmode="numeric"
+          autocomplete="cc-exp"
+          placeholder="MM/YY"
+          formControlName="expDate"
+          (input)="formatExpDate($event)"
+          maxlength="5"
+        />
+      </div>
+
+      <div class="card-field cvc-col">
+        <label for="stripeCvc">CVC</label>
+        <input
+          id="stripeCvc"
+          type="text"
+          inputmode="numeric"
+          autocomplete="cc-csc"
+          placeholder="123"
+          formControlName="cvc"
+          maxlength="4"
+        />
+      </div>
+    </div>
+  </form>
+</div>

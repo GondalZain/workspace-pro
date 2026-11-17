@@ -1,0 +1,95 @@
+<div class="task-notes-card">
+  <div class="notes-header">
+    <h3 class="notes-title">Activity log</h3>
+    <span class="notes-badge">{{ notes().length }}</span>
+  </div>
+
+  <div #notesContainer class="notes-feed">
+    @if (isLoading()) {
+      <p class="notes-state">Loading…</p>
+    } @else if (notes().length === 0) {
+      <p class="notes-state">No entries yet. Add an update below.</p>
+    } @else {
+      <ul class="notes-list">
+        @for (note of notes(); track note.id) {
+          <li class="note-item" [class.has-mention]="hasMention(note.content)">
+            <div class="note-avatar" aria-hidden="true">
+              @if (avatarUrl(note.profileImagePath); as src) {
+                <img [src]="src" [alt]="" />
+              } @else {
+                <span class="note-avatar__initials">{{ getInitials(note.username) }}</span>
+              }
+            </div>
+            <div class="note-body">
+              <div class="note-meta">
+                <span class="note-author">{{ note.username }}</span>
+                <span class="note-time">{{ formatTime(note.createdAt) }}</span>
+              </div>
+              <p class="note-content" [innerHTML]="formatNoteContent(note.content)"></p>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+
+  @if (error()) {
+    <div class="notes-error" role="alert">{{ error() }}</div>
+  }
+
+  @if (canPostNote()) {
+    <form class="notes-input-box" [formGroup]="form" (ngSubmit)="submitNote()">
+      <app-user-mention-input
+        formControlName="content"
+        placeholder="Add a log entry… (Type @ to tag a user)"
+        [disabled]="isSubmitting()"
+        (enterSubmit)="submitNote()"
+      />
+      <app-form-field-error
+        [control]="form.controls.content"
+        fieldLabel="Note"
+        [showAfterSubmit]="submitAttempted()"
+      />
+      <div class="input-actions">
+        <span class="hint-text">Enter to post · Shift+Enter for new line · Type @ to tag</span>
+        <button type="submit" class="btn-primary" [disabled]="form.invalid || isSubmitting()">
+          {{ isSubmitting() ? 'Posting…' : 'Post log' }}
+        </button>
+      </div>
+    </form>
+  } @else {
+    <div class="notes-input-box notes-input-locked" (click)="openUpgradeModal()">
+      <div class="locked-editor-preview">
+        <div class="note-editor-mock">
+          Add a log entry… (Type &#64; to tag a user)
+        </div>
+        <div class="input-actions">
+          <span class="hint-text">Enter to post · Shift+Enter for new line · Type &#64; to tag</span>
+          <button type="button" class="btn-primary btn-mock-post">
+            Post log
+          </button>
+        </div>
+      </div>
+
+      <div class="locked-card-overlay">
+        <div
+          class="locked-banner-pill"
+          [class.banner-trial]="currentPlanId() === 'trial'"
+          [class.banner-pro]="currentPlanId() === 'pro' || currentPlanId() === 'monthly'"
+        >
+          <span class="pill-icon">🔒</span>
+          <span class="pill-text">
+            @if (currentPlanId() === 'trial') {
+              Free Trial: Team &#64;mentions &amp; comments require Ultra Plan
+            } @else {
+              Pro Plan: Upgrade to Ultra Plan to unlock Team &#64;mentions
+            }
+          </span>
+          <button type="button" class="btn-upgrade-pill" (click)="openUpgradeModal(); $event.stopPropagation()">
+            Upgrade Plan →
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

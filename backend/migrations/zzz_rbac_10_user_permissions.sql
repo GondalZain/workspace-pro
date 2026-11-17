@@ -1,0 +1,1 @@
+INSERT IGNORE INTO role_permissions (role_id, permission_id) SELECT roles.id, permissions.id FROM roles JOIN permissions WHERE roles.name = 'user' AND permissions.name IN ('tasks.read', 'tasks.create', 'tasks.update', 'tasks.delete');

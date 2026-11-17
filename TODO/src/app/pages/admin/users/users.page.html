@@ -1,0 +1,12 @@
+<div class="admin-view" id="admin-users-page">
+  <app-admin-page-header
+    title="Users & Accounts"
+    description="Inspect user accounts, update profile credentials, and assign security roles."
+  />
+
+  @if (errorMessage()) {
+    <div class="error-banner" role="alert">{{ errorMessage() }}</div>
+  }
+
+  <app-admin-users [users]="users()" [roles]="roles()" />
+</div>

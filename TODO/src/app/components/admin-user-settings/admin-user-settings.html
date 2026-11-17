@@ -1,0 +1,48 @@
+@if (user(); as currentUser) {
+  <form class="settings-panel" [formGroup]="form" (ngSubmit)="saveProfile()">
+    <div class="field-grid">
+      <label>
+        Username
+        <input type="text" formControlName="username" />
+        <app-form-field-error [control]="form.controls.username" fieldLabel="Username" [showAfterSubmit]="submitAttempted()" />
+      </label>
+
+      <label>
+        Email
+        <input type="email" formControlName="email" />
+        <app-form-field-error [control]="form.controls.email" fieldLabel="Email" [showAfterSubmit]="submitAttempted()" />
+      </label>
+
+      <label>
+        Role
+        <select formControlName="roleId">
+          <option [ngValue]="null">Select a role</option>
+          @for (role of roles(); track role.id) {
+            <option [ngValue]="role.id">{{ role.name }}</option>
+          }
+        </select>
+        <app-form-field-error [control]="form.controls.roleId" fieldLabel="Role" [showAfterSubmit]="submitAttempted()" />
+      </label>
+
+      <app-profile-image-picker
+        [currentImageUrl]="currentUserImageUrl()"
+        [(selectedFile)]="editProfileImage"
+        [(removeExisting)]="removeProfileImage"
+      />
+
+      @if (currentPermissions().length) {
+        <div class="modal-permissions">
+          <span class="hint">Assigned permissions</span>
+          @for (permission of currentPermissions(); track permission) {
+            <span>{{ permission }}</span>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="row-actions">
+      <button type="button" class="text-button" (click)="cancel()">Cancel</button>
+      <button type="submit" class="save-button">Save changes</button>
+    </div>
+  </form>
+}

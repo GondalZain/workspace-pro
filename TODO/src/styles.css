@@ -1,0 +1,160 @@
+/* Google Fonts moved to index.html with preconnect to eliminate render blocking */
+@import './app/core/styles/workspace-ui.css';
+@import './app/components/kanban/kanban-ui.css';
+
+:root {
+  --font-main: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+
+  /* =========================================================
+     60-30-10 COLOR RULE DESIGN ARCHITECTURE
+     =========================================================
+     1. Primary Color (60%): Dominant shade for app canvas & main background
+     2. Secondary Color (30%): Supporting tone for cards, nav, containers
+     3. Accent / CTA (10%): High-contrast pop for CTAs, buttons & active highlights
+     ========================================================= */
+
+  /* --- 60% DOMINANT / PRIMARY CANVAS --- */
+  --color-role-primary-60: #f8fafc;     /* 60% App canvas background */
+
+  /* --- 30% SECONDARY / STRUCTURAL CONTAINERS --- */
+  --color-role-secondary-30: #ffffff;   /* 30% Cards, navigation, containers */
+  --color-role-secondary-subtle: #f1f5f9;
+  --color-role-secondary-border: #e2e8f0;
+
+  /* --- 10% ACCENT / HIGHLIGHT (CTA & ACTIVE STATES) --- */
+  --color-role-accent-10: #0f766e;      /* 10% High-contrast CTA pop color */
+  --accent-color-hover: color-mix(in srgb, var(--color-role-accent-10) 85%, #000000);
+  --accent-color-soft: color-mix(in srgb, var(--color-role-accent-10) 10%, #ffffff);
+  --accent-color-border: color-mix(in srgb, var(--color-role-accent-10) 25%, #ffffff);
+
+  /* --- SECONDARY ACCENT (OPTIONAL SECONDARY HIGHLIGHT) --- */
+  --color-role-accent-secondary: #4f46e5;
+  --secondary-accent-soft: color-mix(in srgb, var(--color-role-accent-secondary) 10%, #ffffff);
+
+  /* Mapping to Brand Tokens for Seamless Component Interoperability */
+  --primary-color: var(--color-role-accent-10);
+  --secondary-color: var(--color-role-accent-secondary);
+
+  --brand-primary: var(--color-role-accent-10);
+  --brand-primary-hover: var(--accent-color-hover);
+  --brand-primary-soft: var(--accent-color-soft);
+  --brand-primary-border: var(--accent-color-border);
+
+  --brand-secondary: var(--color-role-accent-secondary);
+  --brand-secondary-hover: color-mix(in srgb, var(--color-role-accent-secondary) 85%, #000000);
+  --brand-secondary-soft: var(--secondary-accent-soft);
+
+  /* Surfaces & Backgrounds mapped to 60-30-10 Rule */
+  --bg-app: var(--color-role-primary-60);         /* 60% */
+  --bg-surface: var(--color-role-secondary-30);   /* 30% */
+  --bg-subtle: var(--color-role-secondary-subtle);
+  --bg-hover: #e2e8f0;
+  
+  /* Text & Ink */
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+  
+  /* Borders */
+  --border-light: #f1f5f9;
+  --border-base: var(--color-role-secondary-border);
+  --border-strong: #cbd5e1;
+  --border-focus: var(--color-role-accent-10);
+
+  /* Semantic status colors */
+  --color-success: #10b981;
+  --color-success-soft: #ecfdf5;
+  --color-warning: #f59e0b;
+  --color-warning-soft: #fffbeb;
+  --color-danger: #ef4444;
+  --color-danger-soft: #fef2f2;
+  --color-info: #0284c7;
+  --color-info-soft: #f0f9ff;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.06);
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 150ms var(--ease-standard);
+  --transition-normal: 200ms var(--ease-standard);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom modern scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+/* Common Workspace Layout */
+.workspace {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.workspace-content {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 1.25rem 1.75rem 3rem;
+  box-sizing: border-box;
+}
+
+.workspace-content.workspace-content--full {
+  max-width: 100%;
+  padding: 1.25rem 1.75rem 2.5rem;
+}
+
+.content.workspace-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+

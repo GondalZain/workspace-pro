@@ -1,0 +1,240 @@
+<div class="super-admin-page">
+  <!-- Top Banner / Hero Header -->
+  <header class="page-action-header">
+    <div class="header-left">
+      <div class="portal-badge">
+        <span class="badge-dot"></span>
+        <span>Super Admin Console</span>
+      </div>
+      <h1 class="page-title">Company &amp; Admin Accounts</h1>
+      <p class="page-subtitle">Manage company tenants, custom brand themes, multi-tenant isolation, and administrator permissions.</p>
+    </div>
+    <button type="button" class="btn-create-company" (click)="openCreateModal()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+      <span>+ Create Company &amp; Admin</span>
+    </button>
+  </header>
+
+  <!-- Metric Stats Row -->
+  <div class="stats-grid">
+    <app-stat-card
+      label="Total Companies"
+      [value]="stats().totalCompanies"
+      badgeText="Multi-Tenant"
+      variant="teal"
+      iconType="company"
+    />
+
+    <app-stat-card
+      label="Active Tenants"
+      [value]="stats().activeCompanies"
+      badgeText="100% Isolated"
+      variant="emerald"
+      iconType="active"
+    />
+
+    <app-stat-card
+      label="Company Admins"
+      [value]="stats().totalAdmins"
+      badgeText="Custom Roles"
+      variant="indigo"
+      iconType="admins"
+    />
+
+    <app-stat-card
+      label="System Users"
+      [value]="stats().totalUsers"
+      badgeText="RBAC Active"
+      variant="sapphire"
+      iconType="users"
+    />
+  </div>
+
+  <!-- Companies Panel (Grid Layout: 4 cards per row) -->
+  <section class="companies-panel">
+    <div class="panel-header">
+      <div class="panel-title-group">
+        <h2>Active Working Companies</h2>
+        <span class="count-chip">{{ filteredCompanies().length }} active</span>
+      </div>
+
+      <div class="panel-controls">
+        @if (stats().pendingCompanies) {
+          <a routerLink="/super-admin/approvals" class="pending-notice-pill">
+            <span class="pulse-warning-dot"></span>
+            <span>{{ stats().pendingCompanies }} Pending Approval</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </a>
+        }
+
+        <div class="table-search-box">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="text"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            placeholder="Search active companies..."
+            class="search-input"
+          />
+          @if (searchQuery()) {
+            <button type="button" class="btn-clear-search" (click)="searchQuery.set('')">✕</button>
+          }
+        </div>
+      </div>
+    </div>
+
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <span>Loading tenant companies &amp; system metrics...</span>
+      </div>
+    } @else {
+      <div class="companies-grid">
+        @for (company of filteredCompanies(); track company.id) {
+          <app-company-card [company]="company" (statusChange)="onCompanyStatusChange($event)" />
+        } @empty {
+          <div class="empty-state">
+            @if (searchQuery()) {
+              <p>No active companies found matching "{{ searchQuery() }}"</p>
+              <button type="button" class="btn-reset-filter" (click)="searchQuery.set('')">Reset Search</button>
+            } @else {
+              <h3>No active working companies</h3>
+              <p>Approved companies will appear here. Check the <strong><a routerLink="/super-admin/approvals" style="color: #0f766e; text-decoration: underline;">Workspace Approvals</a></strong> page to review and accept pending registrations.</p>
+            }
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Modal: Create Company & Admin Account -->
+  @if (isModalOpen()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <header class="modal-head">
+          <div class="modal-title-group">
+            <span class="modal-eyebrow">Super Admin Platform</span>
+            <h3>Create Company &amp; Admin Account</h3>
+          </div>
+          <button type="button" class="btn-close" (click)="closeModal()">×</button>
+        </header>
+
+        <form (ngSubmit)="submitCompanyForm()" class="modal-body">
+          @if (errorMessage()) {
+            <div class="form-error-alert">{{ errorMessage() }}</div>
+          }
+
+          <!-- Section 1: Company Details -->
+          <div class="form-section">
+            <h4 class="section-title">Company Profile Details</h4>
+
+            <div class="form-field">
+              <label>Company Name <span class="req">*</span></label>
+              <input type="text" [ngModel]="companyName()" (ngModelChange)="onCompanyNameChange($event)" name="companyName" placeholder="e.g. Acme Corporation" required />
+            </div>
+
+            <div class="form-field">
+              <label style="display: flex; align-items: center; justify-content: space-between; font-weight: 600;">
+                <span>Company Email Domain / Abbreviation Suffix</span>
+                <span style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-weight: 600;">e.g. @company.com</span>
+              </label>
+              <input type="text" [ngModel]="emailDomain()" (ngModelChange)="onEmailDomainChange($event)" name="emailDomain" placeholder="e.g. @acme.com (leave empty for general emails)" class="form-input" />
+              @if (emailDomain()) {
+                <small class="form-hint" style="color: #0f766e; font-size: 0.82rem; display: block; margin-top: 4px; font-weight: 500;">
+                  💡 Admin accounts will automatically use: <strong>admin{{ emailDomain() }}</strong>
+                </small>
+              } @else {
+                <small class="form-hint" style="color: #64748b; font-size: 0.82rem; display: block; margin-top: 4px; font-weight: 500;">
+                  Optional: Leave empty if company uses standard email addresses like Gmail.
+                </small>
+              }
+            </div>
+
+            <div class="form-field">
+              <label style="display: flex; align-items: center; justify-content: space-between; font-weight: 600;">
+                <span>Custom Domain (Hostname)</span>
+                <span style="font-size: 0.75rem; background: #ecfdf5; color: #047857; padding: 2px 8px; border-radius: 4px; font-weight: 600;">e.g. acme.localhost</span>
+              </label>
+              <input type="text" [ngModel]="domain()" (ngModelChange)="domain.set($event)" name="domain" placeholder="e.g. acme.localhost or acme.com" class="form-input" />
+            </div>
+
+            <div class="form-field">
+              <label>Industry Tag / Title</label>
+              <input type="text" [ngModel]="title()" (ngModelChange)="title.set($event)" name="title" placeholder="e.g. Technology & Design" />
+            </div>
+
+            <div class="form-field">
+              <label>Description</label>
+              <textarea [ngModel]="description()" (ngModelChange)="description.set($event)" name="description" placeholder="Brief overview of company workspace operations..."></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field flex-1">
+                <label>Primary Brand Color (Accent / CTAs)</label>
+                <div class="color-picker-row">
+                  <input type="color" [ngModel]="primaryColor()" (ngModelChange)="primaryColor.set($event)" name="modalPrimaryColor" class="native-color-picker" />
+                  <input type="text" [ngModel]="primaryColor()" (ngModelChange)="primaryColor.set($event)" name="modalPrimaryColorHex" placeholder="#0f766e" class="hex-input" />
+                </div>
+              </div>
+
+              <div class="form-field flex-1">
+                <label>Secondary Brand Color (Containers)</label>
+                <div class="color-picker-row">
+                  <input type="color" [ngModel]="secondaryColor()" (ngModelChange)="secondaryColor.set($event)" name="modalSecondaryColor" class="native-color-picker" />
+                  <input type="text" [ngModel]="secondaryColor()" (ngModelChange)="secondaryColor.set($event)" name="modalSecondaryColorHex" placeholder="#ffffff" class="hex-input" />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label>Company Logo</label>
+              <input type="file" (change)="onFileSelected($event)" accept="image/*" class="file-input" />
+              @if (logoPreview(); as preview) {
+                <div class="logo-preview-box">
+                  <img [src]="preview" alt="Logo preview" />
+                  <button type="button" class="btn-clear-logo" (click)="clearLogo()">Remove Logo</button>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Section 2: Initial Company Admin Credentials -->
+          <div class="form-section admin-section">
+            <h4 class="section-title">Initial Company Admin Credential</h4>
+            <p class="section-sub">Assigned user credential with administrator rights for this company workspace.</p>
+
+            <div class="form-field">
+              <label>Admin Username <span class="req">*</span></label>
+              <input type="text" [ngModel]="adminUsername()" (ngModelChange)="onAdminUsernameChange($event)" name="adminUsername" placeholder="e.g. John Admin" required />
+            </div>
+
+            <div class="form-field">
+              <label>Admin Email Address <span class="req">*</span></label>
+              <input type="email" [ngModel]="adminEmail()" (ngModelChange)="adminEmail.set($event)" name="adminEmail" placeholder="admin@company.com" required />
+            </div>
+
+            <div class="form-field">
+              <label>Admin Password <span class="req">*</span></label>
+              <input type="password" [ngModel]="adminPassword()" (ngModelChange)="adminPassword.set($event)" name="adminPassword" placeholder="Minimum 8 characters" required />
+            </div>
+          </div>
+
+          <footer class="modal-footer">
+            <button type="button" class="btn-cancel" (click)="closeModal()">Cancel</button>
+            <button type="submit" class="btn-submit" [disabled]="isSubmitting()">
+              {{ isSubmitting() ? 'Creating Company...' : '+ Create Company & Admin' }}
+            </button>
+          </footer>
+        </form>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,298 @@
+<main
+  class="login-viewport"
+  [style.--company-primary]="activePrimaryColor()"
+>
+  @if (isLoadingCompany()) {
+    <!-- FULL-SCREEN WORKSPACE BRANDING LOADER (Until Company Color & Logo Load) -->
+    <div class="workspace-loader-screen" role="status" aria-live="polite">
+      <div class="loader-card">
+        <div class="spinner-ring-wrap">
+          <div class="spinner-ring"></div>
+          <svg class="loader-emblem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+            <path d="M2 17l10 5 10-5" />
+            <path d="M2 12l10 5 10-5" />
+          </svg>
+        </div>
+        <h2 class="loader-title">Preparing Workspace</h2>
+        <p class="loader-subtitle">Loading your organization portal &amp; theme...</p>
+      </div>
+    </div>
+  } @else {
+    <!-- UNIFIED ONE-PAGE FULL-SCREEN BRANDED PORTAL -->
+    <div class="portal-onepage-canvas">
+      <!-- Smooth Ambient Light Blooms (No harsh wireframe circles) -->
+      <div class="ambient-light-bloom bloom-top" aria-hidden="true"></div>
+      <div class="ambient-light-bloom bloom-left" aria-hidden="true"></div>
+      <div class="ambient-light-bloom bloom-right" aria-hidden="true"></div>
+
+      <!-- Top Portal Header Bar -->
+      <header class="portal-top-bar">
+        <div class="portal-status-pill">
+          <span class="pulse-dot"></span>
+          <span>
+            @if (detectedCompany(); as company) {
+              {{ company.name }} • Official Portal
+            } @else if (isSuperAdmin()) {
+              Platform Administration
+            } @else {
+              Workspace Pro • Official Portal
+            }
+          </span>
+        </div>
+
+        <div class="portal-verified-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+          <span>Verified Workspace</span>
+        </div>
+      </header>
+
+      <!-- Center Vertical Stack: Logo -> Company Name & Tagline -> Form Card Below -->
+      <section class="portal-center-stack" aria-labelledby="login-title">
+        <!-- 1. Top Brand Identity (Logo + Company Name + Tagline) -->
+        <div class="brand-identity-block">
+          @if (detectedCompany(); as company) {
+            <div class="logo-pedestal-wrap">
+              <div class="logo-glass-bezel">
+                <div
+                  class="company-logo-frame"
+                  [class.is-square]="logoAspect() === 'square'"
+                  [class.is-wide]="logoAspect() === 'wide'"
+                  [class.is-tall]="logoAspect() === 'tall'"
+                >
+                  @if (getLogoUrl(company.logoPath); as logo) {
+                    <img
+                      [src]="logo"
+                      [alt]="company.name"
+                      class="company-logo-img"
+                      (load)="onLogoImageLoad($event)"
+                    />
+                  } @else {
+                    <span class="brand-monogram">{{ company.name.slice(0, 1) }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <h1 id="login-title" class="company-headline">{{ company.name }}</h1>
+
+            @if (company.title) {
+              <div class="tagline-capsule">
+                <span class="capsule-dot"></span>
+                <p class="company-tagline">{{ company.title }}</p>
+                <span class="capsule-dot"></span>
+              </div>
+            }
+          } @else if (isSuperAdmin()) {
+            <div class="logo-pedestal-wrap">
+              <div class="logo-glass-bezel">
+                <div class="company-logo-frame is-square">
+                  <span class="brand-monogram">SA</span>
+                </div>
+              </div>
+            </div>
+
+            <h1 id="login-title" class="company-headline">Super Admin</h1>
+            <div class="tagline-capsule">
+              <span class="capsule-dot"></span>
+              <p class="company-tagline">Platform Administration Console</p>
+              <span class="capsule-dot"></span>
+            </div>
+          } @else {
+            <div class="logo-pedestal-wrap">
+              <div class="logo-glass-bezel">
+                <div class="company-logo-frame is-square">
+                  <span class="brand-monogram">W</span>
+                </div>
+              </div>
+            </div>
+
+            <h1 id="login-title" class="company-headline">Workspace Pro</h1>
+            <div class="tagline-capsule">
+              <span class="capsule-dot"></span>
+              <p class="company-tagline">Team Projects &amp; Task Management</p>
+              <span class="capsule-dot"></span>
+            </div>
+          }
+        </div>
+
+        <!-- 2. Frosted Glass Outer Shell + Crisp White Authentication Card Directly Below -->
+        <div class="card-glass-shell">
+          <div class="form-surface-card">
+            <header class="form-header">
+              <div class="form-header-top">
+                <h2 class="panel-title">Sign in to your account</h2>
+                <span class="secure-badge">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  <span>Secure Access</span>
+                </span>
+              </div>
+              <p class="panel-copy">
+                @if (detectedCompany(); as company) {
+                  {{ company.description || 'Enter your email and password to continue to ' + company.name + '.' }}
+                } @else {
+                  Enter your work email and password to access your workspace.
+                }
+              </p>
+            </header>
+
+            <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="login-form">
+              <!-- Email Field -->
+              <div class="form-group">
+                <label for="email">Work Email</label>
+                <div class="input-box">
+                  <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="4" width="20" height="16" rx="2"/>
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                  </svg>
+                  <input
+                    id="email"
+                    type="email"
+                    class="clean-input"
+                    autocomplete="email"
+                    placeholder="name@company.com"
+                    formControlName="email"
+                  />
+                </div>
+                <app-form-field-error [control]="form.controls.email" fieldLabel="Email" [showAfterSubmit]="submitAttempted()" />
+              </div>
+
+              <!-- Password Field -->
+              <div class="form-group">
+                <div class="password-label">
+                  <label for="password">Password</label>
+                  <a href="#forgot-password" class="forgot-link">Forgot password?</a>
+                </div>
+                <div class="input-box">
+                  <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  <input
+                    id="password"
+                    [type]="showPassword() ? 'text' : 'password'"
+                    class="clean-input has-toggle"
+                    autocomplete="current-password"
+                    placeholder="Enter your password"
+                    formControlName="password"
+                  />
+                  <button
+                    type="button"
+                    class="pwd-toggle-btn"
+                    (click)="togglePasswordVisibility()"
+                    [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+                  >
+                    @if (showPassword()) {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                      </svg>
+                    } @else {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    }
+                  </button>
+                </div>
+                <app-form-field-error [control]="form.controls.password" fieldLabel="Password" [showAfterSubmit]="submitAttempted()" />
+              </div>
+
+              <!-- Submit Button -->
+              <button
+                type="submit"
+                class="login-submit-btn"
+                [disabled]="form.invalid || isLoading()"
+              >
+                <span>{{ isLoading() ? 'Signing in...' : 'Sign in to Workspace' }}</span>
+                <svg class="btn-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"/>
+                  <path d="m12 5 7 7-7 7"/>
+                </svg>
+              </button>
+            </form>
+
+            @if (errorMessage()) {
+              @if (isPendingApproval()) {
+                <div class="pending-message" role="alert">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  <div>
+                    <strong>Waiting for Approval</strong>
+                    <div style="font-weight: 500; font-size: 0.8rem; margin-top: 2px;">{{ errorMessage() }}</div>
+                  </div>
+                </div>
+              } @else {
+                <p class="error-message" role="alert">{{ errorMessage() }}</p>
+              }
+            }
+
+            @if (submitted()) {
+              <p class="status-message" role="status">Signed in successfully.</p>
+            }
+
+            @if (!detectedCompany() && !isSuperAdmin()) {
+              <div class="signup-prompt-container">
+                <p class="signup-prompt">
+                  Need a workspace for your team?
+                  <a [routerLink]="registerUrl" class="signup-link">Create workspace</a>
+                </p>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- Bottom Glass Feature & Security Dock -->
+      <footer class="portal-bottom-bar">
+        <div class="bottom-feature-dock">
+          <div class="dock-pill">
+            <span class="dock-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="9" rx="1.5"/>
+                <rect x="14" y="3" width="7" height="5" rx="1.5"/>
+                <rect x="14" y="12" width="7" height="9" rx="1.5"/>
+                <rect x="3" y="16" width="7" height="5" rx="1.5"/>
+              </svg>
+            </span>
+            <span>Projects &amp; Tasks</span>
+          </div>
+
+          <span class="dock-divider"></span>
+
+          <div class="dock-pill">
+            <span class="dock-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </span>
+            <span>Team Schedule</span>
+          </div>
+
+          <span class="dock-divider"></span>
+
+          <div class="dock-pill">
+            <span class="dock-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <path d="m9 12 2 2 4-4"/>
+              </svg>
+            </span>
+            <span>Encrypted Connection</span>
+          </div>
+        </div>
+      </footer>
+    </div>
+  }
+</main>

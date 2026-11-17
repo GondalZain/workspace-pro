@@ -1,0 +1,26 @@
+<app-workspace-user-layout
+  sectionId="task-edit-page"
+  heroBadge="Task"
+  [heroTitle]="isNewTask() ? 'New task' : (task()?.title ?? 'Edit task')"
+  heroSubtitle="Set title, schedule, priority, and project assignment."
+  [heroCompact]="true"
+>
+  <app-workspace-page-chrome
+    [rootLabel]="chromeRootLabel()"
+    [rootLink]="chromeRootLink()"
+    [currentLabel]="isNewTask() ? 'New' : (task()?.title ?? 'Edit')"
+  >
+    <button type="button" class="btn-secondary" (click)="onCancelled()">Cancel</button>
+  </app-workspace-page-chrome>
+
+  <section class="ws-panel">
+    <app-task-editor
+      [task]="task()"
+      [initialProjectId]="newTaskProjectId()"
+      [showWayfinding]="false"
+      [backLabel]="backLabel()"
+      (saved)="onSaved($event)"
+      (cancelled)="onCancelled()"
+    />
+  </section>
+</app-workspace-user-layout>

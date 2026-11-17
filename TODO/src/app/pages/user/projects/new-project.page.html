@@ -1,0 +1,23 @@
+<app-workspace-user-layout
+  sectionId="project-create-page"
+  heroBadge="Projects"
+  heroTitle="New project"
+  heroSubtitle="Add a name, description, and optional cover image to launch your workspace."
+  [heroCompact]="true"
+>
+  <app-project-page-chrome currentLabel="New project" />
+
+  <div class="project-create-wrap">
+    <main class="form-main-card">
+      <app-project-form
+        formHeading="Project details"
+        formSubtitle="Fill in title, description, and upload a cover banner image."
+        [(imagePreview)]="imagePreview"
+        [errorMessage]="errorMessage()"
+        submitLabel="Create project"
+        (submitted)="createProject($event)"
+        (cancelled)="goBack()"
+      />
+    </main>
+  </div>
+</app-workspace-user-layout>

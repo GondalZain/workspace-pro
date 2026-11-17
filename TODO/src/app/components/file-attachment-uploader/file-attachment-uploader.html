@@ -1,0 +1,84 @@
+<div class="card attachment-card">
+  <div class="card-header-flex">
+    <div>
+      <h2 class="card-heading">{{ title() }} ({{ currentAttachments().length }})</h2>
+      <p class="card-subheading">{{ subtitle() }}</p>
+    </div>
+    <label
+      class="btn-upload"
+      [class.btn-upload--disabled]="disabled()"
+      [attr.for]="disabled() ? null : 'uploader-file-input'"
+      [title]="disabled() ? 'File upload is disabled in Custom Fields Studio' : ''"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <span>Upload Files</span>
+    </label>
+    <input
+      id="uploader-file-input"
+      type="file"
+      [disabled]="disabled()"
+      [multiple]="multiple()"
+      [accept]="accept()"
+      (change)="onFilesSelected($event)"
+      class="visually-hidden"
+    />
+  </div>
+
+  <!-- Images Gallery -->
+  @if (imageAttachments().length) {
+    <div class="file-section">
+      <span class="section-label">Images ({{ imageAttachments().length }})</span>
+      <div class="image-gallery">
+        @for (file of imageAttachments(); track file.id) {
+          <div class="image-card">
+            <div class="image-thumb" (click)="openImage(file.dataUrl)">
+              <img [src]="attachmentUrl(file.dataUrl)" [alt]="file.name" />
+              <span class="preview-hint">Preview</span>
+            </div>
+            <div class="file-card-footer">
+              <span class="file-name" [title]="file.name">{{ file.name }}</span>
+              <button type="button" class="btn-remove" (click)="removeAttachment(file.id)" title="Remove image">&times;</button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Documents & Spreadsheets -->
+  @if (fileAttachments().length) {
+    <div class="file-section">
+      <span class="section-label">Documents &amp; Files ({{ fileAttachments().length }})</span>
+      <div class="file-list">
+        @for (file of fileAttachments(); track file.id) {
+          <div class="file-item">
+            <span class="file-badge" [ngClass]="fileBadge(file.type).class">{{ fileBadge(file.type).label }}</span>
+            <div class="file-info">
+              <span class="file-name" [title]="file.name">{{ file.name }}</span>
+              <span class="file-size">{{ formatFileSize(file.size) }}</span>
+            </div>
+            <button type="button" class="btn-action download" (click)="downloadFile(file.dataUrl, file.name)">Download</button>
+            <button type="button" class="btn-action remove" (click)="removeAttachment(file.id)">Remove</button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (!currentAttachments().length) {
+    <div class="empty-state">No attachments added yet. Click "Upload Files" above.</div>
+  }
+</div>
+
+<!-- Image Lightbox Modal -->
+@if (selectedImage(); as imageUrl) {
+  <div class="lightbox-overlay" (click)="closeImage()">
+    <div class="lightbox-content" (click)="$event.stopPropagation()">
+      <div class="lightbox-actions">
+        <button type="button" class="btn-action download" (click)="downloadSelectedImage()">Download</button>
+        <button type="button" class="btn-action remove" (click)="closeImage()">&times;</button>
+      </div>
+      <img [src]="imageUrl" alt="Preview" />
+    </div>
+  </div>
+}

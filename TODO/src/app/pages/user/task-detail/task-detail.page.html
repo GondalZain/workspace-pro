@@ -1,0 +1,28 @@
+<app-workspace-user-layout
+  sectionId="task-detail-page"
+  heroBadge="Task"
+  [heroTitle]="task()?.title ?? 'Task detail'"
+  heroSubtitle="Details and activity log."
+  [heroCompact]="true"
+>
+  <app-workspace-page-chrome
+    [rootLabel]="chromeRootLabel()"
+    [rootLink]="chromeRootLink()"
+    [currentLabel]="task()?.title ?? 'Not found'"
+  >
+    <button type="button" class="btn-secondary" (click)="onClose()">Back</button>
+    @if (task() && canEdit()) {
+      <button type="button" class="btn-primary" (click)="onEdit(task()!)">Edit</button>
+    }
+  </app-workspace-page-chrome>
+
+  @if (task(); as currentTask) {
+    <app-task-detail [task]="currentTask" />
+  } @else {
+    <section class="ws-panel ws-empty">
+      <p><strong>Task not found</strong></p>
+      <p>It may have been deleted or the link is invalid.</p>
+      <button type="button" class="btn-primary" (click)="onClose()">Back to tasks</button>
+    </section>
+  }
+</app-workspace-user-layout>

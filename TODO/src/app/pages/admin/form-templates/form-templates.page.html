@@ -1,0 +1,947 @@
+<div class="admin-templates-page">
+  <!--Banners -->
+  @if (successMessage()) {
+    <div class="banner banner-success">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+  @if (errorMessage()) {
+    <div class="banner banner-error">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- =========================================================================
+       MODE 1: TEMPLATES GALLERY & OVERVIEW
+       ========================================================================= -->
+  @if (viewMode() === 'gallery') {
+    <!-- Top Header -->
+    <div class="page-top">
+      <div class="page-top-left">
+        <div class="title-row">
+          <div class="title-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <line x1="3" y1="9" x2="21" y2="9"/>
+              <line x1="9" y1="21" x2="9" y2="9"/>
+            </svg>
+          </div>
+          <div>
+            <div class="heading-with-badge">
+              <h2 class="page-title">Dynamic Forms Studio</h2>
+              @if (currentCompany(); as comp) {
+                <span class="company-badge">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M3 21h18M3 7v14M21 7v14M6 7V3h12v4M9 11h2M13 11h2M9 15h2M13 15h2"/>
+                  </svg>
+                  <span>{{ comp.name }}</span>
+                </span>
+              }
+            </div>
+            <p class="page-subtitle">
+              Create custom dynamic forms with tailored fields. Save and plug them directly into task creation or project forms.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-top-right">
+        <button type="button" class="btn-primary-brand" (click)="openCreateModal('dynamic')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>+ Create Dynamic Form</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI Summary Strip -->
+    <div class="kpi-strip">
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon--primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+        </div>
+        <div class="kpi-meta">
+          <span class="kpi-value">{{ customTemplatesCount() }}</span>
+          <span class="kpi-label">Custom Dynamic Forms</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon--secondary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <line x1="8" y1="6" x2="21" y2="6"/>
+            <line x1="8" y1="12" x2="21" y2="12"/>
+            <line x1="8" y1="18" x2="21" y2="18"/>
+            <line x1="3" y1="6" x2="3.01" y2="6"/>
+            <line x1="3" y1="12" x2="3.01" y2="12"/>
+            <line x1="3" y1="18" x2="3.01" y2="18"/>
+          </svg>
+        </div>
+        <div class="kpi-meta">
+          <span class="kpi-value">{{ totalCustomFieldsCount() }}</span>
+          <span class="kpi-label">Dynamic Fields Configured</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon--primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <div class="kpi-meta">
+          <span class="kpi-value">{{ allProjects().length }}</span>
+          <span class="kpi-label">Total Company Projects</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Page View Switcher (Templates Studio vs Plugins & Deployment) -->
+    <div class="main-page-tabs">
+      <button
+        type="button"
+        class="main-tab-btn"
+        [class.active]="activeMainTab() === 'templates'"
+        (click)="activeMainTab.set('templates')"
+      >
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <line x1="3" y1="9" x2="21" y2="9"/>
+          <line x1="9" y1="21" x2="9" y2="9"/>
+        </svg>
+        <span>Dynamic Forms ({{ customTemplatesCount() }})</span>
+      </button>
+
+      <button
+        type="button"
+        class="main-tab-btn"
+        [class.active]="activeMainTab() === 'plugins'"
+        (click)="activeMainTab.set('plugins')"
+      >
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+        </svg>
+        <span>Form Plugins &amp; Deployment</span>
+        <span class="tab-pill tab-pill--accent">{{ allProjects().length }} Projects</span>
+      </button>
+    </div>
+
+    @if (activeMainTab() === 'templates') {
+      <!-- Filter & Search Bar -->
+      <div class="gallery-toolbar">
+        <div class="filter-tabs">
+          <button
+            type="button"
+            class="filter-tab active"
+          >
+            <span>All Custom Forms</span>
+            <span class="tab-count">{{ customTemplatesCount() }}</span>
+          </button>
+        </div>
+
+        <div class="search-box">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="text"
+            placeholder="Search custom forms or fields..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+          />
+          @if (searchQuery()) {
+            <button type="button" class="clear-search" (click)="searchQuery.set('')">&times;</button>
+          }
+        </div>
+      </div>
+
+    <!-- Templates Grid -->
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading form templates...</p>
+      </div>
+    } @else if (filteredTemplates().length === 0) {
+      <div class="empty-gallery-card">
+        <div class="empty-icon-circle">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <line x1="12" y1="8" x2="12" y2="16"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+        </div>
+        <h3>No dynamic forms created yet</h3>
+        <p>Create your first custom dynamic form. You can add any custom fields and plug it into project or task creation.</p>
+        <button type="button" class="btn-primary-brand" (click)="openCreateModal('dynamic')">
+          + Create Dynamic Form
+        </button>
+      </div>
+    } @else {
+      <div class="templates-grid">
+        @for (tmpl of filteredTemplates(); track tmpl.id) {
+          <div class="template-card" [class.is-builtin]="tmpl.isDefault">
+            <!-- Card Accent Top Stripe -->
+            <div class="card-top-accent"></div>
+
+            <div class="template-card-header">
+              <div class="template-title-group">
+                <div class="badge-row">
+                  <span class="badge-custom">
+                    {{ tmpl.targetEntity === 'project' ? 'PROJECT FORM' : 'TASK FORM' }}
+                  </span>
+                  @if (tmpl.targetEntity !== 'project') {
+                    @if (tmpl.assignedProjectCount && tmpl.assignedProjectCount > 0) {
+                      <span class="badge-scope badge-scope--count">{{ tmpl.assignedProjectCount }} Projects</span>
+                    }
+                  }
+                </div>
+                <h3 class="template-name">{{ tmpl.name }}</h3>
+                <p class="template-desc">
+                  {{ tmpl.description || 'Custom dynamic form.' }}
+                </p>
+              </div>
+            </div>
+
+            <div class="template-card-body">
+              <!-- Form Dynamic Fields -->
+              <div class="card-section-block">
+                <div class="block-label-row">
+                  <span class="block-label">Form Fields</span>
+                  <span class="block-count" [class.has-custom]="tmpl.fieldsConfig.customFields.length > 0">
+                    {{ tmpl.fieldsConfig.customFields.length }} Field(s)
+                  </span>
+                </div>
+
+                @if (tmpl.fieldsConfig.customFields.length > 0) {
+                  <div class="custom-fields-preview-tags">
+                    @for (cf of tmpl.fieldsConfig.customFields; track cf.fieldKey) {
+                      <span class="cf-pill">
+                        <span class="cf-type">{{ cf.fieldType }}</span>
+                        <span class="cf-name">{{ cf.fieldName }}</span>
+                        @if (cf.isRequired) {
+                          <span class="cf-req">*</span>
+                        }
+                      </span>
+                    }
+                  </div>
+                } @else {
+                  <div class="no-custom-fields-chip">
+                    <span>No fields configured yet</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="template-card-footer">
+              <div class="card-footer-left">
+                <button type="button" class="btn-card-preview" (click)="openQuickPreview(tmpl, $event)" title="Live Preview">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <span>Preview</span>
+                </button>
+                <button type="button" class="btn-card-edit" (click)="openEditModal(tmpl)" title="Edit Form">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M12 20h9"/>
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                  </svg>
+                  <span>Edit</span>
+                </button>
+              </div>
+
+              @if (!tmpl.isDefault) {
+                <button
+                  type="button"
+                  class="btn-icon-subtle danger"
+                  (click)="deleteTemplate(tmpl, $event)"
+                  title="Delete Form"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+    }
+
+    <!-- =========================================================================
+         TAB 2: DEDICATED FORM PLUGINS & MULTI-PROJECT DEPLOYMENT COMPONENT
+         ========================================================================= -->
+    @if (activeMainTab() === 'plugins') {
+      <app-form-plugins-deployment
+        [templates]="templates()"
+        (openBuilder)="openCreateModal()"
+      />
+    }
+  }
+
+  <!-- =========================================================================
+       MODE 2: INTERACTIVE SPLIT-PANE FORM BUILDER & LIVE STUDIO
+       ========================================================================= -->
+  @if (viewMode() === 'studio') {
+    <div class="studio-workspace">
+      <!-- Studio Top Action Bar -->
+      <div class="studio-topbar">
+        <div class="studio-topbar-left">
+          <button type="button" class="btn-back-gallery" (click)="closeModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="19" y1="12" x2="5" y2="12"/>
+              <polyline points="12 19 5 12 12 5"/>
+            </svg>
+            <span>Back to Forms</span>
+          </button>
+          <div class="topbar-divider"></div>
+          <div class="studio-title-meta">
+            <span class="studio-mode-tag">
+              {{ editingTemplate() ? 'EDIT FORM' : 'NEW DYNAMIC FORM' }}
+            </span>
+            <h3 class="studio-form-title">{{ modalName || 'Untitled Dynamic Form' }}</h3>
+          </div>
+        </div>
+
+        <div class="studio-topbar-right">
+          <button type="button" class="btn-studio-cancel" (click)="closeModal()">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn-primary-brand"
+            [disabled]="isSaving() || !modalName.trim()"
+            (click)="saveTemplate()"
+          >
+            @if (isSaving()) {
+              <span>Saving...</span>
+            } @else {
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>{{ editingTemplate() ? 'Save Form Changes' : 'Save Form to DB' }}</span>
+            }
+          </button>
+        </div>
+      </div>
+
+      <!-- Studio Body: Left Form Builder Controls, Right Live Form Preview -->
+      <div class="studio-split-grid">
+        <!-- LEFT PANE: FORM BUILDER -->
+        <div class="studio-builder-pane">
+          <!-- UNIFIED FORM BUILDER: DETAILS & DYNAMIC FIELDS COMBINED -->
+          <div class="builder-panel-card unified-builder-card">
+            <!-- Header -->
+            <div class="unified-builder-header">
+              <div class="unified-header-title-box">
+                <div class="unified-header-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="unified-card-title">Form Configuration &amp; Fields</h4>
+                  <span class="panel-card-sub">Set form identifiers, section heading, and customize dynamic fields in one view</span>
+                </div>
+              </div>
+              <div class="unified-header-badges">
+                <span class="unified-field-count-pill">{{ modalCustomFields.length }} Field{{ modalCustomFields.length === 1 ? '' : 's' }}</span>
+              </div>
+            </div>
+
+            <!-- Compact Form Details Group -->
+            <div class="form-details-compact-grid">
+              <div class="form-group">
+                <label class="form-label-with-hint">
+                  <span>Form Name <span class="req">*</span></span>
+                  <span class="micro-badge">Admin Reference</span>
+                </label>
+                <input
+                  type="text"
+                  class="form-input"
+                  [(ngModel)]="modalName"
+                  placeholder="e.g. Bug Report"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label-with-hint">
+                  <span>Section Name</span>
+                  <span class="micro-badge alt">Shown to Users</span>
+                </label>
+                <input
+                  type="text"
+                  class="form-input"
+                  [(ngModel)]="modalSectionTitle"
+                  placeholder="e.g. Checklist"
+                />
+              </div>
+
+              <div class="form-group form-group--full">
+                <label>Description <span class="optional-tag">(Optional)</span></label>
+                <input
+                  type="text"
+                  class="form-input"
+                  [(ngModel)]="modalDescription"
+                  placeholder="Brief description..."
+                />
+              </div>
+            </div>
+
+            <!-- Fields Divider & Add Action -->
+            <div class="unified-section-divider">
+              <div class="unified-section-label">
+                <span class="divider-dot"></span>
+                <strong>Form Fields</strong>
+                <span class="divider-counter">({{ modalCustomFields.length }})</span>
+              </div>
+
+              @if (!isAddingCustomField) {
+                <button type="button" class="btn-primary-brand btn-sm" (click)="openAddCustomField()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>Add Field</span>
+                </button>
+              }
+            </div>
+
+            <!-- Inline Add / Edit Field Box -->
+            @if (isAddingCustomField) {
+              <div class="add-field-card">
+                <div class="add-field-head">
+                  <strong>{{ editingCustomFieldIndex !== null ? 'Edit Field' : 'Add New Field' }}</strong>
+                </div>
+
+                <!-- Row 1: Field Label & Field Type -->
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label>Field Label <span class="req">*</span></label>
+                    <input
+                      type="text"
+                      class="form-input"
+                      [(ngModel)]="newCustomFieldName"
+                      placeholder="e.g. Severity"
+                      required
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label>Field Type</label>
+                    <select class="form-input" [ngModel]="newCustomFieldType" (ngModelChange)="onCustomFieldTypeChange($event)">
+                      <option value="text">Short Text (Single Line)</option>
+                      <option value="textarea">Long Text (Paragraph)</option>
+                      <option value="dropdown">Dropdown (Select Menu)</option>
+                      <option value="radio">Radio Buttons (Single Choice)</option>
+                      <option value="number">Number</option>
+                      <option value="date">Date Picker</option>
+                      <option value="time">Time Picker</option>
+                      <option value="checkbox">Checkbox (Yes / No)</option>
+                      <option value="email">Email Address</option>
+                      <option value="phone">Phone Number</option>
+                      <option value="url">Website / Link URL</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Row 2: Field Width, Input Size & Placeholder -->
+                <div class="form-grid-3-clean">
+                  <div class="form-group">
+                    <label>Field Width</label>
+                    <select class="form-input" [ngModel]="newCustomBsCol" (ngModelChange)="selectBsCol($event)">
+                      <option value="col-12">100%</option>
+                      <option value="col-md-6">50%</option>
+                      <option value="col-md-4">33%</option>
+                      <option value="col-md-3">25%</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Input Size</label>
+                    <select class="form-input" [ngModel]="newCustomFieldSize" (ngModelChange)="selectFieldSize($event)">
+                      <option value="sm">SM (Small)</option>
+                      <option value="default">MD (Normal)</option>
+                      <option value="lg">LG (Large)</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Placeholder (Optional)</label>
+                    <input
+                      type="text"
+                      class="form-input"
+                      [(ngModel)]="newCustomPlaceholder"
+                      placeholder="e.g. Enter value..."
+                    />
+                  </div>
+                </div>
+
+                @if (newCustomFieldType === 'dropdown' || newCustomFieldType === 'radio') {
+                  <div class="options-builder">
+                    <label>{{ newCustomFieldType === 'radio' ? 'Radio Choices' : 'Dropdown Options' }}</label>
+                    <div class="option-input-row">
+                      <input
+                        type="text"
+                        class="form-input"
+                        [(ngModel)]="newCustomOptionInput"
+                        placeholder="Type option and press Enter..."
+                        (keydown.enter)="$event.preventDefault(); addOption()"
+                      />
+                      <button type="button" class="btn-sub-action" (click)="addOption()">+ Add Option</button>
+                    </div>
+
+                    @if (newCustomOptions.length > 0) {
+                      <div class="options-tags-list">
+                        @for (opt of newCustomOptions; track opt; let optIdx = $index) {
+                          <span class="opt-tag">
+                            <span>{{ opt }}</span>
+                            <button type="button" (click)="removeOption(optIdx)">&times;</button>
+                          </span>
+                        }
+                      </div>
+                    } @else {
+                      <small class="hint-muted">Add at least one choice for this field.</small>
+                    }
+                  </div>
+                }
+
+                <div class="add-field-footer-row">
+                  <label class="custom-toggle">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="newCustomIsRequired"
+                    />
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">Required Field</span>
+                  </label>
+
+                  <div class="add-field-actions">
+                    <button type="button" class="btn-studio-cancel" (click)="resetNewCustomFieldForm()">
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-primary-brand"
+                      [disabled]="!newCustomFieldName.trim()"
+                      (click)="saveCustomFieldToTemplate()"
+                    >
+                      {{ editingCustomFieldIndex !== null ? 'Update Field' : 'Add Field' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Clean, Structured Configured Fields List -->
+            @if (modalCustomFields.length > 0) {
+              <div class="custom-fields-list">
+                @for (cf of modalCustomFields; track cf.fieldKey; let idx = $index) {
+                  <div class="cf-row-compact" [class.is-editing]="editingCustomFieldIndex === idx">
+                    <!-- Single Row: Field Identity on Left, Compact Percentage & Size Dropdowns + Actions on Right -->
+                    <div class="cf-row-top">
+                      <div class="cf-row-left">
+                        <span class="cf-order-badge">{{ idx + 1 }}</span>
+                        <strong class="cf-main-title">{{ cf.fieldName }}</strong>
+                        <span class="cf-type-pill">{{ getFieldTypeLabel(cf.fieldType) }}</span>
+                        @if (cf.isReadonly) {
+                          <span class="cf-readonly-pill">Read-only</span>
+                        }
+                      </div>
+
+                      <div class="cf-row-controls">
+                        <select
+                          class="cf-inline-select cf-inline-select--pct"
+                          [ngModel]="getBsCol(cf)"
+                          (ngModelChange)="setFieldBsCol(idx, $event)"
+                          title="Field Width (%)"
+                        >
+                          <option value="col-12">100%</option>
+                          <option value="col-md-6">50%</option>
+                          <option value="col-md-4">33%</option>
+                          <option value="col-md-3">25%</option>
+                        </select>
+
+                        <select
+                          class="cf-inline-select cf-inline-select--sm"
+                          [ngModel]="cf.fieldSize || 'default'"
+                          (ngModelChange)="setFieldSize(idx, $event)"
+                          title="Input Size"
+                        >
+                          <option value="sm">SM</option>
+                          <option value="default">MD</option>
+                          <option value="lg">LG</option>
+                        </select>
+
+                        <button
+                          type="button"
+                          class="cf-req-toggle-btn"
+                          [class.is-req]="cf.isRequired"
+                          (click)="toggleFieldRequired(idx, $event)"
+                          title="Click to toggle Required / Optional"
+                        >
+                          {{ cf.isRequired ? 'Required *' : 'Optional' }}
+                        </button>
+
+                        <div class="cf-item-actions">
+                          <button
+                            type="button"
+                            class="btn-icon-sm"
+                            [disabled]="idx === 0"
+                            (click)="moveCustomField(idx, -1)"
+                            title="Move Up"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            type="button"
+                            class="btn-icon-sm"
+                            [disabled]="idx === modalCustomFields.length - 1"
+                            (click)="moveCustomField(idx, 1)"
+                            title="Move Down"
+                          >
+                            ↓
+                          </button>
+                          <button
+                            type="button"
+                            class="btn-icon-sm"
+                            (click)="duplicateCustomField(idx, $event)"
+                            title="Duplicate Field"
+                          >
+                            ⧉
+                          </button>
+                          <button
+                            type="button"
+                            class="btn-icon-sm"
+                            (click)="editCustomField(idx)"
+                            title="Edit Field"
+                          >
+                            ✎
+                          </button>
+                          <button
+                            type="button"
+                            class="btn-icon-sm danger"
+                            (click)="removeCustomFieldFromTemplate(idx)"
+                            title="Remove Field"
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    @if (cf.defaultValue || cf.placeholder || (cf.options && cf.options.length > 0)) {
+                      <div class="cf-row-meta">
+                        @if (cf.defaultValue) {
+                          <span>Default: "{{ cf.defaultValue }}"</span>
+                        }
+                        @if (cf.placeholder) {
+                          <span>Hint: "{{ cf.placeholder }}"</span>
+                        }
+                        @if (cf.options && cf.options.length > 0) {
+                          <span>Choices: {{ cf.options.join(', ') }}</span>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            } @else if (!isAddingCustomField) {
+              <div class="empty-cf-box">
+                <div class="empty-cf-icon">📋</div>
+                <h5>No fields added yet</h5>
+                <p>Click any quick field type above or click below to create your first field.</p>
+                <button type="button" class="btn-primary-brand btn-sm" (click)="openAddCustomField()">
+                  + Add First Field
+                </button>
+              </div>
+            }
+          </div>
+
+          <!-- Bottom Save Bar -->
+          <div class="builder-save-bottom">
+            <button
+              type="button"
+              class="btn-primary-brand btn-lg"
+              [disabled]="isSaving() || !modalName.trim()"
+              (click)="saveTemplate()"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>{{ editingTemplate() ? 'Save Form Changes' : 'Save Form to DB' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- RIGHT PANE: PURE DYNAMIC FORM LIVE PREVIEW (DESKTOP) -->
+        <div class="studio-preview-pane">
+          <div class="preview-stage-card">
+            <div class="preview-stage-header">
+              <div class="preview-live-indicator">
+                <span class="pulse-dot"></span>
+                <span>LIVE FORM PREVIEW</span>
+              </div>
+              <div class="preview-header-controls">
+                <button
+                  type="button"
+                  class="btn-guide-toggle"
+                  [class.active]="showLayoutGuides()"
+                  (click)="toggleLayoutGuides()"
+                  title="Toggle Grid Column Outlines"
+                >
+                  📐 {{ showLayoutGuides() ? 'Grid Guides: ON' : 'Show Guides' }}
+                </button>
+                <span class="preview-form-badge">{{ modalCustomFields.length }} Field(s)</span>
+              </div>
+            </div>
+
+            <div class="preview-canvas">
+              <div class="pure-form-preview" [class.with-guides]="showLayoutGuides()">
+                <div class="pure-form-head">
+                  <h3 class="pure-form-title">{{ modalSectionTitle || modalName || 'Untitled Dynamic Form' }}</h3>
+                  <p class="pure-form-desc">
+                    {{ modalDescription || 'Form description will be displayed here.' }}
+                  </p>
+                </div>
+
+                @if (previewSubmitSuccess()) {
+                  <div class="bs-alert-success">
+                    <span class="check-icon">✓</span>
+                    <div>
+                      <strong>Form Preview Validated!</strong>
+                      <p>Your dynamic form fields are ready to use.</p>
+                    </div>
+                  </div>
+                }
+
+                @if (modalCustomFields.length === 0) {
+                  <div class="pure-form-empty">
+                    <span class="pure-form-empty-icon">✨</span>
+                    <p>Add fields on the left to preview them live here in 1, 2, 3, or 4 per row.</p>
+                  </div>
+                } @else {
+                  <div class="bs-form-grid">
+                    @for (cf of modalCustomFields; track cf.fieldKey; let pIdx = $index) {
+                      <div [class]="getBsCol(cf) + ' bs-field-wrapper'">
+                        <div class="bs-field-card">
+                          <div class="pure-field-top">
+                            <label class="form-label pure-field-label">
+                              <span>{{ cf.fieldName }}</span>
+                              @if (cf.isRequired) {
+                                <span class="req text-danger">*</span>
+                              }
+                            </label>
+                            @if (showLayoutGuides()) {
+                              <button
+                                type="button"
+                                class="bs-col-indicator-badge clickable-badge"
+                                (click)="cycleFieldBsCol(pIdx, $event)"
+                                title="Click to cycle layout"
+                              >
+                                {{ getBsColLabel(cf) }}
+                              </button>
+                            }
+                          </div>
+
+                          <div class="bs-field-control-box">
+                            @if (cf.fieldType === 'textarea') {
+                              <textarea
+                                rows="3"
+                                [class]="'form-control pure-field-input ' + getFieldSizeClass(cf)"
+                                [placeholder]="cf.placeholder || 'Enter ' + cf.fieldName"
+                                [readonly]="cf.isReadonly"
+                                [ngModel]="previewFormValues()[cf.fieldKey] ?? cf.defaultValue ?? ''"
+                                (ngModelChange)="onPreviewInputChange(cf.fieldKey, $event)"
+                              ></textarea>
+                            } @else if (cf.fieldType === 'dropdown') {
+                              <select
+                                [class]="'form-select pure-field-input ' + getSelectSizeClass(cf)"
+                                [disabled]="!!cf.isReadonly"
+                                [ngModel]="previewFormValues()[cf.fieldKey] ?? cf.defaultValue ?? ''"
+                                (ngModelChange)="onPreviewInputChange(cf.fieldKey, $event)"
+                              >
+                                <option value="">{{ cf.placeholder || 'Select ' + cf.fieldName + '...' }}</option>
+                                @for (opt of cf.options || []; track opt) {
+                                  <option [value]="opt">{{ opt }}</option>
+                                }
+                              </select>
+                            } @else if (cf.fieldType === 'radio') {
+                              <div class="radio-group-preview">
+                                @for (opt of (cf.options && cf.options.length ? cf.options : ['Option 1', 'Option 2']); track opt) {
+                                  <label class="radio-pill-item">
+                                    <input
+                                      type="radio"
+                                      [name]="'prev-radio-' + cf.fieldKey"
+                                      [value]="opt"
+                                      [disabled]="!!cf.isReadonly"
+                                      [checked]="(previewFormValues()[cf.fieldKey] ?? cf.defaultValue) === opt"
+                                      (change)="onPreviewInputChange(cf.fieldKey, opt)"
+                                    />
+                                    <span>{{ opt }}</span>
+                                  </label>
+                                }
+                              </div>
+                            } @else if (cf.fieldType === 'checkbox') {
+                              <div class="form-check pure-form-check">
+                                <input
+                                  class="form-check-input"
+                                  type="checkbox"
+                                  [id]="'prev-' + cf.fieldKey"
+                                  [disabled]="!!cf.isReadonly"
+                                  [ngModel]="previewFormValues()[cf.fieldKey] ?? (cf.defaultValue === 'true')"
+                                  (ngModelChange)="onPreviewInputChange(cf.fieldKey, $event)"
+                                />
+                                <label class="form-check-label" [for]="'prev-' + cf.fieldKey">
+                                  {{ cf.placeholder || 'Yes / Confirmed' }}
+                                </label>
+                              </div>
+                            } @else {
+                              <input
+                                [type]="
+                                  cf.fieldType === 'number' ? 'number' :
+                                  cf.fieldType === 'date' ? 'date' :
+                                  cf.fieldType === 'time' ? 'time' :
+                                  cf.fieldType === 'email' ? 'email' :
+                                  cf.fieldType === 'phone' ? 'tel' :
+                                  cf.fieldType === 'url' ? 'url' : 'text'
+                                "
+                                [class]="'form-control pure-field-input ' + getFieldSizeClass(cf)"
+                                [placeholder]="cf.placeholder || 'Enter ' + cf.fieldName"
+                                [readonly]="cf.isReadonly"
+                                [ngModel]="previewFormValues()[cf.fieldKey] ?? cf.defaultValue ?? ''"
+                                (ngModelChange)="onPreviewInputChange(cf.fieldKey, $event)"
+                              />
+                            }
+
+                            @if (cf.description) {
+                              <div class="form-text bs-field-help">{{ cf.description }}</div>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="pure-form-submit-row">
+                    <button type="button" class="btn-sim-reset" (click)="resetPreviewForm()">Reset Inputs</button>
+                    <button type="button" class="btn-primary-brand btn-sm" (click)="simulateFormSubmit()">Test Submit</button>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- =========================================================================
+       QUICK PREVIEW MODAL (FROM GALLERY CARDS)
+       ========================================================================= -->
+  @if (quickPreviewTemplate(); as pTmpl) {
+    <div class="modal-backdrop" (click)="closeQuickPreview()">
+      <div class="modal-dialog preview-modal-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-header-info">
+            <span class="modal-eyebrow">FORM PREVIEW</span>
+            <h3 class="modal-title">{{ pTmpl.name }}</h3>
+          </div>
+          <div class="modal-header-actions">
+            <button type="button" class="btn-primary-brand btn-sm" (click)="closeQuickPreview(); openEditModal(pTmpl)">
+              <span>Edit Form</span>
+            </button>
+            <button type="button" class="btn-close" (click)="closeQuickPreview()">&times;</button>
+          </div>
+        </div>
+
+        <div class="modal-body preview-modal-body">
+          <div class="pure-form-preview" style="box-shadow: none; border: 1px solid #e2e8f0;">
+            <div class="pure-form-head">
+              <h3 class="pure-form-title">{{ pTmpl.name }}</h3>
+              <p class="pure-form-desc">{{ pTmpl.description || 'No description provided.' }}</p>
+            </div>
+
+            @if (!pTmpl.fieldsConfig.customFields || pTmpl.fieldsConfig.customFields.length === 0) {
+              <div class="pure-form-empty">
+                <span class="pure-form-empty-icon">ℹ️</span>
+                <p>This form does not have custom fields configured yet.</p>
+              </div>
+            } @else {
+              <div class="row g-3 bs-form-grid">
+                @for (cf of pTmpl.fieldsConfig.customFields; track cf.fieldKey) {
+                  <div [class]="getBsCol(cf) + ' bs-field-wrapper'">
+                    <div class="bs-field-card">
+                      <div class="pure-field-top">
+                        <label class="form-label pure-field-label">
+                          <span>{{ cf.fieldName }}</span>
+                          @if (cf.isRequired) {
+                            <span class="req text-danger">*</span>
+                          }
+                        </label>
+                        <span class="bs-col-indicator-badge">
+                          {{ getBsCol(cf) }}
+                          @if (cf.fieldSize && cf.fieldSize !== 'default') {
+                            · {{ cf.fieldSize.toUpperCase() }}
+                          }
+                        </span>
+                      </div>
+
+                      @if (cf.fieldType === 'textarea') {
+                        <textarea rows="3" [class]="'form-control pure-field-input ' + getFieldSizeClass(cf)" [placeholder]="cf.placeholder || 'Enter ' + cf.fieldName" readonly></textarea>
+                      } @else if (cf.fieldType === 'dropdown') {
+                        <select [class]="'form-select pure-field-input ' + getSelectSizeClass(cf)" disabled>
+                          <option value="">{{ cf.placeholder || 'Select ' + cf.fieldName + '...' }}</option>
+                          @for (opt of cf.options || []; track opt) {
+                            <option>{{ opt }}</option>
+                          }
+                        </select>
+                      } @else if (cf.fieldType === 'checkbox') {
+                        <div class="form-check pure-form-check">
+                          <input class="form-check-input" type="checkbox" disabled />
+                          <label class="form-check-label">{{ cf.placeholder || 'Confirmed / Checked' }}</label>
+                        </div>
+                      } @else {
+                        <input
+                          [type]="cf.fieldType === 'number' ? 'number' : cf.fieldType === 'date' ? 'date' : 'text'"
+                          [class]="'form-control pure-field-input ' + getFieldSizeClass(cf)"
+                          [placeholder]="cf.placeholder || 'Enter ' + cf.fieldName"
+                          readonly
+                        />
+                      }
+
+                      @if (cf.description) {
+                        <div class="form-text bs-field-help">{{ cf.description }}</div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

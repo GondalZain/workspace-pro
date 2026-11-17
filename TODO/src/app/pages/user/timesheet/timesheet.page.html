@@ -1,0 +1,39 @@
+<app-workspace-user-layout
+  sectionId="timesheet-page"
+  heroBadge="Workspace"
+  heroBadgeMeta="Time Sheet"
+  heroTitle="Time Sheet"
+  heroSubtitle="Track work hours, task progress, and log time entries cleanly."
+>
+  <div class="timesheet-page-content">
+    @if (canLogTime()) {
+      <app-timesheet-form
+        (entryAdded)="onAddEntry($event)"
+      />
+    } @else {
+      <div class="timesheet-locked-banner" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 24px; background: #fffbeb; border: 1.5px solid #fef3c7; border-radius: 14px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <span style="font-size: 26px;">⏱️</span>
+          <div>
+            <strong style="display: block; font-size: 15px; color: #92400e; margin-bottom: 3px;">Timesheets & Work Hours Logging is a Pro Plan feature</strong>
+            <p style="margin: 0; font-size: 13px; color: #b45309;">Track employee work hours, estimate milestones, and log time entries. Upgrade your workspace to start logging time.</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          (click)="openUpgradeModal()"
+          style="padding: 9px 18px; border-radius: 999px; background: #d97706; color: #fff; font-size: 13px; font-weight: 700; border: none; cursor: pointer; white-space: nowrap; box-shadow: 0 4px 12px rgba(217,119,6,0.3); transition: all 0.2s;"
+        >
+          🔒 Upgrade to Pro Plan
+        </button>
+      </div>
+    }
+
+    <app-timesheet-table
+      [entries]="entries()"
+      [readonly]="!canLogTime()"
+      (entryUpdated)="onUpdateEntry($event)"
+      (entryDeleted)="onDeleteEntry($event)"
+    />
+  </div>
+</app-workspace-user-layout>

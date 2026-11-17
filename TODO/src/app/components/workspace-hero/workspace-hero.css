@@ -1,0 +1,107 @@
+.welcome-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-base, #e2e8f0);
+  border-radius: 12px;
+}
+
+.welcome-hero.compact {
+  border-radius: 18px;
+}
+
+.welcome-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.welcome-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--brand-primary);
+  background: var(--brand-primary-soft);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  width: fit-content;
+}
+
+.pulse-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+.badge-separator {
+  color: var(--border-strong, #cbd5e1);
+}
+
+.date-text {
+  color: var(--text-muted, #64748b);
+}
+
+.welcome-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  letter-spacing: -0.02em;
+}
+
+.welcome-subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted, #64748b);
+}
+
+.welcome-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.welcome-actions :where(a, button).btn-create-task {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.95rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  background: var(--brand-primary);
+  color: #ffffff;
+  border: none;
+  transition: background 0.15s ease;
+}
+
+.welcome-actions :where(a, button).btn-create-task:hover {
+  background: var(--brand-primary-hover);
+}
+
+.welcome-actions :where(a, button).btn-workspace {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.95rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  background: var(--bg-subtle, #eef2f7);
+  color: var(--text-primary, #0f172a);
+  border: 1px solid var(--border-base, #e2e8f0);
+}
+
+.welcome-title .user-highlight {
+  color: var(--brand-primary);
+}

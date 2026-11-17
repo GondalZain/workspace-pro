@@ -1,0 +1,11 @@
+<header class="page-header">
+  <div>
+    <h1 class="page-title">{{ title() }}</h1>
+    @if (description()) {
+      <p class="page-desc">{{ description() }}</p>
+    }
+  </div>
+  <div class="header-actions">
+    <ng-content select="[adminActions]" />
+  </div>
+</header>

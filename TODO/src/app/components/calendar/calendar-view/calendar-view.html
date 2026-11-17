@@ -1,0 +1,20 @@
+<section class="calendar-view ws-panel" aria-labelledby="schedule-heading">
+  <header class="calendar-view__head">
+    <div>
+      <h2 id="schedule-heading" class="calendar-view__title">Schedule</h2>
+      <p class="calendar-view__meta">Pick a day to see due tasks, or browse the month.</p>
+    </div>
+  </header>
+
+  <app-calendar
+    variant="schedule"
+    [tasks]="tasks()"
+    [currentUser]="currentUser()"
+    [isAdmin]="isAdmin()"
+    (taskToggled)="taskToggled.emit($event)"
+    (taskStatusChanged)="taskStatusChanged.emit($event)"
+    (taskDeleted)="taskDeleted.emit($event)"
+    (taskEdited)="taskEdited.emit($event)"
+    (taskSelected)="taskSelected.emit($event)"
+  />
+</section>

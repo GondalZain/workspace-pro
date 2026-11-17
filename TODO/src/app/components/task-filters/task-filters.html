@@ -1,0 +1,47 @@
+<div class="toolbar">
+  <div class="filters-left">
+    <div class="filters scope-filters" role="group" aria-label="Task scope">
+      <button
+        type="button"
+        id="filter-all-tasks"
+        [class.active]="selectedScope() === 'all'"
+        (click)="setScope('all')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>All Tasks</span>
+      </button>
+      <button
+        type="button"
+        id="filter-my-tasks"
+        [class.active]="selectedScope() === 'my'"
+        (click)="setScope('my')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>My Tasks</span>
+      </button>
+    </div>
+
+    <div class="filters-divider"></div>
+
+    <div class="filters status-filters" role="group" aria-label="Filter tasks">
+      <button type="button" [class.active]="selectedFilter() === 'all'" (click)="setFilter('all')">
+        All
+      </button>
+      @for (st of availableStatuses(); track st.id) {
+        <button
+          type="button"
+          [class.active]="selectedFilter() === st.name || (st.slug && selectedFilter() === st.slug)"
+          (click)="setFilter(st.name)"
+        >
+          <span
+            class="filter-status-dot"
+            [style.backgroundColor]="st.color || '#64748b'"
+          ></span>
+          <span>{{ st.name }}</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (hasCompletedTasks()) {
+    <button type="button" class="clear-button" (click)="completedCleared.emit()">Clear completed</button>
+  }
+</div>

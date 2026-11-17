@@ -1,0 +1,40 @@
+<app-workspace-user-layout
+  sectionId="kanban-page"
+  [heroBadge]="companyName()"
+  [heroBadgeMeta]="currentMonthYearLabel()"
+  heroTitle="Tasks"
+  [heroSubtitle]="kanbanHeroSubtitle()"
+  contentClass="content workspace-content workspace-content--full"
+>
+  @if (isAdminRoute()) {
+    <app-admin-page-header
+      title="Tasks Kanban"
+      description="Interactive board — drag and drop task cards across pipeline stages."
+    />
+  }
+
+  <div class="task-list-page">
+    <app-tasks-workspace-summary (metricAction)="onMetricAction($event)" />
+
+    <div class="task-list-page__view-switch">
+      <app-tasks-workspace-subnav />
+    </div>
+
+    <app-kanban-view
+    [tasks]="filteredTasks()"
+    [totalCount]="tasks().length"
+    [canCreateTasks]="canCreateTasks()"
+    [(searchTerm)]="searchTerm"
+    [(selectedPriority)]="selectedPriority"
+    [(selectedScope)]="selectedScope"
+    [currentUserId]="currentUser()?.id"
+    [currentUsername]="currentUser()?.username"
+    [isAdmin]="isAdmin()"
+    (taskSelected)="openTaskDetail($event)"
+    (taskEdited)="editTask($event)"
+    (taskDeleted)="deleteTask($event)"
+    (quickAddClicked)="onQuickAddColumn($event)"
+    (taskStatusChanged)="onTaskStatusChanged($event)"
+    />
+  </div>
+</app-workspace-user-layout>

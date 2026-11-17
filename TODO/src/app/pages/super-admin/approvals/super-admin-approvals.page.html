@@ -1,0 +1,337 @@
+<div class="super-admin-page">
+  <!-- Top Banner / Hero Header -->
+  <header class="page-action-header">
+    <div class="header-left">
+      <div class="portal-badge">
+        <span class="badge-dot warning"></span>
+        <span>Review &amp; Access Governance</span>
+      </div>
+      <h1 class="page-title">Workspace Registration Approvals</h1>
+      <p class="page-subtitle">Review incoming company registration requests, verify workspace domain authenticity, and approve or reject tenant provisioning.</p>
+    </div>
+
+    <div class="header-right-actions">
+      <a routerLink="/super-admin/dashboard" class="btn-working-companies">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="9" rx="1"/>
+          <rect x="14" y="3" width="7" height="5" rx="1"/>
+          <rect x="14" y="12" width="7" height="9" rx="1"/>
+          <rect x="3" y="16" width="7" height="5" rx="1"/>
+        </svg>
+        <span>View Working Companies</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Metric Stats Row -->
+  <div class="stats-grid">
+    <app-stat-card
+      label="Pending Review"
+      [value]="pendingCount()"
+      badgeText="Awaits Action"
+      variant="amber"
+      iconType="admins"
+    />
+
+    <app-stat-card
+      label="Rejected Requests"
+      [value]="rejectedCount()"
+      badgeText="Declined"
+      variant="sapphire"
+      iconType="active"
+    />
+
+    <app-stat-card
+      label="Working Companies"
+      [value]="stats().activeCompanies"
+      badgeText="Active Workspaces"
+      variant="emerald"
+      iconType="company"
+    />
+
+    <app-stat-card
+      label="Total Tenants"
+      [value]="stats().totalCompanies"
+      badgeText="All Registrations"
+      variant="teal"
+      iconType="users"
+    />
+  </div>
+
+  @if (actionMessage()) {
+    <div class="action-toast-banner" role="status">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      <span>{{ actionMessage() }}</span>
+    </div>
+  }
+
+  <!-- Review Panel -->
+  <section class="approvals-panel">
+    <div class="panel-header">
+      <div class="status-tab-group">
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab() === 'pending'"
+          (click)="activeTab.set('pending')"
+        >
+          <span class="tab-indicator warning"></span>
+          <span>Pending Approvals</span>
+          <span class="tab-badge">{{ pendingCount() }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab() === 'rejected'"
+          (click)="activeTab.set('rejected')"
+        >
+          <span class="tab-indicator danger"></span>
+          <span>Rejected Requests</span>
+          <span class="tab-badge">{{ rejectedCount() }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab() === 'all'"
+          (click)="activeTab.set('all')"
+        >
+          <span>All Non-Active</span>
+        </button>
+      </div>
+
+      <div class="table-search-box">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          type="text"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+          placeholder="Search by company or admin email..."
+          class="search-input"
+        />
+        @if (searchQuery()) {
+          <button type="button" class="btn-clear-search" (click)="searchQuery.set('')">✕</button>
+        }
+      </div>
+    </div>
+
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <span>Loading registration approvals...</span>
+      </div>
+    } @else {
+      <div class="companies-grid">
+        @for (company of filteredCompanies(); track company.id) {
+          <app-company-card
+            [company]="company"
+            (statusChange)="onCompanyStatusChange($event)"
+            (approveClick)="openApprovalModal($event)"
+          />
+        } @empty {
+          <div class="empty-state">
+            @if (searchQuery()) {
+              <p>No workspace requests found matching "{{ searchQuery() }}"</p>
+              <button type="button" class="btn-reset-filter" (click)="searchQuery.set('')">Reset Search</button>
+            } @else if (activeTab() === 'pending') {
+              <div class="empty-icon-wrap">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+              </div>
+              <h3>All caught up! No pending approvals</h3>
+              <p>When new companies register through the landing page, their requests will appear here for review.</p>
+              <a routerLink="/super-admin/dashboard" class="btn-go-working">Go to Working Companies →</a>
+            } @else {
+              <h3>No {{ activeTab() }} registrations</h3>
+              <p>There are currently no workspace registrations in this category.</p>
+            }
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Workspace Approval Configuration Modal -->
+  @if (isApprovalModalOpen()) {
+    <div class="modal-backdrop" (click)="closeApprovalModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <header class="modal-head">
+          <div class="modal-title-group">
+            <span class="modal-eyebrow">Workspace Provisioning &amp; Approval</span>
+            <h3>Company Configuration: {{ approvingCompany()?.name }}</h3>
+          </div>
+          <button type="button" class="btn-close" (click)="closeApprovalModal()">×</button>
+        </header>
+
+        <form (ngSubmit)="submitApproval()" class="modal-body">
+          @if (modalError()) {
+            <div class="form-error-alert">{{ modalError() }}</div>
+          }
+
+          <div class="approval-info-banner">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <div>
+              <strong>Tenant Workspace Isolation Setup</strong>
+              <p>To accept this workspace, you must configure its <strong>Custom Domain Access</strong>. Once approved, the company is moved to Working Companies and the admin can log in.</p>
+            </div>
+          </div>
+
+          <!-- Section 1: Custom Domain & Routing (MANDATORY) -->
+          <div class="form-section highlight-section">
+            <h4 class="section-title">1. Custom Domain &amp; Access Routing <span class="required-badge">MANDATORY</span></h4>
+            <p class="section-sub">Specifies the custom domain/hostname routing where this tenant's users and admins log in.</p>
+
+            <div class="form-field">
+              <label>
+                <span>Custom Domain Hostname <span class="req">*</span></span>
+                <span class="helper-tag">e.g. {{ approvingCompany()?.name?.toLowerCase() || 'acme' }}.localhost</span>
+              </label>
+              <div class="input-with-icon">
+                <span class="prefix-icon">🌐</span>
+                <input
+                  type="text"
+                  [ngModel]="configDomain()"
+                  (ngModelChange)="onDomainInput($event)"
+                  name="configDomain"
+                  placeholder="e.g. acme.localhost or company.com"
+                  class="form-input bold-input"
+                  required
+                />
+              </div>
+              <small class="domain-preview-hint">
+                Tenant Portal Access URL: <strong>http://{{ configDomain() || 'company.localhost' }}</strong>
+              </small>
+            </div>
+
+            <div class="form-field">
+              <label>
+                <span>Company Email Domain / Abbreviation Suffix <span style="font-weight: 500; color: #64748b; font-size: 0.75rem;">(Optional)</span></span>
+                <span class="helper-tag" style="background: #f1f5f9; color: #64748b;">Leave blank if not using suffix</span>
+              </label>
+              <input
+                type="text"
+                [ngModel]="configEmailDomain()"
+                (ngModelChange)="onEmailDomainInput($event)"
+                name="configEmailDomain"
+                placeholder="Leave empty or e.g. @company.com"
+                class="form-input"
+              />
+              <small style="color: #64748b; font-size: 0.78rem; margin-top: 0.2rem;">
+                Kept empty by default so users can log in using their registered full email (e.g. Gmail / Work email).
+              </small>
+            </div>
+          </div>
+
+          <!-- Section 2: Workspace Details & Branding -->
+          <div class="form-section">
+            <h4 class="section-title">2. Workspace Branding &amp; Details</h4>
+
+            <div class="form-field">
+              <label>Industry Tag / Workspace Title</label>
+              <input
+                type="text"
+                [ngModel]="configTitle()"
+                (ngModelChange)="configTitle.set($event)"
+                name="configTitle"
+                placeholder="e.g. Software & Technology"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-field">
+              <label>Workspace Description</label>
+              <textarea
+                [ngModel]="configDescription()"
+                (ngModelChange)="configDescription.set($event)"
+                name="configDescription"
+                placeholder="Brief description of tenant operations..."
+                rows="2"
+                class="form-textarea"
+              ></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field flex-1">
+                <label>Primary Brand Color</label>
+                <div class="color-picker-row">
+                  <input
+                    type="color"
+                    [ngModel]="configPrimaryColor()"
+                    (ngModelChange)="configPrimaryColor.set($event)"
+                    name="configPrimaryColor"
+                    class="native-color-picker"
+                  />
+                  <input
+                    type="text"
+                    [ngModel]="configPrimaryColor()"
+                    (ngModelChange)="configPrimaryColor.set($event)"
+                    name="configPrimaryColorHex"
+                    class="hex-input"
+                  />
+                </div>
+              </div>
+
+              <div class="form-field flex-1">
+                <label>Secondary Brand Color</label>
+                <div class="color-picker-row">
+                  <input
+                    type="color"
+                    [ngModel]="configSecondaryColor()"
+                    (ngModelChange)="configSecondaryColor.set($event)"
+                    name="configSecondaryColor"
+                    class="native-color-picker"
+                  />
+                  <input
+                    type="text"
+                    [ngModel]="configSecondaryColor()"
+                    (ngModelChange)="configSecondaryColor.set($event)"
+                    name="configSecondaryColorHex"
+                    class="hex-input"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Registered Admin Info (Read-only summary) -->
+          @if (approvingCompany()?.adminUsername || approvingCompany()?.adminEmail) {
+            <div class="form-section admin-summary-section">
+              <h4 class="section-title">3. Registered Administrator</h4>
+              <div class="admin-summary-box">
+                <div class="admin-avatar">👤</div>
+                <div class="admin-info">
+                  <strong>{{ approvingCompany()?.adminUsername || 'Admin User' }}</strong>
+                  <span>{{ approvingCompany()?.adminEmail }}</span>
+                </div>
+                <span class="status-pill pending">Pending Activation</span>
+              </div>
+            </div>
+          }
+
+          <footer class="modal-footer">
+            <button type="button" class="btn-cancel" (click)="closeApprovalModal()">Cancel</button>
+            <button
+              type="submit"
+              class="btn-approve-submit"
+              [disabled]="isSubmittingApproval() || !configDomain().trim()"
+            >
+              {{ isSubmittingApproval() ? 'Approving & Provisioning...' : '✓ Configure & Accept Workspace' }}
+            </button>
+          </footer>
+        </form>
+      </div>
+    </div>
+  }
+</div>

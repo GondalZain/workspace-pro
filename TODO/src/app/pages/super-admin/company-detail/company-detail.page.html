@@ -1,0 +1,139 @@
+<div class="cd-container">
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <span>Loading company details...</span>
+    </div>
+  } @else if (company(); as comp) {
+    <!-- Top Navigation Bar -->
+    <div class="top-nav-bar">
+      <a [routerLink]="routes.superAdminDashboard" class="btn-back">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"/>
+          <polyline points="12 19 5 12 12 5"/>
+        </svg>
+        <span>Back to Companies</span>
+      </a>
+
+      <button type="button" class="btn-delete-company" (click)="deleteCompany()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          <line x1="10" y1="11" x2="10" y2="17"/>
+          <line x1="14" y1="11" x2="14" y2="17"/>
+        </svg>
+        <span>Delete Company</span>
+      </button>
+    </div>
+
+    <!-- Standalone Component: Company Hero Header -->
+    <app-company-hero-header
+      [company]="comp"
+      [primaryColor]="primaryColor()"
+      [currentLogoUrl]="currentLogoUrl()"
+    ></app-company-hero-header>
+
+    <!-- Standalone Component: Tab Bar Navigation -->
+    <app-company-detail-tab-bar
+      [activeTab]="activeTab()"
+      (activeTabChange)="switchTab($event)"
+      [adminCount]="comp.admins.length || 0"
+    ></app-company-detail-tab-bar>
+
+    <!-- TAB 1: Company Profile -->
+    @if (activeTab() === 'profile') {
+      <app-company-profile-tab
+        [(companyName)]="companyName"
+        [(title)]="title"
+        [(description)]="description"
+        [(emailDomain)]="emailDomain"
+        [(domain)]="domain"
+        [(status)]="status"
+        [primaryColor]="primaryColor()"
+        [currentLogoUrl]="currentLogoUrl()"
+        [logoFile]="logoFile()"
+        [isSaving]="isSaving()"
+        [successMessage]="successMessage()"
+        [errorMessage]="errorMessage()"
+        (fileSelected)="onFileSelected($event)"
+        (clearLogo)="clearLogo()"
+        (saveProfile)="saveCompanyDetails()"
+      ></app-company-profile-tab>
+    }
+
+    <!-- TAB 2: Brand Colors -->
+    @if (activeTab() === 'colors') {
+      <app-brand-colors-tab
+        [(primaryColor)]="primaryColor"
+        [(secondaryColor)]="secondaryColor"
+        [companyName]="companyName()"
+        [presetColors]="presetColors"
+        [isSaving]="isSaving()"
+        [successMessage]="successMessage()"
+        [errorMessage]="errorMessage()"
+        (setPreset)="setPresetColors($event.primary, $event.secondary)"
+        (saveColors)="saveCompanyDetails()"
+      ></app-brand-colors-tab>
+    }
+
+    <!-- TAB 3: Company Admins -->
+    @if (activeTab() === 'admins') {
+      <app-company-admins-tab
+        [companyName]="companyName()"
+        [emailDomain]="emailDomain()"
+        [admins]="comp.admins || []"
+        [allRoles]="allRoles()"
+        [primaryColor]="primaryColor()"
+        [(newAdminUsername)]="newAdminUsername"
+        [(newAdminEmail)]="newAdminEmail"
+        [(newAdminPassword)]="newAdminPassword"
+        [(selectedRoleIdForNewAdmin)]="selectedRoleIdForNewAdmin"
+        [adminError]="adminError()"
+        [isAddingAdmin]="isAddingAdmin()"
+        [isSavingAdminEdit]="isSavingAdminEdit()"
+        [editAdminError]="editAdminError()"
+        (changeAdminRole)="changeAdminRole($event.admin, $event.targetRoleIdStr)"
+        (removeAdmin)="removeAdmin($event)"
+        (submitAddAdmin)="submitAddAdmin()"
+        (submitEditAdmin)="submitEditAdmin($event)"
+      ></app-company-admins-tab>
+    }
+
+    <!-- TAB 4: Admin Permissions & Custom Roles -->
+    @if (activeTab() === 'permissions') {
+      <app-admin-permissions-tab
+        [availablePermissions]="availablePermissions()"
+        [allRoles]="allRoles()"
+        [primaryColor]="primaryColor()"
+        [editingRoleId]="editingRoleId()"
+        [(newRoleName)]="newRoleName"
+        [(newRoleDescription)]="newRoleDescription"
+        [newRolePermissions]="newRolePermissions()"
+        [isCreatingRole]="isCreatingRole()"
+        [roleSuccess]="roleSuccess()"
+        [roleError]="roleError()"
+        (toggleNewRolePermission)="toggleNewRolePermission($event)"
+        (editRole)="editRole($event)"
+        (deleteRole)="deleteRole($event)"
+        (resetRoleForm)="resetRoleForm()"
+        (saveRole)="saveRole()"
+      ></app-admin-permissions-tab>
+    }
+
+    <!-- TAB 5: Task Statuses & Workflow -->
+    @if (activeTab() === 'statuses') {
+      <app-company-statuses-tab
+        [companyId]="comp.id"
+        [companyName]="comp.name"
+        [primaryColor]="primaryColor()"
+      ></app-company-statuses-tab>
+    }
+
+    <!-- TAB 6: Tenant Overview & Metrics -->
+    @if (activeTab() === 'metrics') {
+      <app-tenant-overview-tab
+        [company]="comp"
+      ></app-tenant-overview-tab>
+    }
+  }
+</div>

@@ -1,0 +1,121 @@
+<app-workspace-user-layout
+  sectionId="dashboard-tasks"
+  [heroBadge]="companyName()"
+  [heroBadgeMeta]="currentMonthYearLabel()"
+  heroTitle="Tasks"
+  [heroSubtitle]="dashboardHeroSubtitle()"
+>
+  @if (isAdminRoute()) {
+    <app-admin-page-header
+      title="Tasks"
+      description="Track, assign, and manage company tasks across all projects."
+    />
+  }
+
+  <div class="task-list-page">
+    <app-tasks-workspace-summary (metricAction)="selectMetricAction($event)" />
+
+    <div class="task-list-page__view-switch">
+      <app-tasks-workspace-subnav />
+    </div>
+
+    <section class="ws-panel task-list-page__main" id="tasks" aria-labelledby="task-list-heading">
+      <div class="task-list-page__command">
+        <header class="task-list-page__head">
+          <p id="task-list-heading" class="task-list-page__meta task-list-page__meta--lead">
+            {{ filteredTasks().length }} of {{ tasks().length }} tasks
+          </p>
+        </header>
+
+        <div class="task-list-page__toolbar-row">
+          <app-task-board-toolbar
+            class="task-list-page__board-toolbar"
+            [inline]="true"
+            searchPlaceholder="Search by title, category, or tags…"
+            [showScopeToggle]="false"
+            [showSort]="true"
+            [(searchTerm)]="searchTerm"
+            [(selectedPriority)]="selectedPriority"
+            [(selectedScope)]="selectedScope"
+            [(sortBy)]="sortBy"
+          />
+          @if (canCreateTasks()) {
+            <button type="button" class="btn-create-task task-list-page__new-task" (click)="openEditor()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Add task
+            </button>
+          }
+        </div>
+
+        <app-task-filters
+          class="task-list-page__filters"
+          [hasCompletedTasks]="completedCount() > 0"
+          [(selectedScope)]="selectedScope"
+          [(selectedFilter)]="selectedFilter"
+          (completedCleared)="clearCompleted()"
+        />
+
+        @if (selectedCalendarDateStr()) {
+          <div class="task-list-page__date-filter">
+            <span>Filtered by <strong>{{ selectedCalendarDateFormatted() }}</strong></span>
+            <button type="button" class="btn-ghost" (click)="clearCalendarSelection()">Clear date</button>
+          </div>
+        }
+      </div>
+
+      <app-task-list
+        layout="table"
+        [tasks]="filteredTasks()"
+        [allTasksCount]="tasks().length"
+        [selectedFilter]="selectedFilter()"
+        [currentUserId]="currentUser()?.id"
+        [currentUsername]="currentUser()?.username"
+        [isAdmin]="isAdmin()"
+        (taskToggled)="toggleTask($event)"
+        (taskStatusChanged)="onStatusChanged($event)"
+        (taskDeleted)="deleteTask($event)"
+        (taskEdited)="editTask($event)"
+        (taskSelected)="openTaskDetail($event)"
+      />
+    </section>
+
+    <div class="task-list-page__planning">
+      <section class="ws-panel task-list-page__calendar" aria-label="Month calendar">
+        <div class="task-list-page__calendar-head">
+          <div>
+            <h3 class="task-list-page__section-label">Calendar</h3>
+            <p class="task-list-page__calendar-hint">Select a day to filter the task list above.</p>
+          </div>
+          <a [routerLink]="url.dashboardCalendar" class="task-list-page__calendar-link">Full schedule</a>
+        </div>
+        <app-calendar
+          variant="picker"
+          [tasks]="tasks()"
+          [currentUser]="currentUser()"
+          [(selectedDay)]="selectedCalendarDay"
+          [(calendarYear)]="calendarYear"
+          [(calendarMonthIndex)]="calendarMonthIndex"
+        />
+      </section>
+
+      <section class="ws-panel task-list-page__upcoming" aria-labelledby="upcoming-heading">
+        <h3 id="upcoming-heading" class="task-list-page__section-label">Upcoming deadlines</h3>
+        <ul class="task-list-page__deadlines">
+          @for (task of upcomingTasks(); track task.id) {
+            <li>
+              <button type="button" class="task-list-page__deadline" (click)="openTaskDetail(task)">
+                <span class="task-list-page__deadline-title">{{ task.title }}</span>
+                <span class="task-list-page__deadline-date">{{ task.dueDate || 'No date' }}</span>
+              </button>
+            </li>
+          } @empty {
+            <li class="task-list-page__deadlines-empty">Nothing due soon.</li>
+          }
+        </ul>
+      </section>
+    </div>
+  </div>
+</app-workspace-user-layout>

@@ -1,0 +1,170 @@
+<div class="two-col-grid">
+  <!-- Card 1: Create / Edit Custom Role -->
+  <section class="card detail-card">
+    <div class="card-head">
+      <div class="head-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <h3>{{ editingRoleId ? 'Edit Role: ' + newRoleName : 'Create Custom Admin Role' }}</h3>
+      </div>
+      <p>{{ editingRoleId ? 'Modify name, description, or assigned permissions for this role.' : 'Define a new role with specific permissions to assign to different admins.' }}</p>
+    </div>
+
+    <form (ngSubmit)="saveRole.emit()" class="card-body">
+      @if (editingRoleId) {
+        <div class="editing-banner">
+          <span class="editing-tag">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Editing Existing Role: <strong>{{ newRoleName() }}</strong>
+          </span>
+          <button type="button" class="btn-clear-edit" (click)="resetRoleForm.emit()">Cancel Edit</button>
+        </div>
+      }
+
+      <div class="form-group">
+        <label>Role Identifier / Name <span class="req">*</span></label>
+        <input type="text" [(ngModel)]="newRoleName" name="newRoleName" placeholder="e.g. project_manager, task_supervisor" class="form-input" required />
+      </div>
+
+      <div class="form-group">
+        <label>Role Description</label>
+        <input type="text" [(ngModel)]="newRoleDescription" name="newRoleDescription" placeholder="e.g. Can manage projects & tasks but cannot delete users" class="form-input" />
+      </div>
+
+      <div class="form-group">
+        <div class="perm-section-label-row">
+          <label>Select Granted Permissions</label>
+          <span class="perm-count-chip">{{ newRolePermissions.size }} of {{ availablePermissions.length }} selected</span>
+        </div>
+
+        <div class="permissions-control-grid">
+          @for (perm of availablePermissions; track perm.id) {
+            <label
+              class="permission-checkbox-card"
+              [class.selected]="hasNewRolePermission(perm.name)"
+              [style.border-color]="hasNewRolePermission(perm.name) ? primaryColor : '#e2e8f0'"
+            >
+              <div class="perm-header">
+                <input
+                  type="checkbox"
+                  [checked]="hasNewRolePermission(perm.name)"
+                  (change)="toggleNewRolePermission.emit(perm.name)"
+                  class="perm-checkbox"
+                />
+                <span class="perm-name">{{ perm.name }}</span>
+                @if (hasNewRolePermission(perm.name)) {
+                  <span class="perm-active-tag" [style.background]="primaryColor">Granted</span>
+                }
+              </div>
+              <p class="perm-desc">{{ perm.description }}</p>
+            </label>
+          }
+        </div>
+      </div>
+
+      <div class="card-foot role-actions-foot">
+        @if (roleSuccess) {
+          <span class="inline-success-toast">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <span>{{ roleSuccess }}</span>
+          </span>
+        }
+        @if (roleError) {
+          <span class="inline-error-toast">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>{{ roleError }}</span>
+          </span>
+        }
+        @if (editingRoleId) {
+          <button type="button" class="btn-cancel-role-edit" (click)="resetRoleForm.emit()">Cancel Edit</button>
+        }
+        <button type="submit" class="btn-save" [disabled]="isCreatingRole" [style.background]="primaryColor">
+          @if (isCreatingRole) {
+            <span class="btn-spinner"></span>
+            <span>Saving Role...</span>
+          } @else {
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            <span>{{ editingRoleId ? 'Save Role Changes' : '+ Create Custom Role' }}</span>
+          }
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Card 2: System Roles List & Direct Editing -->
+  <section class="card detail-card">
+    <div class="card-head">
+      <div class="head-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+        </svg>
+        <h3>System &amp; Custom Roles List</h3>
+      </div>
+      <p>Click "Edit Permissions" on any role to modify its assigned capabilities.</p>
+    </div>
+
+    <div class="card-body">
+      <div class="roles-list-group">
+        @for (r of allRoles; track r.id) {
+          <div class="role-list-card" [class.active-editing]="editingRoleId === r.id">
+            <div class="role-card-header">
+              <div class="role-title-group">
+                <span class="role-badge-title" [style.background]="primaryColor">{{ r.name | uppercase }}</span>
+                <span class="role-desc-text">{{ r.description || 'No description provided' }}</span>
+              </div>
+
+              <div class="role-actions-right">
+                <button type="button" class="btn-edit-role" (click)="editRole.emit(r)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                  <span>Edit Permissions</span>
+                </button>
+
+                @if (!['super_admin', 'admin', 'user'].includes(r.name)) {
+                  <button type="button" class="btn-delete-adm" (click)="deleteRole.emit(r)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                    <span>Delete</span>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div class="role-perm-tags">
+              @for (p of r.permissions; track p) {
+                <span class="perm-tag-chip">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  {{ p }}
+                </span>
+              }
+              @if (!r.permissions || r.permissions.length === 0) {
+                <span class="perm-tag-chip empty-chip">No explicit permissions set</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+</div>

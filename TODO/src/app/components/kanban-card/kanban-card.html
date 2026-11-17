@@ -1,0 +1,49 @@
+<article
+  class="kb-card"
+  [class.is-done]="task().completed || task().status === 'completed'"
+  [class.kb-card--draggable]="canDrag()"
+  [class.kb-card--dragging]="dragging()"
+  [attr.draggable]="canDrag() ? true : null"
+  (dragstart)="onDragStart($event)"
+  (dragend)="onDragEnd()"
+>
+  <div class="kb-card__top">
+    <div class="kb-card__tags">
+      <span class="ws-chip" [class]="'ws-chip--priority-' + task().priority">{{ task().priority }}</span>
+      @if (task().category) {
+        <span class="ws-chip ws-chip--muted">{{ task().category }}</span>
+      }
+    </div>
+    <app-action-menu
+      class="kb-card__menu"
+      [label]="'Actions for ' + task().title"
+      [items]="cardActions"
+      (actionSelected)="selectCardAction($event)"
+    />
+  </div>
+
+  <button type="button" class="kb-card__title" (click)="onTitleClick($event)">
+    {{ task().title }}
+  </button>
+
+  @if (task().description) {
+    <p class="kb-card__desc">{{ task().description }}</p>
+  }
+
+  <footer class="kb-card__foot">
+    <span>
+      @if (task().dueDate) {
+        Due {{ task().dueDate }}
+      }
+      @if (effortLabel()) {
+        @if (task().dueDate) {
+          ·
+        }
+        <span class="kb-card__effort">{{ effortLabel() }}</span>
+      }
+    </span>
+    @if (task().creatorUsername) {
+      <span>@{{ task().creatorUsername }}</span>
+    }
+  </footer>
+</article>

@@ -1,0 +1,37 @@
+<app-workspace-user-layout
+  sectionId="project-edit-page"
+  heroBadge="Projects"
+  [heroTitle]="project()?.title ?? 'Edit project'"
+  heroSubtitle="Update project information, cover banner image, and details."
+  [heroCompact]="true"
+>
+  <app-project-page-chrome [currentLabel]="project()?.title ? 'Edit' : 'Not found'" />
+
+  @if (project()) {
+    <div class="project-create-wrap">
+      <main class="form-main-card">
+        <app-project-form
+          formHeading="Project details"
+          formSubtitle="Title, description, and cover image."
+          [(title)]="title"
+          [(description)]="description"
+          [(imagePreview)]="imagePreview"
+          [(defaultAssigneeId)]="defaultAssigneeId"
+          [(formTemplateId)]="formTemplateId"
+          [(customFields)]="customFields"
+          [errorMessage]="errorMessage()"
+          submitLabel="Save changes"
+          (submitted)="saveProject($event)"
+          (cancelled)="goBack()"
+        />
+      </main>
+    </div>
+  } @else {
+    <div class="project-create-wrap">
+      <section class="form-main-card proj-empty">
+        <p>This project is no longer available.</p>
+        <button type="button" class="btn-form-secondary" (click)="goBack()">Back to projects</button>
+      </section>
+    </div>
+  }
+</app-workspace-user-layout>

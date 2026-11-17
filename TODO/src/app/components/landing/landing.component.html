@@ -1,0 +1,341 @@
+<!-- 1. DYNAMIC SHARED PUBLIC NAVBAR -->
+<app-public-navbar buttonText="Get Started"></app-public-navbar>
+
+<!-- 2. ONE-SCREEN VIEWPORT HERO (100VH NO SCROLL) -->
+<main class="landing-viewport">
+  <div class="hero-container">
+    <!-- LEFT COLUMN: Compact & Impactful Copy -->
+    <div class="hero-left">
+      <div class="system-tag-pill">
+        <span class="pulse-dot"></span>
+        <span>Enterprise Task &amp; Project Workspace</span>
+      </div>
+
+      <h1 class="hero-headline">
+        Manage Team Tasks,<br />
+        Projects, &amp; Deadlines<br />
+        <span class="highlight-text">in One Workspace</span>
+      </h1>
+
+      <div class="hero-action-row">
+        <a routerLink="/register" class="start-project-btn" style="text-decoration: none;">
+          <span>Create Company Workspace</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </a>
+
+        <!-- Floating cursor -->
+        <div class="cursor-pill" aria-hidden="true">
+          <svg class="cursor-pointer" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 3l7 18 3-7 7-3L3 3z" />
+          </svg>
+          <span class="cursor-label">Alex (Admin)</span>
+        </div>
+      </div>
+
+      <!-- Feature pills -->
+      <div class="feature-pills-row">
+        <span class="f-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Dynamic Statuses
+        </span>
+        <span class="f-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Sprint Calendar
+        </span>
+        <span class="f-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Timesheet Logs
+        </span>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Compact Concentric Orbit Rings with Unsplash Avatars -->
+    <div class="hero-right">
+      <div class="orbit-stage">
+        <!-- Concentric Circular Orbits -->
+        <div class="orbit-ring ring-outer"></div>
+        <div class="orbit-ring ring-middle"></div>
+        <div class="orbit-ring ring-inner"></div>
+
+        <!-- Center Counter Hub -->
+        <div class="orbit-center">
+          <span class="center-count">2,400+</span>
+          <span class="center-label">Workspaces</span>
+        </div>
+
+        <!-- Real Unsplash High-Quality Avatars on Orbits (Optimized 80x80 for 40x40 retina display) -->
+        <div class="orbit-node node-top" title="Sarah - System Architect">
+          <div class="avatar-ring glow-cyan">
+            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=80&h=80&q=75" alt="Sarah - System Architect collaborating in Workspace Pro" width="40" height="40" loading="eager" fetchpriority="high" />
+          </div>
+        </div>
+
+        <div class="orbit-node node-left" title="Alex - Product Lead">
+          <div class="avatar-ring glow-blue">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&h=80&q=75" alt="Alex - Product Lead managing sprints" width="40" height="40" loading="lazy" />
+          </div>
+        </div>
+
+        <div class="orbit-node node-right" title="David - Lead Designer">
+          <div class="avatar-ring glow-pink">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&h=80&q=75" alt="David - Lead Designer coordinating tasks" width="40" height="40" loading="lazy" />
+          </div>
+        </div>
+
+        <div class="orbit-node node-bottom-left" title="Elena - Security Lead">
+          <div class="avatar-ring glow-amber">
+            <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=80&h=80&q=75" alt="Elena - Security Lead reviewing workspace roles" width="40" height="40" loading="lazy" />
+          </div>
+        </div>
+
+        <div class="orbit-node node-bottom-right" title="Marcus - Tech Lead">
+          <div class="avatar-ring glow-purple">
+            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&h=80&q=75" alt="Marcus - Tech Lead reviewing sprint deliverables" width="40" height="40" loading="lazy" />
+          </div>
+        </div>
+
+        <!-- Glass Feature Chips on Orbits -->
+        <div class="orbit-node icon-node-1" title="Dynamic Status Pipeline">
+          <div class="glass-icon-chip glow-teal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+          </div>
+        </div>
+
+        <div class="orbit-node icon-node-2" title="Sprint Calendar">
+          <div class="glass-icon-chip glow-orange">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+        </div>
+
+        <div class="orbit-node icon-node-3" title="Timesheet Tracking">
+          <div class="glass-icon-chip glow-purple">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+        </div>
+
+        <div class="orbit-node icon-node-4" title="RBAC & Role Security">
+          <div class="glass-icon-chip glow-pink">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+        </div>
+
+        <!-- Floating dashboard cards -->
+        <div class="float-card fc-task" aria-hidden="true">
+          <span class="fc-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span><strong>Task completed</strong><small>Design review · just now</small></span>
+        </div>
+
+        <div class="float-card fc-progress" aria-hidden="true">
+          <div class="fc-row"><span>Sprint progress</span><b>82%</b></div>
+          <div class="fc-bar"><span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trusted Logos Bar inside Section 1 Hero (Crisp frosted white badges) -->
+  <div class="hero-logos-wrapper">
+    <span class="logos-caption">TRUSTED BY INNOVATIVE TEAMS AT LEADING COMPANIES</span>
+    <div class="client-logos-bar">
+      <div class="logo-item bold-brand-logo">
+        <svg class="logo-icon brand-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+        <span class="brand-text">APEX GLOBAL</span>
+      </div>
+
+      <div class="logo-item bold-brand-logo devcore-logo">
+        <svg class="logo-icon brand-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 18 22 12 16 6"></polyline>
+          <polyline points="8 6 2 12 8 18"></polyline>
+        </svg>
+        <span class="brand-text">DEVCORE<span class="brand-suffix">.IO</span></span>
+      </div>
+
+      <div class="logo-item bold-brand-logo nexus-logo">
+        <svg class="logo-icon brand-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16.5 9.4 7.55 4.24a1.78 1.78 0 0 0-2.5 1.55v12.42a1.78 1.78 0 0 0 2.5 1.55L16.5 14.6a1.78 1.78 0 0 0 0-3.2z"></path>
+          <circle cx="18" cy="12" r="3" fill="currentColor"></circle>
+        </svg>
+        <span class="brand-text">NEXUS <strong class="brand-sub">WORKSPACES</strong></span>
+      </div>
+
+      <div class="logo-item bold-brand-logo">
+        <svg class="logo-icon brand-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 3a9 9 0 0 1 9 9"></path>
+          <circle cx="12" cy="12" r="3" fill="currentColor"></circle>
+        </svg>
+        <span class="brand-text">CLOUDPULSE</span>
+      </div>
+
+      <div class="logo-item bold-brand-logo">
+        <svg class="logo-icon brand-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+          <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+          <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+        </svg>
+        <span class="brand-text">VISIONIX</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wave Divider: smooth organic transition into Section 2 light background (#f8fafc) -->
+  <div class="hero-wave-divider" aria-hidden="true">
+    <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
+      <path d="M0,32L48,42.7C96,53,192,75,288,80C384,85,480,75,576,64C672,53,768,43,864,48C960,53,1056,75,1152,80C1248,85,1344,75,1392,69.3L1440,64L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"></path>
+    </svg>
+  </div>
+</main>
+
+<!-- 4. SECTION 2: PRODUCT HIGHLIGHTS & ARCHITECTURE (Crisp Light Palette, Emerald Accents) -->
+<section class="extended-features-section" aria-label="Product Highlights">
+    <div class="section-badge">
+      <span>EVERYTHING YOUR TEAM NEEDS</span>
+    </div>
+    <h2 class="section-title">Built for Modern Engineering, Creative, &amp; Operations Teams</h2>
+    <p class="section-subtitle">
+      Eliminate disconnected tools and scattered chats. Workspace Pro unifies sprints, task pipelines, calendars, and organizational administration into a single high-performance workspace.
+    </p>
+
+    <div class="features-grid">
+      <!-- Feature Card 1 -->
+      <article class="feature-card glass-card">
+        <div class="card-icon-wrap teal-glow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="9"/>
+            <rect x="14" y="3" width="7" height="5"/>
+            <rect x="14" y="12" width="7" height="9"/>
+            <rect x="3" y="16" width="7" height="5"/>
+          </svg>
+        </div>
+        <h3 class="card-title">Dynamic Kanban Pipelines</h3>
+        <p class="card-desc">
+          Design workflows that mirror how your team works. Configure custom statuses, dynamic color-coded columns, priority tags, and checklist milestones. Drag and drop tasks with zero friction while real-time activity feeds keep everyone synchronized.
+        </p>
+        <ul class="card-checklist">
+          <li>Custom workflow stages &amp; status gates</li>
+          <li>Automated priority sorting &amp; deadlines</li>
+          <li>Quick search, multi-filter, &amp; assignees</li>
+        </ul>
+      </article>
+
+      <!-- Feature Card 2 -->
+      <article class="feature-card glass-card">
+        <div class="card-icon-wrap orange-glow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </div>
+        <h3 class="card-title">Sprint Planning &amp; Calendars</h3>
+        <p class="card-desc">
+          Plan upcoming sprints with precision. Visualize delivery cadences, track team velocity, and prevent deadline bottlenecks with intuitive milestone calendars. Seamlessly shift deadlines and balance workload capacity across your roster.
+        </p>
+        <ul class="card-checklist">
+          <li>Interactive monthly &amp; weekly sprint views</li>
+          <li>Deadline alerts &amp; progress milestone bars</li>
+          <li>Capacity planning for engineering squads</li>
+        </ul>
+      </article>
+
+      <!-- Feature Card 3 -->
+      <article class="feature-card glass-card">
+        <div class="card-icon-wrap purple-glow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <h3 class="card-title">Timesheets &amp; Billable Tracking</h3>
+        <p class="card-desc">
+          Accurately log time spent on deliverables, client tasks, and internal maintenance. Export clean audit trails and financial breakdowns for payroll and billing, providing complete transparency into team resource allocation.
+        </p>
+        <ul class="card-checklist">
+          <li>One-click timer &amp; manual entry options</li>
+          <li>Historical productivity analytics &amp; graphs</li>
+          <li>Instant CSV/PDF billing summaries</li>
+        </ul>
+      </article>
+
+      <!-- Feature Card 4 -->
+      <article class="feature-card glass-card">
+        <div class="card-icon-wrap cyan-glow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <h3 class="card-title">Multi-Tenant RBAC &amp; Security</h3>
+        <p class="card-desc">
+          Scale confidently with strict organizational isolation. Super Admin controls, Company Admin dashboards, and role-based permissions protect sensitive roadmap data while giving team contributors the autonomy they need to execute.
+        </p>
+        <ul class="card-checklist">
+          <li>Super Admin approval &amp; tenant governance</li>
+          <li>Protected client workspaces &amp; secrets</li>
+          <li>Encrypted cloud backups &amp; 99.9% uptime SLA</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <!-- 5. SECTION 3: VIBRANT TEAL GRADIENT CTA SECTION (Matches Section 1 Hero Theme with Wave Divider) -->
+  <section class="landing-cta-section" aria-label="Start Workspace">
+    <!-- Wave Divider Top: connects seamlessly from white/slate Section 2 into teal Section 3 -->
+    <div class="cta-wave-divider" aria-hidden="true">
+      <svg viewBox="0 0 1440 90" preserveAspectRatio="none">
+        <path d="M0,45L48,51C96,57,192,69,288,67.5C384,66,480,51,576,42C672,33,768,30,864,36C960,42,1056,57,1152,60C1248,63,1344,54,1392,49.5L1440,45L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
+      </svg>
+    </div>
+
+    <div class="cta-inner-container">
+      <div class="cta-badge">
+        <span>GET STARTED IN MINUTES</span>
+      </div>
+
+      <h2 class="cta-headline">
+        Ready to Accelerate Your<br />
+        <span class="highlight-text">Team's Project Delivery?</span>
+      </h2>
+
+      <p class="cta-subheading">
+        Join high-performing teams using Workspace Pro. Start your 14-day free trial today with full feature access, unlimited workspaces, and zero credit card required.
+      </p>
+
+      <div class="cta-actions-row">
+        <a routerLink="/register" class="cta-solid-btn">
+          <span>Create Free Company Workspace</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </a>
+        <a routerLink="/pricing" class="cta-glass-btn">
+          <span>Compare All Plans</span>
+        </a>
+      </div>
+
+      <!-- Quick Trust Highlights Row -->
+      <div class="cta-trust-row">
+        <span class="trust-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Enterprise Security &amp; RBAC
+        </span>
+        <span class="trust-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          14-Day Full-Featured Trial
+        </span>
+        <span class="trust-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Cancel Anytime
+        </span>
+      </div>
+    </div>
+  </section>

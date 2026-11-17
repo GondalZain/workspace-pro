@@ -1,0 +1,478 @@
+<form class="project-form-wrap" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  @if (formHeading()) {
+    <header class="form-header">
+      <div class="form-header-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </svg>
+      </div>
+      <div class="form-header-text">
+        <h2>{{ formHeading() }}</h2>
+        @if (formSubtitle()) {
+          <p>{{ formSubtitle() }}</p>
+        }
+      </div>
+    </header>
+  }
+
+  <!-- Tab Bar Navigation -->
+  <div class="form-tabs-bar">
+    <button
+      type="button"
+      class="form-tab-btn"
+      [class.active]="activeTab() === 'details'"
+      (click)="activeTab.set('details')"
+    >
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+      <span>Project Details</span>
+    </button>
+
+    <button
+      type="button"
+      class="form-tab-btn"
+      [class.active]="activeTab() === 'configuration'"
+      [disabled]="isPreviewMode()"
+      [class.form-tab-btn--disabled]="isPreviewMode()"
+      (click)="!isPreviewMode() && activeTab.set('configuration')"
+      [title]="isPreviewMode() ? 'Configurations is disabled in Custom Fields Studio' : ''"
+    >
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      <span>Configurations</span>
+    </button>
+  </div>
+
+  <!-- TAB 1: PROJECT DETAILS -->
+  @if (activeTab() === 'details') {
+    <div class="form-grid-layout">
+      <!-- Left Column: Inputs -->
+      <div class="form-col-left">
+        <!-- Project Title Field -->
+        <div class="form-group">
+          <label for="project-title" class="form-label">
+            <span>Project title</span>
+            <span class="required-star">*</span>
+          </label>
+          <div class="input-wrapper">
+            <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            <input
+              id="project-title"
+              class="form-input"
+              type="text"
+              formControlName="title"
+              placeholder="e.g. Website redesign, Mobile App"
+              autocomplete="off"
+            />
+          </div>
+          <app-form-field-error
+            [control]="form.controls.title"
+            fieldLabel="Project title"
+            [showAfterSubmit]="submitAttempted()"
+          />
+        </div>
+
+        <!-- Description Field -->
+        <div class="form-group">
+          <label for="project-description" class="form-label">Description</label>
+          <textarea
+            id="project-description"
+            class="form-textarea"
+            rows="5"
+            formControlName="description"
+            placeholder="Briefly describe the goals, key scope, and objectives of this project..."
+          ></textarea>
+        </div>
+
+        <!-- Attached Form Template Dynamic Fields -->
+        @if (templateCustomFields().length > 0) {
+          <div class="template-custom-fields-container">
+            <div class="custom-fields-subhead">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
+              <span>{{ selectedTemplate()?.fieldsConfig?.sectionTitle || selectedTemplate()?.name || 'Additional Details' }}</span>
+            </div>
+
+            <div class="custom-fields-grid">
+              @for (field of templateCustomFields(); track field.fieldKey) {
+                <div
+                  class="form-group"
+                  [class.span-full]="field.bsCol === 'col-12' || field.columnWidth === 'full' || (!field.bsCol && !field.columnWidth && field.fieldType === 'textarea')"
+                  [class.span-half]="field.bsCol === 'col-md-6' || field.columnWidth === 'half' || (!field.bsCol && !field.columnWidth && field.fieldType !== 'textarea')"
+                  [class.span-third]="field.bsCol === 'col-md-4' || field.columnWidth === 'third'"
+                  [class.span-quarter]="field.bsCol === 'col-md-3' || field.columnWidth === 'quarter'"
+                >
+                  <label class="form-label" [for]="'proj-cf-' + field.fieldKey">
+                    <span>{{ field.fieldName }}</span>
+                    @if (field.isRequired) {
+                      <span class="required-star">*</span>
+                    }
+                  </label>
+
+                  @if (field.fieldType === 'text' || field.fieldType === 'email' || field.fieldType === 'phone' || field.fieldType === 'url' || field.fieldType === 'time') {
+                    <input
+                      [id]="'proj-cf-' + field.fieldKey"
+                      [type]="
+                        field.fieldType === 'email' ? 'email' :
+                        field.fieldType === 'phone' ? 'tel' :
+                        field.fieldType === 'url' ? 'url' :
+                        field.fieldType === 'time' ? 'time' : 'text'
+                      "
+                      class="form-input"
+                      [placeholder]="field.placeholder || ''"
+                      [readonly]="!!field.isReadonly"
+                      [ngModel]="customFields()[field.fieldKey] ?? field.defaultValue ?? ''"
+                      (ngModelChange)="onTemplateFieldChange(field.fieldKey, $event)"
+                      [ngModelOptions]="{ standalone: true }"
+                    />
+                  }
+
+                  @if (field.fieldType === 'textarea') {
+                    <textarea
+                      [id]="'proj-cf-' + field.fieldKey"
+                      class="form-textarea"
+                      rows="3"
+                      [placeholder]="field.placeholder || ''"
+                      [readonly]="!!field.isReadonly"
+                      [ngModel]="customFields()[field.fieldKey] ?? field.defaultValue ?? ''"
+                      (ngModelChange)="onTemplateFieldChange(field.fieldKey, $event)"
+                      [ngModelOptions]="{ standalone: true }"
+                    ></textarea>
+                  }
+
+                  @if (field.fieldType === 'number') {
+                    <input
+                      [id]="'proj-cf-' + field.fieldKey"
+                      type="number"
+                      class="form-input"
+                      [placeholder]="field.placeholder || '0'"
+                      [readonly]="!!field.isReadonly"
+                      [ngModel]="customFields()[field.fieldKey] ?? field.defaultValue"
+                      (ngModelChange)="onTemplateFieldChange(field.fieldKey, $event)"
+                      [ngModelOptions]="{ standalone: true }"
+                    />
+                  }
+
+                  @if (field.fieldType === 'date') {
+                    <input
+                      [id]="'proj-cf-' + field.fieldKey"
+                      type="date"
+                      class="form-input"
+                      [readonly]="!!field.isReadonly"
+                      [ngModel]="customFields()[field.fieldKey] ?? field.defaultValue ?? ''"
+                      (ngModelChange)="onTemplateFieldChange(field.fieldKey, $event)"
+                      [ngModelOptions]="{ standalone: true }"
+                    />
+                  }
+
+                  @if (field.fieldType === 'dropdown') {
+                    <select
+                      [id]="'proj-cf-' + field.fieldKey"
+                      class="form-select"
+                      [disabled]="!!field.isReadonly"
+                      [ngModel]="customFields()[field.fieldKey] ?? field.defaultValue ?? ''"
+                      (ngModelChange)="onTemplateFieldChange(field.fieldKey, $event)"
+                      [ngModelOptions]="{ standalone: true }"
+                    >
+                      <option value="">{{ field.placeholder || 'Select an option...' }}</option>
+                      @for (opt of field.options; track opt) {
+                        <option [value]="opt">{{ opt }}</option>
+                      }
+                    </select>
+                  }
+
+                  @if (field.fieldType === 'radio') {
+                    <div class="custom-radio-group">
+                      @for (opt of field.options || []; track opt) {
+                        <label class="custom-checkbox-row">
+                          <input
+                            type="radio"
+                            [name]="'proj-cf-radio-' + field.fieldKey"
+                            [value]="opt"
+                            [disabled]="!!field.isReadonly"
+                            [checked]="(customFields()[field.fieldKey] ?? field.defaultValue) === opt"
+                            (change)="onTemplateFieldChange(field.fieldKey, opt)"
+                          />
+                          <span>{{ opt }}</span>
+                        </label>
+                      }
+                    </div>
+                  }
+
+                  @if (field.fieldType === 'checkbox') {
+                    <label class="custom-checkbox-row">
+                      <input
+                        type="checkbox"
+                        [id]="'proj-cf-' + field.fieldKey"
+                        [disabled]="!!field.isReadonly"
+                        [ngModel]="customFields()[field.fieldKey] === true || customFields()[field.fieldKey] === 'true' || (customFields()[field.fieldKey] === undefined && field.defaultValue === 'true')"
+                        (ngModelChange)="onTemplateFieldChange(field.fieldKey, $event)"
+                        [ngModelOptions]="{ standalone: true }"
+                      />
+                      <span>{{ field.placeholder || 'Yes, confirmed' }}</span>
+                    </label>
+                  }
+
+                  @if (field.description) {
+                    <span class="field-help-text">{{ field.description }}</span>
+                  }
+
+                  @if (field.isRequired && submitAttempted() && !(customFields()[field.fieldKey] ?? field.defaultValue)) {
+                    <span class="field-error-text">{{ field.fieldName }} is required.</span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Dynamic Custom Fields for Project Details (embedded directly in this section) -->
+        <app-custom-fields-renderer
+          #customFieldsRenderer
+          entityType="project"
+          [(values)]="customFields"
+          [isPreviewMode]="isPreviewMode()"
+          [submitAttempted]="submitAttempted()"
+        />
+      </div>
+
+      <!-- Right Column: Parallel Cover Image Dropzone -->
+      <div class="form-col-right">
+        <div class="form-group form-group--image">
+          <label class="form-label">
+            <span>Project Cover Image</span>
+            <span class="form-hint-pill">Optional</span>
+          </label>
+
+          <input
+            #fileInput
+            id="project-image"
+            type="file"
+            accept="image/*"
+            class="hidden-file-input"
+            [disabled]="isPreviewMode()"
+            (change)="onImagePicked($event)"
+          />
+
+          @if (imagePreview() && resolvedImagePreview(); as previewUrl) {
+            @if (!previewBroken()) {
+              <div class="cover-preview-card">
+                <img [src]="previewUrl" alt="Project cover preview" class="cover-preview-img" (error)="onPreviewError()" />
+                <div class="cover-preview-overlay">
+                  <button type="button" class="btn-cover-action btn-change" [disabled]="isPreviewMode()" (click)="triggerFileInput()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="17 8 12 3 7 8"/>
+                      <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <span>Change</span>
+                  </button>
+                  <button type="button" class="btn-cover-action btn-remove" [disabled]="isPreviewMode()" (click)="removeImage()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                    <span>Remove</span>
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <div class="error-banner" role="status">Could not load the current image. Choose a new file to replace it.</div>
+            }
+          } @else {
+            <div
+              class="image-dropzone image-dropzone--parallel"
+              [class.disabled]="isPreviewMode()"
+              [title]="isPreviewMode() ? 'Image upload is disabled in Custom Fields Studio' : ''"
+              (click)="triggerFileInput()"
+              [attr.tabindex]="isPreviewMode() ? -1 : 0"
+              (keydown.enter)="triggerFileInput()"
+            >
+              <div class="dropzone-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                  <circle cx="9" cy="9" r="2"/>
+                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                </svg>
+              </div>
+              <div class="dropzone-text">
+                <span class="dropzone-link">Upload cover image</span>
+                <span class="dropzone-sub">PNG, JPG, WebP, or GIF (max 5MB)</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 2: CONFIGURATIONS -->
+  @if (activeTab() === 'configuration') {
+    <div class="config-tab-wrap">
+      <div class="config-section-card">
+        <!-- Configuration Card Header -->
+        <div class="config-card-head">
+          <div class="config-card-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="config-card-title">Project Automation & Defaults</h3>
+            <p class="config-card-desc">
+              Manage initial ticket assignment defaults for new tasks created in this project.
+            </p>
+          </div>
+        </div>
+
+        <div class="config-card-divider"></div>
+
+        <!-- 2-Column Grid on Same Line -->
+        <div class="config-columns-grid">
+          <!-- Column 1: Default Assignee Person -->
+          <div class="config-column-item">
+            <div class="config-item-header">
+              <label class="form-label" style="margin-bottom: 0;">
+                <span>Default Assignee Person</span>
+              </label>
+              <span class="config-sub-hint">Pre-assigned to new tasks created in this project</span>
+            </div>
+
+            <!-- Custom User Picker Dropdown -->
+            <div class="custom-user-picker">
+              <button
+                type="button"
+                class="user-picker-trigger"
+                (click)="toggleUserDropdown()"
+              >
+                @if (selectedUser(); as user) {
+                  <div class="user-picker-selected">
+                    @if (getUserAvatar(user); as avatar) {
+                      <img [src]="avatar" [alt]="user.username" class="user-avatar-sm" />
+                    } @else {
+                      <div class="user-avatar-fallback">{{ user.username.slice(0, 1).toUpperCase() }}</div>
+                    }
+                    <div class="user-text-meta">
+                      <div class="user-name-row">
+                        <span class="user-name-bold">{{ user.username }}</span>
+                        <span class="user-role-tag">{{ user.role }}</span>
+                      </div>
+                      <span class="user-designation-sub">
+                        {{ getUserDesignation(user) }}@if (user.email) { • {{ user.email }}}
+                      </span>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="user-picker-placeholder">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="7" r="4"/>
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    </svg>
+                    <span>No default assignee (Unassigned)</span>
+                  </div>
+                }
+
+                <svg class="chevron-icon" [class.open]="isUserDropdownOpen()" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+
+              @if (isUserDropdownOpen()) {
+                <div class="user-dropdown-menu">
+                  <!-- Option: Unassigned -->
+                  <div
+                    class="user-option-item"
+                    [class.selected]="!defaultAssigneeId()"
+                    (click)="selectUser(null)"
+                  >
+                    <div class="user-avatar-fallback unassigned-fallback">∅</div>
+                    <div class="user-text-meta">
+                      <span class="user-name-bold">Unassigned</span>
+                      <span class="user-designation-sub">No default assignee</span>
+                    </div>
+                  </div>
+
+                  <!-- Options: Workspace Users -->
+                  @for (user of workspaceUsers(); track user.id) {
+                    <div
+                      class="user-option-item"
+                      [class.selected]="defaultAssigneeId() === user.id"
+                      (click)="selectUser(user.id)"
+                    >
+                      @if (getUserAvatar(user); as avatar) {
+                        <img [src]="avatar" [alt]="user.username" class="user-avatar-sm" />
+                      } @else {
+                        <div class="user-avatar-fallback">{{ user.username.slice(0, 1).toUpperCase() }}</div>
+                      }
+                      <div class="user-text-meta">
+                        <div class="user-name-row">
+                          <span class="user-name-bold">{{ user.username }}</span>
+                          <span class="user-role-tag">{{ user.role }}</span>
+                        </div>
+                        <span class="user-designation-sub">
+                          {{ getUserDesignation(user) }}@if (user.email) { • {{ user.email }}}
+                        </span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="error-banner" role="alert">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- Form Actions -->
+  <div class="form-actions-footer">
+    @if (showBack() || showCancel()) {
+      <button
+        type="button"
+        class="btn-form-secondary"
+        [disabled]="isPreviewMode()"
+        (click)="!isPreviewMode() && cancelled.emit()"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        <span>Cancel</span>
+      </button>
+    }
+    <button
+      type="submit"
+      class="btn-form-submit"
+      [disabled]="isPreviewMode()"
+      [title]="isPreviewMode() ? 'Project creation is disabled in Custom Fields Studio' : ''"
+    >
+      <span>{{ submitLabel() }}</span>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </button>
+  </div>
+</form>

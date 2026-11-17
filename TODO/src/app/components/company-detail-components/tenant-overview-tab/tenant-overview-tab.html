@@ -1,0 +1,50 @@
+<section class="card detail-card">
+  <div class="card-head">
+    <div class="head-title">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="2" width="20" height="8" rx="2"/>
+        <rect x="2" y="14" width="20" height="8" rx="2"/>
+        <line x1="6" y1="6" x2="6.01" y2="6"/>
+        <line x1="6" y1="18" x2="6.01" y2="18"/>
+      </svg>
+      <h3>Tenant System Metrics</h3>
+    </div>
+    <p>Tenant architecture properties and system usage metrics for {{ company.name }}.</p>
+  </div>
+
+  <div class="card-body">
+    <div class="stat-overview-grid">
+      <app-stat-card
+        label="Total System Users"
+        [value]="company.totalUsers"
+        badgeText="Active Workspace"
+        variant="teal"
+        iconType="users"
+      ></app-stat-card>
+
+      <app-stat-card
+        label="Total Company Admins"
+        [value]="company.totalAdmins || company.admins.length || 0"
+        badgeText="Admin Accounts"
+        variant="indigo"
+        iconType="admins"
+      ></app-stat-card>
+
+      <app-stat-card
+        label="Tenant Access Status"
+        [value]="company.status | uppercase"
+        badgeText="Isolation Level"
+        variant="emerald"
+        iconType="active"
+      ></app-stat-card>
+
+      <app-stat-card
+        label="Multi-Tenant ID"
+        [value]="'#' + company.id"
+        [badgeText]="'Created ' + (company.createdAt | date:'mediumDate')"
+        variant="purple"
+        iconType="company"
+      ></app-stat-card>
+    </div>
+  </div>
+</section>

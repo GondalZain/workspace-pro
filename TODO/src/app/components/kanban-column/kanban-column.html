@@ -1,0 +1,52 @@
+<div
+  class="kb-column"
+  [class.kb-column--pending]="status() === 'pending'"
+  [class.kb-column--in-progress]="status() === 'in-progress'"
+  [class.kb-column--completed]="status() === 'completed'"
+  [class.kb-column--drop-target]="isDropTarget()"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)"
+>
+  <div class="kb-column__head">
+    <div class="kb-column__head-left">
+      <span class="kb-column__dot" [style.backgroundColor]="color()" aria-hidden="true"></span>
+      <h3 class="kb-column__title">{{ title() }}</h3>
+      <span class="kb-column__count" [attr.aria-label]="tasks().length + ' tasks'">{{ tasks().length }}</span>
+    </div>
+    <button
+      type="button"
+      class="kb-column__add"
+      (click)="quickAddClicked.emit(status())"
+      title="Add task"
+      aria-label="Add task to {{ title() }}"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="kb-column__body">
+    @for (task of tasks(); track task.id) {
+      <app-kanban-card
+        [task]="task"
+        [currentUserId]="currentUserId()"
+        [currentUsername]="currentUsername()"
+        [isAdmin]="isAdmin()"
+        (taskSelected)="taskSelected.emit($event)"
+        (taskEdited)="taskEdited.emit($event)"
+        (taskDeleted)="taskDeleted.emit($event)"
+      />
+    } @empty {
+      <p class="kb-column__empty" [class.kb-column__empty--active]="isDropTarget()">
+        @if (isDropTarget()) {
+          Release to set status
+        } @else {
+          Drop a task here or use + to add
+        }
+      </p>
+    }
+  </div>
+</div>

@@ -1,0 +1,106 @@
+<div class="sa-settings-container">
+  <header class="settings-header">
+    <div class="header-title-group">
+      <span class="section-tag">System Settings</span>
+      <h1>Super Admin Profile & Platform Configuration</h1>
+      <p class="subtitle">Manage your credentials, avatar, system parameters, and tenant isolation policies.</p>
+    </div>
+  </header>
+
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <div class="settings-grid">
+    <!-- Super Admin Profile Settings Card -->
+    <section class="card settings-card">
+      <div class="card-header">
+        <div class="card-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+        <div>
+          <h3>Super Admin Account Profile</h3>
+          <p class="card-sub">Update profile picture, username, email, and password</p>
+        </div>
+      </div>
+
+      <form (ngSubmit)="saveProfile()" class="card-body">
+        <!-- Profile Picture Upload Block -->
+        <div class="form-group avatar-upload-group">
+          <label class="form-label">Profile Image / Avatar</label>
+          <div class="avatar-picker-row">
+            @if (currentAvatarUrl(); as avatar) {
+              <img [src]="avatar" alt="Avatar preview" class="picker-avatar-img" />
+            } @else {
+              <div class="picker-avatar-fallback">{{ username().charAt(0).toUpperCase() || 'S' }}</div>
+            }
+
+            <div class="avatar-controls">
+              <label class="btn-upload-file">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <span>Upload New Photo</span>
+                <input type="file" (change)="onFileSelected($event)" accept="image/*" class="file-input-hidden" />
+              </label>
+
+              @if (currentAvatarUrl()) {
+                <button type="button" class="btn-remove-photo" (click)="removeProfileImage()">Remove Photo</button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Username <span class="req">*</span></label>
+          <input type="text" [ngModel]="username()" (ngModelChange)="username.set($event)" name="username" class="form-input" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Address <span class="req">*</span></label>
+          <input type="email" [ngModel]="email()" (ngModelChange)="email.set($event)" name="email" class="form-input" required />
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="form-group">
+          <label class="form-label">New Password (leave blank to keep current)</label>
+          <input type="password" [ngModel]="newPassword()" (ngModelChange)="newPassword.set($event)" name="newPassword" placeholder="Minimum 8 characters" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Confirm New Password</label>
+          <input type="password" [ngModel]="confirmPassword()" (ngModelChange)="confirmPassword.set($event)" name="confirmPassword" placeholder="Repeat new password" class="form-input" />
+        </div>
+
+        <div class="card-footer">
+          <button type="submit" class="btn-save-primary" [disabled]="isSaving()">
+            {{ isSaving() ? 'Saving Profile...' : 'Save Profile Changes' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+</div>

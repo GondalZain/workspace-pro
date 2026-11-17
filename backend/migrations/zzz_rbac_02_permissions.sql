@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS permissions (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL,
+  description VARCHAR(255) NOT NULL DEFAULT '',
+  PRIMARY KEY (id),
+  UNIQUE KEY unique_permissions_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

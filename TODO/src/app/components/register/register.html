@@ -1,0 +1,326 @@
+<main class="signup-page">
+  <div class="signup-container">
+    <!-- ========================================================= -->
+    <!-- LEFT PANEL: Marketing Content & Value Proposition         -->
+    <!-- ========================================================= -->
+    <aside class="marketing-panel" aria-label="Product Benefits">
+      <div class="marketing-backdrop"></div>
+      
+      <!-- Brand Header -->
+      <div class="brand-bar">
+        <div class="brand-logo-mark">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+            <path d="M2 17l10 5 10-5" />
+            <path d="M2 12l10 5 10-5" />
+          </svg>
+        </div>
+        <span class="brand-name">TaskFlow Workspace</span>
+        <span class="badge-enterprise">B2B Platform</span>
+      </div>
+
+      <!-- Main Copy -->
+      <div class="marketing-content">
+        <h1 class="headline">Master Your Team's Workflow.</h1>
+        <p class="sub-headline">
+          Create your company workspace to assign tasks, track progress, and hit every deadline.
+        </p>
+
+        <!-- 3 Core Benefit Bullet Points -->
+        <ul class="benefits-list" role="list">
+          <!-- Benefit 1: Calendar / Deadlines -->
+          <li class="benefit-item">
+            <div class="benefit-icon-wrapper" aria-hidden="true">
+              <svg class="benefit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+                <path d="m9 16 2 2 4-4" />
+              </svg>
+            </div>
+            <div class="benefit-text">
+              <h3 class="benefit-title">Precision Deadlines</h3>
+              <p class="benefit-desc">
+                Organize sprint milestones, automate reminders, and ensure zero missed delivery dates across your entire team.
+              </p>
+            </div>
+          </li>
+
+          <!-- Benefit 2: Target / Goals -->
+          <li class="benefit-item">
+            <div class="benefit-icon-wrapper" aria-hidden="true">
+              <svg class="benefit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <circle cx="12" cy="12" r="6" />
+                <circle cx="12" cy="12" r="2" />
+              </svg>
+            </div>
+            <div class="benefit-text">
+              <h3 class="benefit-title">Strategic Goal Alignment</h3>
+              <p class="benefit-desc">
+                Cascade company objectives into actionable Kanban cards and track real-time project throughput effortlessly.
+              </p>
+            </div>
+          </li>
+
+          <!-- Benefit 3: Speech Bubble / Collaboration -->
+          <li class="benefit-item">
+            <div class="benefit-icon-wrapper" aria-hidden="true">
+              <svg class="benefit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                <line x1="8" y1="9" x2="16" y2="9" />
+                <line x1="8" y1="13" x2="14" y2="13" />
+              </svg>
+            </div>
+            <div class="benefit-text">
+              <h3 class="benefit-title">Centralized Team Collaboration</h3>
+              <p class="benefit-desc">
+                Eliminate status-update chaos with focused contextual discussions, role permissions, and instant activity logs.
+              </p>
+            </div>
+          </li>
+        </ul>
+
+        <!-- Trust Metric / Social Proof -->
+        <div class="social-proof-bar">
+          <div class="avatar-stack" aria-hidden="true">
+            <span class="avatar-chip">EB</span>
+            <span class="avatar-chip">SM</span>
+            <span class="avatar-chip">AR</span>
+            <span class="avatar-chip">+</span>
+          </div>
+          <div class="proof-copy">
+            <strong>2,400+ companies</strong> optimize their daily operations on TaskFlow
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ========================================================= -->
+    <!-- RIGHT PANEL: Registration Card Form                       -->
+    <!-- ========================================================= -->
+    <section class="form-panel" aria-labelledby="form-heading">
+      <div class="form-card">
+        <!-- Card Header -->
+        <header class="card-header">
+          <h2 id="form-heading" class="card-title">Register Your Workspace</h2>
+          <p class="card-subtitle">
+            Deploy your dedicated company portal and invite your teammates.
+          </p>
+        </header>
+
+        <!-- Top Error Banner -->
+        @if (errorMessage()) {
+          <div class="alert-banner error-banner" role="alert">
+            <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <!-- Success Feedback Banner -->
+        @if (registrationSuccess()) {
+          <div class="alert-banner success-banner" role="status">
+            <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            <span>Workspace initialized! Redirecting to your dashboard...</span>
+          </div>
+        }
+
+        <!-- Registration Reactive Form -->
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate class="signup-form">
+          <!-- 1. Company Name Field -->
+          <div class="form-field-group">
+            <label for="companyName" class="field-label">Company Name</label>
+            <div class="input-wrapper" [class.has-error]="isFieldInvalid('companyName')">
+              <span class="field-icon-prefix" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 21h18" />
+                  <path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16" />
+                  <path d="M9 7h1" />
+                  <path d="M9 11h1" />
+                  <path d="M9 15h1" />
+                  <path d="M14 7h1" />
+                  <path d="M14 11h1" />
+                  <path d="M14 15h1" />
+                </svg>
+              </span>
+              <input
+                id="companyName"
+                type="text"
+                formControlName="companyName"
+                placeholder="Acme Technologies, Inc."
+                autocomplete="organization"
+                [class.invalid-input]="isFieldInvalid('companyName')"
+              />
+            </div>
+            @if (isFieldInvalid('companyName')) {
+              <span class="inline-error" role="alert">
+                {{ getFieldError('companyName') }}
+              </span>
+            }
+          </div>
+
+          <!-- 2. Work Email Field -->
+          <div class="form-field-group">
+            <label for="workEmail" class="field-label">Work Email</label>
+            <div class="input-wrapper" [class.has-error]="isFieldInvalid('workEmail')">
+              <span class="field-icon-prefix" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                </svg>
+              </span>
+              <input
+                id="workEmail"
+                type="email"
+                formControlName="workEmail"
+                placeholder="alex@company.com"
+                autocomplete="email"
+                [class.invalid-input]="isFieldInvalid('workEmail')"
+              />
+            </div>
+            @if (isFieldInvalid('workEmail')) {
+              <span class="inline-error" role="alert">
+                {{ getFieldError('workEmail') }}
+              </span>
+            }
+          </div>
+
+          <!-- 3. Full Name Field -->
+          <div class="form-field-group">
+            <label for="fullName" class="field-label">Full Name</label>
+            <div class="input-wrapper" [class.has-error]="isFieldInvalid('fullName')">
+              <span class="field-icon-prefix" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </span>
+              <input
+                id="fullName"
+                type="text"
+                formControlName="fullName"
+                placeholder="Alex Morgan"
+                autocomplete="name"
+                [class.invalid-input]="isFieldInvalid('fullName')"
+              />
+            </div>
+            @if (isFieldInvalid('fullName')) {
+              <span class="inline-error" role="alert">
+                {{ getFieldError('fullName') }}
+              </span>
+            }
+          </div>
+
+          <!-- 4. Password Field with Strength Indicator -->
+          <div class="form-field-group">
+            <div class="label-row">
+              <label for="password" class="field-label">Password</label>
+              <span class="strength-tag" [style.color]="passwordStrength().color">
+                {{ passwordStrength().percent > 0 ? passwordStrength().label : 'Min. 8 characters' }}
+              </span>
+            </div>
+            <div class="input-wrapper" [class.has-error]="isFieldInvalid('password')">
+              <span class="field-icon-prefix" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              </span>
+              <input
+                id="password"
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="password"
+                placeholder="••••••••••••"
+                autocomplete="new-password"
+                [class.invalid-input]="isFieldInvalid('password')"
+              />
+              <button
+                type="button"
+                class="password-toggle-btn"
+                (click)="togglePasswordVisibility()"
+                [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+              >
+                @if (showPassword()) {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                }
+              </button>
+            </div>
+
+            <!-- Visual Password Strength Meter -->
+            <div class="strength-meter-bar" aria-hidden="true">
+              <div
+                class="strength-segment"
+                [class.active]="passwordStrength().score >= 1"
+                [style.background-color]="passwordStrength().score >= 1 ? passwordStrength().color : ''"
+              ></div>
+              <div
+                class="strength-segment"
+                [class.active]="passwordStrength().score >= 2"
+                [style.background-color]="passwordStrength().score >= 2 ? passwordStrength().color : ''"
+              ></div>
+              <div
+                class="strength-segment"
+                [class.active]="passwordStrength().score >= 3"
+                [style.background-color]="passwordStrength().score >= 3 ? passwordStrength().color : ''"
+              ></div>
+              <div
+                class="strength-segment"
+                [class.active]="passwordStrength().score >= 4"
+                [style.background-color]="passwordStrength().score >= 4 ? passwordStrength().color : ''"
+              ></div>
+            </div>
+
+            @if (isFieldInvalid('password')) {
+              <span class="inline-error" role="alert">
+                {{ getFieldError('password') }}
+              </span>
+            }
+          </div>
+
+          <!-- Primary CTA Button (Full Width) -->
+          <button
+            type="submit"
+            class="submit-cta-btn"
+            [disabled]="isSubmitting() || registrationSuccess()"
+          >
+            @if (isSubmitting()) {
+              <span class="spinner" aria-hidden="true"></span>
+              <span>Provisioning Workspace...</span>
+            } @else {
+              <span>Create Company Workspace</span>
+              <svg class="cta-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            }
+          </button>
+
+          <!-- Microcopy Guarantee -->
+          <div class="microcopy-wrapper">
+            <svg class="shield-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <path d="m9 12 2 2 4-4" />
+            </svg>
+            <span class="microcopy-text">Free 14-day trial. No credit card required.</span>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+</main>

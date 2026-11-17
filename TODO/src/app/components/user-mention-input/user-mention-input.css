@@ -1,0 +1,161 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.user-mention-container {
+  position: relative;
+  width: 100%;
+}
+
+.note-editor {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 5.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+  color: #0f172a;
+  background: #ffffff;
+  font-family: inherit;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  border: 1px solid var(--border-base, #cbd5e1);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  outline: none;
+  transition: all 0.15s ease;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.note-editor:empty:before {
+  content: attr(data-placeholder);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.user-mention-container.has-active-mention .note-editor {
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18) !important;
+}
+
+/* WhatsApp Style Mention Tag inside Editor Input Box */
+:host ::ng-deep .whatsapp-mention {
+  color: #0284c7 !important;
+  font-weight: 700 !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  font-style: normal !important;
+}
+
+/* @Mention Autocomplete Dropdown */
+.mention-dropdown {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid var(--border-base, #cbd5e1);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+  max-height: 230px;
+  overflow-y: auto;
+  z-index: 9999;
+  padding: 6px;
+}
+
+.mention-header {
+  padding: 6px 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.query-badge {
+  font-size: 0.68rem;
+  background: #f1f5f9;
+  color: #0f766e;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: none;
+}
+
+.mention-empty {
+  padding: 12px;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  text-align: center;
+  font-style: italic;
+}
+
+.mention-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mention-item:hover,
+.mention-item.selected {
+  background-color: #f0fdf4;
+  border-left: 3px solid #0f766e;
+}
+
+.mention-avatar-sm {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #0f766e;
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.mention-avatar-sm img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mention-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mention-username {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.mention-email {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.mention-role-badge {
+  margin-left: auto;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #e0f2fe;
+  color: #0369a1;
+  text-transform: capitalize;
+}

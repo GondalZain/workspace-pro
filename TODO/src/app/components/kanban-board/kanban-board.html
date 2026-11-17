@@ -1,0 +1,20 @@
+<div class="kb-board" role="region" aria-label="Task board by status">
+  @for (col of boardColumns(); track col.id) {
+    <app-kanban-column
+      class="kb-board__column-wrapper"
+      [title]="col.title"
+      [status]="col.title"
+      [color]="col.color"
+      [tasks]="col.tasks"
+      [currentUserId]="currentUserId()"
+      [currentUsername]="currentUsername()"
+      [isAdmin]="isAdmin()"
+      (taskSelected)="taskSelected.emit($event)"
+      (taskEdited)="taskEdited.emit($event)"
+      (taskDeleted)="taskDeleted.emit($event)"
+      (quickAddClicked)="quickAddClicked.emit($event)"
+      (taskDropped)="onTaskDropped($event)"
+    />
+  }
+</div>
+

@@ -1,0 +1,28 @@
+@if (shouldShowShell()) {
+  <app-workspace-shell>
+    <ng-container *ngTemplateOutlet="layoutContent" />
+  </app-workspace-shell>
+} @else {
+  <ng-container *ngTemplateOutlet="layoutContent" />
+}
+
+<ng-template #layoutContent>
+  <section [class]="contentClass()" [id]="sectionId()" [style.padding-top]="shouldShowShell() ? null : '1rem'">
+    @if (showHero()) {
+      <div class="workspace-header">
+        <app-workspace-hero
+          [badge]="heroBadge()"
+          [badgeMeta]="heroBadgeMeta()"
+          [title]="heroTitle()"
+          [subtitle]="heroSubtitle()"
+          [compact]="heroCompact()"
+        >
+          <ng-content select="[heroTitle]" />
+          <ng-content select="[heroActions]" />
+        </app-workspace-hero>
+      </div>
+    }
+
+    <ng-content />
+  </section>
+</ng-template>

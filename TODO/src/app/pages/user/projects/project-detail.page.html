@@ -1,0 +1,30 @@
+<app-workspace-user-layout
+  sectionId="project-detail-page"
+  heroBadge="Project"
+  [heroTitle]="project()?.title ?? 'Project overview'"
+  heroSubtitle="Overview and tasks for this project."
+  [heroCompact]="true"
+>
+  <app-project-page-chrome [currentLabel]="project()?.title ?? 'Overview'">
+    @if (project()) {
+      <button type="button" class="btn-secondary" (click)="goBack()">All projects</button>
+      <button type="button" class="btn-primary" (click)="editProject(project()!.id)">Edit project</button>
+    } @else {
+      <button type="button" class="btn-secondary" (click)="goBack()">All projects</button>
+    }
+  </app-project-page-chrome>
+
+  <app-project-detail-view
+    [project]="project()"
+    [tasks]="projectTasks()"
+    [currentUserId]="currentUser()?.id"
+    [currentUsername]="currentUser()?.username"
+    [isAdmin]="isAdmin()"
+    (newTask)="newTask()"
+    (taskSelected)="openTaskDetail($event)"
+    (taskToggled)="toggleTask($event)"
+    (taskStatusChanged)="onStatusChanged($event)"
+    (taskDeleted)="deleteTask($event)"
+    (taskEdited)="editTask($event)"
+  />
+</app-workspace-user-layout>

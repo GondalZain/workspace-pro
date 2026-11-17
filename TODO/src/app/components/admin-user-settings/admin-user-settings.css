@@ -1,0 +1,100 @@
+:host {
+  display: block;
+}
+
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 640px;
+}
+
+.field-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+input,
+select {
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  padding: 8px 10px;
+  font-size: 13px;
+  outline: none;
+  background: #ffffff;
+}
+
+input:focus,
+select:focus {
+  border-color: #0f766e;
+}
+
+.hint {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+  width: 100%;
+}
+
+.modal-permissions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.modal-permissions span:not(.hint) {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 11px;
+  font-family: monospace;
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.save-button {
+  padding: 7px 16px;
+  background: #0f766e;
+  border: none;
+  border-radius: 5px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.save-button:hover {
+  background: #115e59;
+}
+
+.text-button {
+  padding: 7px 14px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  color: #374151;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.text-button:hover {
+  background: #f8fafc;
+}

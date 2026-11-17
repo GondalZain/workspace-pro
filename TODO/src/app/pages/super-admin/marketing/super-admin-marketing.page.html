@@ -1,0 +1,296 @@
+<div class="marketing-page-shell">
+  <!-- Minimal Clean Header -->
+  <header class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">Send Marketing Invitation</h1>
+      <p class="page-subtitle">
+        Enter an email to send an invite. When the user replies with their company details, the workspace is automatically registered.
+      </p>
+    </div>
+
+    <div class="header-right">
+      <div class="webhook-status-pill">
+        <span class="pulse-indicator"></span>
+        <span class="status-label">Webhook Active</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Clean 2-Column Grid -->
+  <div class="marketing-workspace-grid">
+    <!-- Left Column: Simple Clean Form -->
+    <div class="panel-card compose-panel">
+      <div class="panel-header">
+        <h2 class="panel-title">Send Email</h2>
+      </div>
+
+      <div class="panel-body">
+        @if (successMessage()) {
+          <div class="status-banner success" role="alert">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <span>{{ successMessage() }}</span>
+          </div>
+        }
+
+        @if (errorMessage()) {
+          <div class="status-banner error" role="alert">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <form (ngSubmit)="sendInvitation()" class="compose-form">
+          <div class="form-field">
+            <label for="recipientEmail" class="field-label">
+              Recipient Email <span class="required-star">*</span>
+            </label>
+            <div class="input-wrapper">
+              <svg class="field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              <input
+                id="recipientEmail"
+                type="email"
+                name="recipientEmail"
+                [(ngModel)]="recipientEmail"
+                placeholder="name@company.com"
+                required
+                class="modern-input"
+              />
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="customMessage" class="field-label">
+              Note (Optional)
+            </label>
+            <textarea
+              id="customMessage"
+              name="customMessage"
+              [(ngModel)]="customMessage"
+              rows="3"
+              placeholder="Add an optional custom note or leave blank for default invite..."
+              class="modern-textarea"
+            ></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" [disabled]="isSubmitting() || !recipientEmail" class="btn-dispatch">
+              @if (isSubmitting()) {
+                <span class="spinner"></span>
+                <span>Sending...</span>
+              } @else {
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <line x1="22" y1="2" x2="11" y2="13"/>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+                <span>Send Invitation</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Column: Simple Clean Preview -->
+    <div class="panel-card preview-panel">
+      <div class="panel-header">
+        <h3 class="panel-title">What the User Receives</h3>
+      </div>
+
+      <div class="panel-body">
+        <div class="preview-box">
+          <div class="preview-header">
+            <span class="preview-tag">Instructions in user's email</span>
+          </div>
+
+          <div class="preview-code-card">
+            <div class="preview-code-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+              <span>Instant Setup: Just reply to this email</span>
+            </div>
+            <div class="code-lines">
+              <div><strong class="code-label">Company:</strong> [Company Name]</div>
+              <div><strong class="code-label">Name:</strong> [Full Name]</div>
+              <div><strong class="code-label">Plan:</strong> Trial</div>
+            </div>
+          </div>
+
+          <!-- 3 Clean Simple Steps -->
+          <div class="steps-flow">
+            <div class="step-item">
+              <span class="step-num">1</span>
+              <div class="step-text">
+                <strong>User replies</strong> with their company name.
+              </div>
+            </div>
+            <div class="step-item">
+              <span class="step-num">2</span>
+              <div class="step-text">
+                <strong>System registers</strong> workspace automatically.
+              </div>
+            </div>
+            <div class="step-item">
+              <span class="step-num">3</span>
+              <div class="step-text">
+                <strong>Workspace appears</strong> in Approvals ready to activate.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Row: Sent Invitations History Table -->
+  <div class="panel-card invitations-history-panel">
+    <div class="panel-header table-panel-header">
+      <div class="panel-title-group">
+        <h2 class="panel-title">Sent Invitations</h2>
+        <span class="count-pill">{{ invitations().length }} total</span>
+      </div>
+
+      <button type="button" (click)="fetchInvitations()" class="btn-refresh" title="Refresh">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M23 4v6h-6M1 20v-6h6"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+        <span>Refresh</span>
+      </button>
+    </div>
+
+    <div class="table-responsive">
+      @if (isLoadingList()) {
+        <div class="table-loading-state">
+          <span class="spinner dark"></span>
+          <span>Loading invitations...</span>
+        </div>
+      } @else if (invitations().length === 0) {
+        <div class="table-empty-state">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          <p>No invitations sent yet.</p>
+        </div>
+      } @else {
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th>RECIPIENT EMAIL</th>
+              <th>SENT AT</th>
+              <th>STATUS</th>
+              <th>REGISTERED WORKSPACE</th>
+              <th>USER REPLY</th>
+              <th>REPLIED AT</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (invite of invitations(); track invite.id) {
+              <tr>
+                <td class="email-cell">
+                  <span class="user-avatar-mini">{{ invite.recipientEmail.charAt(0).toUpperCase() }}</span>
+                  <span class="email-text">{{ invite.recipientEmail }}</span>
+                </td>
+                <td class="timestamp-cell">
+                  <span>{{ formatDate(invite.sentAt) }}</span>
+                </td>
+                <td>
+                  @if (invite.status === 'registered') {
+                    <span class="status-tag registered">Registered</span>
+                  } @else if (invite.status === 'sent') {
+                    <span class="status-tag sent">Awaiting Reply</span>
+                  } @else {
+                    <span class="status-tag failed">Failed</span>
+                  }
+                </td>
+                <td class="workspace-cell">
+                  @if (invite.registeredCompanyName) {
+                    <a [routerLink]="routes.superAdminApprovals" class="company-link" title="Review in Approvals">
+                      <strong>{{ invite.registeredCompanyName }}</strong>
+                      <span class="link-badge">Review &rarr;</span>
+                    </a>
+                  } @else {
+                    <span class="empty-dash">—</span>
+                  }
+                </td>
+                <td class="reply-content-cell">
+                  @if (invite.replyContent) {
+                    <button type="button" class="btn-view-reply" (click)="openReplyModal(invite)" title="View full reply">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                      </svg>
+                      <span class="reply-snippet-text">{{ invite.replyContent }}</span>
+                    </button>
+                  } @else {
+                    <span class="empty-dash">—</span>
+                  }
+                </td>
+                <td class="timestamp-cell">
+                  @if (invite.repliedAt) {
+                    <span>{{ formatDate(invite.repliedAt) }}</span>
+                  } @else {
+                    <span class="empty-dash">—</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  </div>
+
+  <!-- Modal: View User Reply Message -->
+  @if (activeReplyModal(); as modalInvite) {
+    <div class="modal-backdrop" (click)="closeReplyModal()">
+      <div class="modal-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-header-info">
+            <h3 class="modal-title">Reply from {{ modalInvite.recipientEmail }}</h3>
+            <span class="modal-time">{{ formatDate(modalInvite.repliedAt) }}</span>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="closeReplyModal()" aria-label="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          @if (modalInvite.registeredCompanyName) {
+            <div class="modal-provisioned-card">
+              <div class="provisioned-info">
+                <strong>Workspace Created: {{ modalInvite.registeredCompanyName }}</strong>
+                <p>Status: Pending Approval</p>
+              </div>
+              <a [routerLink]="routes.superAdminApprovals" (click)="closeReplyModal()" class="btn-modal-action">
+                Review in Approvals &rarr;
+              </a>
+            </div>
+          }
+
+          <div class="reply-raw-container">
+            <div class="raw-label">USER REPLY CONTENT:</div>
+            <pre class="raw-reply-text">{{ modalInvite.replyContent }}</pre>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="closeReplyModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

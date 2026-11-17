@@ -1,0 +1,45 @@
+<div class="stat-card" [ngClass]="'variant-' + variant">
+  <div class="stat-icon-box">
+    @switch (iconType) {
+      @case ('company') {
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 21h18M3 7v14M21 7v14M6 7V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v3M9 11h2M9 15h2M13 11h2M13 15h2" />
+        </svg>
+      }
+      @case ('active') {
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+      }
+      @case ('admins') {
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="8.5" cy="7" r="4" />
+          <polyline points="17 11 19 13 23 9" />
+        </svg>
+      }
+      @case ('users') {
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      }
+      @default {
+        <ng-content select="[slot=icon]"></ng-content>
+      }
+    }
+  </div>
+
+  <div class="stat-content-body">
+    <div class="stat-header-line">
+      <span class="stat-title-label">{{ label }}</span>
+      @if (badgeText) {
+        <span class="stat-badge-chip">{{ badgeText }}</span>
+      }
+    </div>
+    <div class="stat-value-display">{{ value }}</div>
+  </div>
+</div>

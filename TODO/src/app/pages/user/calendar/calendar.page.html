@@ -1,0 +1,25 @@
+<app-workspace-user-layout
+  sectionId="calendar-page"
+  heroBadge="Workspace"
+  heroBadgeMeta="Calendar"
+  heroTitle="Calendar schedule"
+  heroSubtitle="Month view on the left, tasks due on the selected day on the right."
+>
+  <div heroActions class="calendar-page__hero-actions">
+    <a [routerLink]="url.dashboardTasks" class="btn-workspace" title="Open task list">Task list</a>
+    @if (canCreateTasks()) {
+      <a [routerLink]="url.taskNew" class="btn-create-task" title="New task">New task</a>
+    }
+  </div>
+
+  <app-calendar-view
+    [tasks]="tasks()"
+    [currentUser]="currentUser()"
+    [isAdmin]="isAdmin()"
+    (taskToggled)="toggleTask($event)"
+    (taskStatusChanged)="onStatusChanged($event)"
+    (taskDeleted)="deleteTask($event)"
+    (taskEdited)="editTask($event)"
+    (taskSelected)="openTaskDetail($event)"
+  />
+</app-workspace-user-layout>
