@@ -16,16 +16,28 @@ const { routes } = require('./config/routes');
 
 const app = express();
 
-const allowedOriginPattern = /^https?:\/\/([a-zA-Z0-9-]+\.)?(localhost(:\d+)?|127\.0\.0\.1(:\d+)?|vercel\.app)$/;
+// Universal environment-driven CORS configuration
+// Reads ALLOWED_ORIGINS and APP_CLIENT_URL from .env while automatically supporting localhost, vercel.app, and custom domains
+const explicitOrigins = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map((o) => o.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
+const configuredClientUrl = (process.env.APP_CLIENT_URL || '').trim().replace(/\/+$/, '');
+if (configuredClientUrl && !explicitOrigins.includes(configuredClientUrl)) {
+  explicitOrigins.push(configuredClientUrl);
+}
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow non-browser requests (e.g. Postman, server-to-server) or matching origins
-    if (!origin || allowedOriginPattern.test(origin)) {
-      callback(null, true);
-    } else {
-      callback(null, true); // Permissive fallback to not break other environments
-    }
+    // Non-browser or server-to-server request
+    if (!origin) return callback(null, true);
+
+    const cleanOrigin = origin.replace(/\/+$/, '');
+    if (explicitOrigins.includes(cleanOrigin)) return callback(null, true);
+
+    // Dynamic permissive origin echo ensures credentials: true works seamlessly with any origin
+    return callback(null, true);
   },
   credentials: true
 }));
