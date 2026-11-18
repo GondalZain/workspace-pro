@@ -1150,6 +1150,25 @@ label {
   margin-top: 0.2rem;
 }
 
+.btn-spinner {
+  display: inline-block;
+  width: 0.95rem;
+  height: 0.95rem;
+  margin-right: 0.5rem;
+  vertical-align: -0.15em;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: task-btn-spin 0.65s linear infinite;
+}
+
+@keyframes task-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
 
 
 .btn-primary-block:disabled,
@@ -1302,5 +1321,24 @@ label {
   font-weight: 500;
   margin-top: 0.2rem;
 }
+
+.btn-spinner {
+  display: inline-block;
+  width: 0.95rem;
+  height: 0.95rem;
+  margin-right: 0.5rem;
+  vertical-align: -0.15em;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: task-btn-spin 0.65s linear infinite;
+}
+
+@keyframes task-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 
 

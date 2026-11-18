@@ -141,7 +141,7 @@ export class TaskStoreService {
 
 
 
-  add(task: NewTask | string, onCreated?: (createdTask: Task) => void): void {
+  add(task: NewTask | string, onCreated?: (createdTask: Task) => void, onError?: (error: any) => void): void {
     const newTask = typeof task === 'string' ? this.createTask(task) : task;
     this.api.create(newTask).subscribe({
       next: (createdTask) => {
@@ -149,11 +149,14 @@ export class TaskStoreService {
         this.notificationService.refresh(true);
         onCreated?.(createdTask);
       },
-      error: (error) => console.error('Could not add task.', error)
+      error: (error) => {
+        console.error('Could not add task.', error);
+        onError?.(error);
+      }
     });
   }
 
-  update(id: number, changes: Partial<Task>): void {
+  update(id: number, changes: Partial<Task>, onUpdated?: (updatedTask: Task) => void, onError?: (error: any) => void): void {
     const current = this.tasks().find((item) => item.id === id);
     
     // Auto sync status, statusId, and completed boolean based on dynamic statuses
@@ -202,10 +205,12 @@ export class TaskStoreService {
           tasks.map((item) => (item.id === id ? updatedTask : item))
         );
         this.notificationService.refresh(true);
+        onUpdated?.(updatedTask);
       },
       error: (error) => {
         console.error('Could not update task.', error);
         this.refresh();
+        onError?.(error);
       }
     });
   }

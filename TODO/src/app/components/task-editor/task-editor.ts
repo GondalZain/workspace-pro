@@ -41,6 +41,7 @@ export class TaskEditorComponent implements OnInit {
   readonly backLabel = input<string>('Back');
   readonly showWayfinding = input(true);
   readonly isPreviewMode = input(false);
+  readonly isSaving = input(false);
   readonly saved = output<NewTask>();
   readonly cancelled = output<void>();
 
@@ -51,6 +52,7 @@ export class TaskEditorComponent implements OnInit {
 
   protected readonly form = createTaskEditorForm(this.fb);
   protected readonly submitAttempted = signal(false);
+  protected readonly isSubmitting = signal(false);
   protected readonly attachments = signal<TaskAttachment[]>([]);
   protected readonly customFields = signal<Record<string, any>>({});
   protected readonly projectOptions = this.projectStore.projects;
@@ -246,15 +248,17 @@ export class TaskEditorComponent implements OnInit {
   }
 
   protected save(): void {
-    if (this.isPreviewMode()) {
+    if (this.isPreviewMode() || this.isSubmitting() || this.isSaving()) {
       return;
     }
+    this.isSubmitting.set(true);
     this.submitAttempted.set(true);
     this.form.markAllAsTouched();
 
     const isCustomValid = this.validateCustomFields();
     const isStandardValid = this.validateTemplateStandardFields();
     if (this.form.invalid || !isCustomValid || !isStandardValid) {
+      this.isSubmitting.set(false);
       console.warn('Task validation check failed:', {
         formInvalid: this.form.invalid,
         controls: Object.keys(this.form.controls)

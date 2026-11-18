@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { WorkspaceUserLayoutComponent } from '../../../components/workspace-user-layout/workspace-user-layout';
@@ -22,6 +22,7 @@ export class TaskEditPage {
   private readonly projectStore = inject(ProjectStoreService);
 
   protected readonly url = ROUTE_URL;
+  protected readonly isSaving = signal(false);
   protected readonly isNewTask = computed(() =>
     this.router.url.split('?')[0].includes('/tasks/new')
   );
@@ -102,8 +103,20 @@ export class TaskEditPage {
   }
 
   protected onSaved(taskData: NewTask): void {
+    if (this.isSaving()) return;
+    this.isSaving.set(true);
+
     if (this.isNewTask()) {
-      this.taskStore.add(taskData, () => this.navigateBackToOrigin());
+      this.taskStore.add(
+        taskData,
+        () => {
+          this.isSaving.set(false);
+          this.navigateBackToOrigin();
+        },
+        () => {
+          this.isSaving.set(false);
+        }
+      );
       return;
     }
 
@@ -111,12 +124,30 @@ export class TaskEditPage {
     const targetId = current?.id ?? this.taskStore.activeTaskId();
 
     if (targetId) {
-      this.taskStore.update(targetId, taskData);
-      this.navigateBackToOrigin();
+      this.taskStore.update(
+        targetId,
+        taskData,
+        () => {
+          this.isSaving.set(false);
+          this.navigateBackToOrigin();
+        },
+        () => {
+          this.isSaving.set(false);
+        }
+      );
       return;
     }
 
-    this.taskStore.add(taskData, () => this.navigateBackToOrigin());
+    this.taskStore.add(
+      taskData,
+      () => {
+        this.isSaving.set(false);
+        this.navigateBackToOrigin();
+      },
+      () => {
+        this.isSaving.set(false);
+      }
+    );
   }
 
   protected onCancelled(): void {

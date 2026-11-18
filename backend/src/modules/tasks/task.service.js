@@ -195,6 +195,28 @@ async function createTask(userId, input, companyId = null) {
   }
 
   validate(input);
+
+  // Prevent accidental rapid duplicate task creation within 3 seconds
+  if (input.title && userId) {
+    try {
+      const [[recentDuplicate]] = await pool.query(
+        `SELECT id FROM tasks 
+         WHERE user_id = ? 
+           AND title = ? 
+           AND (project_id = ? OR (project_id IS NULL AND ? IS NULL))
+           AND created_at >= NOW() - INTERVAL 3 SECOND 
+         ORDER BY id DESC LIMIT 1`,
+        [Number(userId), String(input.title).trim(), input.projectId ? Number(input.projectId) : null, input.projectId ? Number(input.projectId) : null]
+      );
+      if (recentDuplicate?.id) {
+        console.warn(`[Tasks] Rapid duplicate creation prevented for user ${userId}: existing task #${recentDuplicate.id}`);
+        return await taskRepository.findById(userId, recentDuplicate.id, true, companyId, true);
+      }
+    } catch (dupErr) {
+      console.warn('[Tasks] Rapid duplicate check warning:', dupErr.message);
+    }
+  }
+
   const createdTask = await taskRepository.create(userId, input, companyId);
 
   // 1. Notify all assigned users (including if self-assigned)

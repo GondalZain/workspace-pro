@@ -368,11 +368,16 @@
 
       <!-- Save Actions -->
       <div class="card actions-card">
-        <button type="submit" class="btn-primary-block" [disabled]="isPreviewMode()">
-          {{ task() ? 'Save Changes' : 'Create Task' }}
+        <button type="submit" class="btn-primary-block" [disabled]="isPreviewMode() || isSubmitting() || isSaving()">
+          @if (isSubmitting() || isSaving()) {
+            <span class="btn-spinner" aria-hidden="true"></span>
+            <span>{{ task() ? 'Saving Changes...' : 'Creating Task...' }}</span>
+          } @else {
+            <span>{{ task() ? 'Save Changes' : 'Create Task' }}</span>
+          }
         </button>
-        <button type="button" class="btn-secondary-block" [disabled]="isPreviewMode()"
-          (click)="!isPreviewMode() && cancelled.emit()">
+        <button type="button" class="btn-secondary-block" [disabled]="isPreviewMode() || isSubmitting() || isSaving()"
+          (click)="!(isPreviewMode() || isSubmitting() || isSaving()) && cancelled.emit()">
           Cancel
         </button>
       </div>
