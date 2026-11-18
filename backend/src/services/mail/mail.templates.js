@@ -422,6 +422,7 @@ function buildMarketingInvitationTemplate({ recipientEmail, customMessage }) {
  */
 function buildTaskAssignedTemplate({
   recipientEmail,
+  userLoginEmail,
   recipientName,
   taskTitle,
   taskDescription,
@@ -432,12 +433,14 @@ function buildTaskAssignedTemplate({
   dueDate,
   category,
   projectName,
-  taskUrl
+  taskUrl,
+  companyLoginUrl
 }) {
   const displayCompany = formatSafeCompanyName(companyName || 'Workspace Pro');
   const brandColor = companyPrimaryColor && /^#[0-9a-f]{3,8}$/i.test(companyPrimaryColor.trim())
     ? companyPrimaryColor.trim()
     : '#0f766e';
+  const effectiveLoginUrl = companyLoginUrl || taskUrl;
   const subject = `Task Assigned: ${taskTitle} (${displayCompany})`;
 
   // Determine priority badge colors
@@ -520,8 +523,22 @@ function buildTaskAssignedTemplate({
       </a>
     </div>
 
-    <div style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 24px;">
-      Or open link directly: <a href="${taskUrl}" style="color: ${brandColor}; word-break: break-all;">${taskUrl}</a>
+    <!-- Direct Company Portal Login Card -->
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 18px; margin: 20px 0; text-align: center;">
+      <div style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">
+        Direct Company Login Portal
+      </div>
+      <div style="font-size: 13px; color: #64748b; margin-bottom: 12px;">
+        Need to sign in? Access your dedicated <strong>${displayCompany}</strong> login page directly:
+      </div>
+      <div>
+        <a href="${effectiveLoginUrl}" style="display: inline-block; background-color: #ffffff; color: ${brandColor}; border: 1.5px solid ${brandColor}; font-size: 13px; font-weight: 600; text-decoration: none; padding: 8px 20px; border-radius: 6px;">
+          Sign In to ${displayCompany} Portal &rarr;
+        </a>
+      </div>
+      <div style="font-size: 11px; color: #94a3b8; word-break: break-all; margin-top: 10px;">
+        Direct Portal Link: <a href="${effectiveLoginUrl}" style="color: ${brandColor};">${effectiveLoginUrl}</a>
+      </div>
     </div>
 
     <p style="margin: 22px 0 0 0; color: #334155; font-size: 14px;">
@@ -542,6 +559,7 @@ function buildTaskAssignedTemplate({
     cleanDescription ? `\nDescription:\n${cleanDescription}` : '',
     '',
     `Open Task: ${taskUrl || ''}`,
+    `Company Login Portal: ${effectiveLoginUrl}`,
     '',
     `Warm regards,`,
     `${displayCompany} Team`

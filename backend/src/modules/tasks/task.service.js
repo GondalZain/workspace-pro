@@ -88,13 +88,17 @@ async function notifyAssignedUsers({ task, assigneesToNotify, actorUserId, compa
           : (recipientUser.email && recipientUser.email.trim() ? recipientUser.email.trim() : null);
 
         if (targetEmail && targetEmail.includes('@')) {
-          const taskUrl = `${clientBaseUrl}/tasks`;
+          const companyIdentifier = recipientUser.company_domain || recipientUser.company_name || '';
+          const userLoginEmail = recipientUser.email || targetEmail;
+          const companyLoginUrl = `${clientBaseUrl}/login?company=${encodeURIComponent(companyIdentifier)}&email=${encodeURIComponent(userLoginEmail)}&returnUrl=%2Ftasks`;
+          const taskUrl = `${clientBaseUrl}/tasks?company=${encodeURIComponent(companyIdentifier)}`;
           const formattedDueDate = task.dueDate
             ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
             : null;
 
           await mailService.sendTaskAssignedEmail({
             recipientEmail: targetEmail,
+            userLoginEmail,
             recipientName: recipientUser.username || 'Team Member',
             taskTitle: task.title || 'Untitled Task',
             taskDescription: task.description || '',
@@ -105,7 +109,8 @@ async function notifyAssignedUsers({ task, assigneesToNotify, actorUserId, compa
             dueDate: formattedDueDate,
             category: task.category || null,
             projectName,
-            taskUrl
+            taskUrl,
+            companyLoginUrl
           }).catch((err) => console.error('[MailService] Task assignment email dispatch error:', err));
         }
       }

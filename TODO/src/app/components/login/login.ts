@@ -197,7 +197,12 @@ export class LoginComponent implements OnInit {
         this.submitted.set(true);
         this.isLoading.set(false);
 
-        this.router.navigate(this.auth.getHomeRoute(response.user));
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+        if (returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')) {
+          this.router.navigateByUrl(returnUrl);
+        } else {
+          this.router.navigate(this.auth.getHomeRoute(response.user));
+        }
       },
       error: (error) => {
         const msg = error.error?.error || 'Unable to sign in. Please try again.';

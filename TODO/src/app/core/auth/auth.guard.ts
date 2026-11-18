@@ -10,13 +10,16 @@ function hasSession(): boolean {
 
 import { isSuperAdminHost, isCustomDomainHost } from '../utils/domain.utils';
 
-export const authGuard: CanActivateFn = () => {
+export const authGuard: CanActivateFn = (route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
   const token = auth.getToken('user');
   const user = auth.getUser('user');
   if (!token || !user) {
-    return router.createUrlTree(ROUTES.login);
+    const queryParams: Record<string, string> = { returnUrl: state.url };
+    const compParam = route.queryParamMap.get('company');
+    if (compParam) queryParams['company'] = compParam;
+    return router.createUrlTree(ROUTES.login, { queryParams });
   }
   return true;
 };
