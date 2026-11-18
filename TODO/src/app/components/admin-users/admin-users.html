@@ -40,8 +40,8 @@
         <div class="table-row">
           <div class="col-user user-cell">
             <div class="user-avatar">
-              @if (user.profileImagePath) {
-                <img [src]="apiOrigin + user.profileImagePath" alt="User avatar" class="avatar-img" />
+              @if (getAvatarUrl(user.profileImagePath); as avUrl) {
+                <img [src]="avUrl" alt="User avatar" class="avatar-img" />
               } @else {
                 <span class="avatar-text">{{ getInitials(user.username) }}</span>
               }

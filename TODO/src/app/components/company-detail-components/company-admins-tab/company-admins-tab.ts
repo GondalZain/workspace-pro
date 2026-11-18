@@ -96,7 +96,7 @@ export class CompanyAdminsTabComponent {
   getAdminAvatarUrl(adm: CompanyAdmin): string | null {
     if (!adm || !adm.profileImagePath) return null;
     const path = adm.profileImagePath;
-    if (path.startsWith('http')) return path;
-    return `${this.apiOrigin}${path}`;
+    if (path.startsWith('http') || path.startsWith('data:')) return path;
+    return `${this.apiOrigin}${path.startsWith('/') ? '' : '/'}${path}`;
   }
 }

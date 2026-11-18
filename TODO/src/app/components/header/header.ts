@@ -43,6 +43,12 @@ export class HeaderComponent {
   protected readonly companyDescription = computed(() => this.user()?.company?.description || '');
   protected readonly companyLogo = computed(() => this.user()?.company?.logoPath ? (this.apiOrigin + this.user()?.company?.logoPath) : null);
   protected readonly companyInitial = computed(() => (this.user()?.company?.name || 'T').charAt(0).toUpperCase());
+  protected readonly avatarUrl = computed(() => {
+    const path = this.user()?.profileImagePath;
+    if (!path) return null;
+    if (path.startsWith('data:') || /^https?:\/\//i.test(path)) return path;
+    return `${this.apiOrigin}${path.startsWith('/') ? '' : '/'}${path}`;
+  });
 
   protected readonly url = ROUTE_URL;
   protected readonly isAdminPanel = signal(this.router.url.startsWith(ROUTE_URL.admin));

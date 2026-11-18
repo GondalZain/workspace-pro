@@ -53,6 +53,12 @@ export class AdminUsersComponent {
     return name.slice(0, 2).toUpperCase();
   }
 
+  protected getAvatarUrl(path?: string | null): string | null {
+    if (!path) return null;
+    if (path.startsWith('data:') || /^https?:\/\//i.test(path)) return path;
+    return `${this.apiOrigin}${path.startsWith('/') ? '' : '/'}${path}`;
+  }
+
   protected editUser(userId: number): void {
     this.router.navigate(ROUTES.adminUserEdit(userId), { state: { userId } });
   }

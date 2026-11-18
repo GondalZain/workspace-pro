@@ -8,6 +8,7 @@ const { jwtSecret, smtp } = require('../../config/env');
 
 async function deleteOldProfileImageIfNeeded(previousUser, nextProfileImagePath) {
   if (!previousUser || !previousUser.profile_image_path) return;
+  if (previousUser.profile_image_path.startsWith('data:') || /^https?:\/\//i.test(previousUser.profile_image_path)) return;
 
   const normalizedNextPath = typeof nextProfileImagePath === 'string' ? nextProfileImagePath.trim() : '';
   if (normalizedNextPath && previousUser.profile_image_path === normalizedNextPath) return;
@@ -18,7 +19,7 @@ async function deleteOldProfileImageIfNeeded(previousUser, nextProfileImagePath)
   try {
     await fs.unlink(absolutePath);
   } catch (error) {
-    if (error.code !== 'ENOENT') {
+    if (error.code !== 'ENOENT' && error.code !== 'EROFS') {
       console.warn('Unable to remove old profile image:', error.message);
     }
   }

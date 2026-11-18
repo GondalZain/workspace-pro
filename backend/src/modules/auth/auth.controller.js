@@ -1,11 +1,18 @@
 // @ts-nocheck
 const authService = require('./auth.service');
 
+function resolveUploadedProfileImage(file, fallbackValue = null) {
+  if (!file) return fallbackValue;
+  if (file.profileImagePath) return file.profileImagePath;
+  if (file.filename) return `/uploads/profiles/${file.filename}`;
+  return fallbackValue;
+}
+
 async function register(request, response, next) {
   try {
     response.status(201).json(await authService.register({
       ...request.body,
-      profileImagePath: request.file ? `/uploads/profiles/${request.file.filename}` : null
+      profileImagePath: resolveUploadedProfileImage(request.file, null)
     }));
   } catch (error) {
     next(error);
@@ -83,7 +90,7 @@ async function updateUser(request, response, next) {
   try {
     const removeProfileImage = request.body?.removeProfileImage === 'true' || request.body?.removeProfileImage === true;
     const profileImagePath = request.file
-      ? `/uploads/profiles/${request.file.filename}`
+      ? resolveUploadedProfileImage(request.file)
       : removeProfileImage
         ? null
         : (typeof request.body?.profileImagePath === 'string' && request.body.profileImagePath.trim() ? request.body.profileImagePath.trim() : undefined);
@@ -119,7 +126,7 @@ async function updateProfile(request, response, next) {
   try {
     const removeProfileImage = request.body?.removeProfileImage === 'true' || request.body?.removeProfileImage === true;
     const profileImagePath = request.file
-      ? `/uploads/profiles/${request.file.filename}`
+      ? resolveUploadedProfileImage(request.file)
       : removeProfileImage
         ? null
         : (typeof request.body?.profileImagePath === 'string' && request.body.profileImagePath.trim() ? request.body.profileImagePath.trim() : undefined);
@@ -189,7 +196,7 @@ async function deleteRole(request, response, next) {
 
 async function createUser(request, response, next) {
   try {
-    const profileImagePath = request.file ? `/uploads/profiles/${request.file.filename}` : null;
+    const profileImagePath = resolveUploadedProfileImage(request.file, null);
     const user = await authService.createUser({
       ...request.body,
       profileImagePath

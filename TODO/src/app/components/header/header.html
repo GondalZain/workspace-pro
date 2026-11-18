@@ -78,8 +78,8 @@
         title="Account settings"
       >
         <div class="avatar-container">
-          @if (user()?.profileImagePath) {
-            <img class="avatar-img" alt="User avatar" [src]="apiOrigin + user()?.profileImagePath" />
+          @if (avatarUrl(); as avUrl) {
+            <img class="avatar-img" alt="User avatar" [src]="avUrl" />
           } @else {
             <span class="avatar-fallback">{{ user()?.username?.slice(0, 2)?.toUpperCase() || 'TT' }}</span>
           }

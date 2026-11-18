@@ -40,7 +40,8 @@ export class SuperAdminSettingsPageComponent {
     if (this.removeImage()) return null;
     const path = this.user()?.profileImagePath;
     if (!path) return null;
-    return path.startsWith('http') ? path : `${this.apiOrigin}${path}`;
+    if (path.startsWith('http') || path.startsWith('data:')) return path;
+    return `${this.apiOrigin}${path.startsWith('/') ? '' : '/'}${path}`;
   });
 
   protected onFileSelected(event: Event): void {
