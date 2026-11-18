@@ -96,6 +96,12 @@ function sanitizeFileName(name, fallback) {
 function persistAttachments(attachments, folderName) {
   if (!Array.isArray(attachments)) return [];
 
+  // In serverless environments (e.g. Vercel), disk is ephemeral and read-only.
+  // Directly retain the base64 data URLs in MySQL (stored in LONGTEXT column).
+  if (process.env.VERCEL) {
+    return attachments.map((att) => ({ ...att }));
+  }
+
   const taskFolder = sanitizeFileName(folderName || `task-${Date.now()}`, `task-${Date.now()}`);
   const folderPath = path.join(TASK_UPLOADS_ROOT, taskFolder);
   try { fs.mkdirSync(folderPath, { recursive: true }); } catch {}

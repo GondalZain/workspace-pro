@@ -6,6 +6,7 @@ import { AdminApiService, Role } from '../../../core/api/admin-api.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { AdminPageHeaderComponent } from '../../../components/admin-page-header/admin-page-header';
 import { ROUTES } from '../../../core/routing/route-paths';
+import { optimizeImageFile } from '../../../shared/utils/image-file.util';
 
 @Component({
   selector: 'app-admin-user-create-page',
@@ -102,14 +103,20 @@ export class AdminUserCreatePage implements OnInit {
     this.showPassword.set(!this.showPassword());
   }
 
-  protected onFileSelected(event: Event): void {
+  protected async onFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
-      this.profileImageFile.set(file);
-      const reader = new FileReader();
-      reader.onload = () => this.profileImagePreview.set(reader.result as string);
-      reader.readAsDataURL(file);
+      try {
+        const optimized = await optimizeImageFile(file, { maxDimension: 800, quality: 0.85 });
+        this.profileImageFile.set(optimized.file);
+        this.profileImagePreview.set(optimized.dataUrl);
+      } catch {
+        this.profileImageFile.set(file);
+        const reader = new FileReader();
+        reader.onload = () => this.profileImagePreview.set(reader.result as string);
+        reader.readAsDataURL(file);
+      }
     }
   }
 

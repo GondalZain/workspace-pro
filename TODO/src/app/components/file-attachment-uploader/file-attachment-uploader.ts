@@ -2,6 +2,7 @@ import { Component, computed, effect, input, output, signal } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { TaskAttachment } from '../../models/task.model';
 import { API_BASE_URL } from '../../core/api/api.config';
+import { optimizeImageFile } from '../../shared/utils/image-file.util';
 
 @Component({
   selector: 'app-file-attachment-uploader',
@@ -40,7 +41,7 @@ export class FileAttachmentUploaderComponent {
   }
 
   protected isImage(type: string): boolean {
-    return type.startsWith('image/');
+    return type ? type.startsWith('image/') : false;
   }
 
   protected fileBadge(type: string): { label: string; class: string } {
@@ -112,22 +113,42 @@ export class FileAttachmentUploaderComponent {
     const files = Array.from(input.files ?? []);
     if (!files.length) return;
 
-    const nextAttachments = await Promise.all(
-      files.map(async (file) => {
+    const MAX_NON_IMAGE_SIZE = 3.5 * 1024 * 1024; // 3.5MB limit for direct serverless payloads
+    const nextAttachments: TaskAttachment[] = [];
+
+    for (const file of files) {
+      if (!this.isImage(file.type) && file.size > MAX_NON_IMAGE_SIZE) {
+        alert(`File "${file.name}" (${(file.size / (1024 * 1024)).toFixed(1)} MB) exceeds the maximum allowed direct attachment size of 3.5 MB.`);
+        continue;
+      }
+
+      try {
+        const optimized = await optimizeImageFile(file, { maxDimension: 1600, quality: 0.82 });
+        nextAttachments.push({
+          id: `${file.name}-${optimized.size}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          name: optimized.file.name,
+          type: optimized.file.type || file.type || 'application/octet-stream',
+          size: optimized.size,
+          dataUrl: optimized.dataUrl
+        });
+      } catch {
         const dataUrl = await this.readFileAsDataUrl(file);
-        return {
+        nextAttachments.push({
           id: `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
           name: file.name,
           type: file.type || 'application/octet-stream',
           size: file.size,
           dataUrl
-        } satisfies TaskAttachment;
-      })
-    );
+        });
+      }
+    }
 
-    const updated = [...this.currentAttachments(), ...nextAttachments];
-    this.currentAttachments.set(updated);
-    this.attachmentsChange.emit(updated);
+    if (nextAttachments.length > 0) {
+      const updated = [...this.currentAttachments(), ...nextAttachments];
+      this.currentAttachments.set(updated);
+      this.attachmentsChange.emit(updated);
+    }
+
     input.value = '';
   }
 

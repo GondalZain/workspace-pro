@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/auth/auth.service';
 import { API_BASE_URL } from '../../../core/api/api.config';
 import { ROUTE_URL } from '../../../core/routing/route-paths';
+import { optimizeImageFile } from '../../../shared/utils/image-file.util';
 
 @Component({
   selector: 'app-super-admin-settings-page',
@@ -44,16 +45,21 @@ export class SuperAdminSettingsPageComponent {
     return `${this.apiOrigin}${path.startsWith('/') ? '' : '/'}${path}`;
   });
 
-  protected onFileSelected(event: Event): void {
+  protected async onFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
-      this.profileImageFile.set(file);
       this.removeImage.set(false);
-
-      const reader = new FileReader();
-      reader.onload = (e) => this.imagePreviewUrl.set(e.target?.result as string);
-      reader.readAsDataURL(file);
+      try {
+        const optimized = await optimizeImageFile(file, { maxDimension: 800, quality: 0.85 });
+        this.profileImageFile.set(optimized.file);
+        this.imagePreviewUrl.set(optimized.dataUrl);
+      } catch {
+        this.profileImageFile.set(file);
+        const reader = new FileReader();
+        reader.onload = (e) => this.imagePreviewUrl.set(e.target?.result as string);
+        reader.readAsDataURL(file);
+      }
     }
   }
 
