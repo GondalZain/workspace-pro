@@ -44,7 +44,7 @@ async function findAllByEmail(email) {
   return rows;
 }
 
-async function create({ username, email, passwordHash, profileImagePath, companyId = null }) {
+async function create({ username, email, originalEmail = null, passwordHash, profileImagePath, companyId = null }) {
   let assignedCompanyId = companyId ? Number(companyId) : null;
   if (!assignedCompanyId && email && email.includes('@')) {
     const domain = email.split('@')[1].toLowerCase().trim();
@@ -55,14 +55,14 @@ async function create({ username, email, passwordHash, profileImagePath, company
   }
 
   const [result] = await pool.execute(
-    'INSERT INTO users (username, email, password_hash, profile_image_path, company_id) VALUES (?, ?, ?, ?, ?)',
-    [username, email, passwordHash, profileImagePath || null, assignedCompanyId]
+    'INSERT INTO users (username, email, original_email, password_hash, profile_image_path, company_id) VALUES (?, ?, ?, ?, ?, ?)',
+    [username, email, originalEmail || null, passwordHash, profileImagePath || null, assignedCompanyId]
   );
   await pool.execute('UPDATE users SET role_id = (SELECT id FROM roles WHERE name = \'user\') WHERE id = ?', [result.insertId]);
   return findById(result.insertId);
 }
 
-async function createWithRole({ username, email, passwordHash, profileImagePath, companyId = null, roleId }) {
+async function createWithRole({ username, email, originalEmail = null, passwordHash, profileImagePath, companyId = null, roleId }) {
   let assignedCompanyId = companyId ? Number(companyId) : null;
   if (!assignedCompanyId && email && email.includes('@')) {
     const domain = email.split('@')[1].toLowerCase().trim();
@@ -73,8 +73,8 @@ async function createWithRole({ username, email, passwordHash, profileImagePath,
   }
 
   const [result] = await pool.execute(
-    'INSERT INTO users (username, email, password_hash, profile_image_path, company_id, role_id) VALUES (?, ?, ?, ?, ?, ?)',
-    [username, email, passwordHash, profileImagePath || null, assignedCompanyId, roleId]
+    'INSERT INTO users (username, email, original_email, password_hash, profile_image_path, company_id, role_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [username, email, originalEmail || null, passwordHash, profileImagePath || null, assignedCompanyId, roleId]
   );
   return findById(result.insertId);
 }
@@ -82,7 +82,7 @@ async function createWithRole({ username, email, passwordHash, profileImagePath,
 async function findById(id) {
   const [rows] = await pool.execute(
     `SELECT 
-       users.id, users.username, users.email, users.profile_image_path, users.role_id, users.company_id,
+       users.id, users.username, users.email, users.original_email, users.profile_image_path, users.role_id, users.company_id,
        roles.name AS role_name,
        c.name AS company_name, c.title AS company_title, c.description AS company_description,
        c.logo_path AS company_logo_path, c.primary_color AS company_primary_color, c.secondary_color AS company_secondary_color,
@@ -100,7 +100,7 @@ async function findById(id) {
 async function listUsers(companyId = null, isSuperAdmin = false) {
   let query = `
     SELECT 
-       users.id, users.username, users.email, users.profile_image_path, users.role_id, users.company_id,
+       users.id, users.username, users.email, users.original_email, users.profile_image_path, users.role_id, users.company_id,
        roles.name AS role_name,
        c.name AS company_name, c.title AS company_title, c.description AS company_description,
        c.logo_path AS company_logo_path, c.primary_color AS company_primary_color, c.secondary_color AS company_secondary_color,
@@ -241,10 +241,13 @@ async function setRoleById(userId, roleId) {
   return findById(userId);
 }
 
-async function updateUser(id, { username, email, passwordHash, profileImagePath }) {
+async function updateUser(id, { username, email, originalEmail, passwordHash, profileImagePath }) {
   const updates = ['username = ?', 'email = ?'];
   const values = [username, email];
-
+  if (originalEmail !== undefined) {
+    updates.push('original_email = ?');
+    values.push(originalEmail || null);
+  }
   if (passwordHash) {
     updates.push('password_hash = ?');
     values.push(passwordHash);
@@ -260,10 +263,13 @@ async function updateUser(id, { username, email, passwordHash, profileImagePath 
   return findById(id);
 }
 
-async function updateProfile(id, { username, email, passwordHash, profileImagePath }) {
+async function updateProfile(id, { username, email, originalEmail, passwordHash, profileImagePath }) {
   const updates = ['username = ?', 'email = ?'];
   const values = [username, email];
-
+  if (originalEmail !== undefined) {
+    updates.push('original_email = ?');
+    values.push(originalEmail || null);
+  }
   if (passwordHash) {
     updates.push('password_hash = ?');
     values.push(passwordHash);

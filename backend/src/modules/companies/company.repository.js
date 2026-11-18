@@ -131,7 +131,7 @@ async function findByName(name, excludeId = null) {
 async function listCompanyAdmins(companyId) {
   const authRepository = require('../auth/auth.repository');
   const [rows] = await pool.execute(
-    `SELECT u.id, u.username, u.email, u.profile_image_path, u.role_id, r.name AS role_name, r.description AS role_description, u.created_at
+    `SELECT u.id, u.username, u.email, u.original_email, u.profile_image_path, u.role_id, r.name AS role_name, r.description AS role_description, u.created_at
      FROM users u
      JOIN roles r ON r.id = u.role_id
      WHERE u.company_id = ? AND (r.name LIKE '%admin%' OR r.name != 'user')
@@ -145,6 +145,7 @@ async function listCompanyAdmins(companyId) {
       id: Number(r.id),
       username: r.username,
       email: r.email,
+      originalEmail: r.original_email || null,
       profileImagePath: r.profile_image_path || null,
       roleId: Number(r.role_id),
       roleName: r.role_name,
@@ -157,7 +158,7 @@ async function listCompanyAdmins(companyId) {
   return admins;
 }
 
-async function addCompanyAdmin(companyId, { username, email, password, roleId }) {
+async function addCompanyAdmin(companyId, { username, email, originalEmail, password, roleId }) {
   let targetRoleId = roleId ? Number(roleId) : null;
   if (!targetRoleId) {
     const [adminRole] = await pool.execute("SELECT id FROM roles WHERE name = 'admin'");
@@ -172,8 +173,8 @@ async function addCompanyAdmin(companyId, { username, email, password, roleId })
   const passwordHash = await bcrypt.hash(rawPass, 12);
 
   const [result] = await pool.execute(
-    'INSERT INTO users (username, email, password_hash, role_id, company_id) VALUES (?, ?, ?, ?, ?)',
-    [username, email, passwordHash, targetRoleId, companyId]
+    'INSERT INTO users (username, email, original_email, password_hash, role_id, company_id) VALUES (?, ?, ?, ?, ?, ?)',
+    [username, email, originalEmail || null, passwordHash, targetRoleId, companyId]
   );
   return {
     id: result.insertId,
@@ -192,10 +193,13 @@ async function updateCompanyAdminRole(companyId, adminId, roleId) {
   return result.affectedRows > 0;
 }
 
-async function updateCompanyAdminDetails(companyId, adminId, { username, email, password, roleId }) {
+async function updateCompanyAdminDetails(companyId, adminId, { username, email, originalEmail, password, roleId }) {
   const updates = [];
   const values = [];
-
+  if (originalEmail !== undefined) {
+    updates.push('original_email = ?');
+    values.push(originalEmail || null);
+  }
   if (username) {
     updates.push('username = ?');
     values.push(username);

@@ -22,12 +22,16 @@ async function notifyAssignedUsers({ task, assigneesToNotify, actorUserId, compa
   const actorName = task.creator?.username || task.creatorUsername || 'A team member';
   const taskTitle = task.title ? `"${task.title}"` : 'a task';
 
+  const mailService = require('../../services/mail.service');
+  const clientBaseUrl = (process.env.APP_CLIENT_URL || 'https://workspace-pro-ten.vercel.app').replace(/\/$/, '');
+
   for (const recipientId of assigneesToNotify) {
     if (Number(recipientId) === Number(actorUserId)) {
       // Don't notify the user who assigned themselves
       continue;
     }
 
+    // 1. In-app database notification
     await notificationsRepository.createNotification({
       companyId: task.companyId || companyId || null,
       recipientUserId: Number(recipientId),
@@ -37,6 +41,40 @@ async function notifyAssignedUsers({ task, assigneesToNotify, actorUserId, compa
       message: `You were assigned to task: ${taskTitle}`,
       taskId: task.id
     }).catch((err) => console.error('Failed to create assignment notification:', err));
+
+    // 2. Email alert to assignee's original notification email (or primary email)
+    try {
+      const [[recipientUser]] = await pool.query(
+        `SELECT u.id, u.username, u.email, u.original_email, c.name AS company_name
+         FROM users u
+         LEFT JOIN companies c ON c.id = u.company_id
+         WHERE u.id = ? LIMIT 1`,
+        [Number(recipientId)]
+      ).catch(() => [[null]]);
+
+      if (recipientUser) {
+        const targetEmail = (recipientUser.original_email && recipientUser.original_email.trim())
+          ? recipientUser.original_email.trim()
+          : (recipientUser.email && recipientUser.email.trim() ? recipientUser.email.trim() : null);
+
+        if (targetEmail && targetEmail.includes('@')) {
+          const taskUrl = `${clientBaseUrl}/tasks`;
+          await mailService.sendTaskAssignedEmail({
+            recipientEmail: targetEmail,
+            recipientName: recipientUser.username || 'Team Member',
+            taskTitle: task.title || 'Untitled Task',
+            taskDescription: task.description || '',
+            actorName,
+            companyName: recipientUser.company_name || 'Workspace Pro',
+            priority: task.priority || null,
+            dueDate: task.dueDate ? new Date(task.dueDate).toLocaleDateString() : null,
+            taskUrl
+          }).catch((err) => console.error('[MailService] Task assignment email dispatch error:', err));
+        }
+      }
+    } catch (mailErr) {
+      console.error('[MailService] Error fetching recipient for assignment email:', mailErr);
+    }
   }
 }
 

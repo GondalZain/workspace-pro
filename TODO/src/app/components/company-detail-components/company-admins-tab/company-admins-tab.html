@@ -43,6 +43,11 @@
                 </svg>
                 <span>{{ adm.email }}</span>
               </span>
+              @if (adm.originalEmail) {
+                <span class="adm-email-address" style="color: #0f766e; font-size: 11px; margin-top: 2px;" title="Task alerts will be delivered here">
+                  ✉️ Real Email: {{ adm.originalEmail }}
+                </span>
+              }
 
               <div class="adm-role-assignment">
                 <label class="role-select-label">ROLE:</label>
@@ -118,8 +123,14 @@
       </div>
 
       <div class="form-group">
-        <label>Admin Email Address <span class="req">*</span> @if (emailDomain) { <small style="font-weight: 500; color: #0f766e;">(Domain: {{ emailDomain }})</small> }</label>
+        <label>Admin Email Address (Workspace Login) <span class="req">*</span> @if (emailDomain) { <small style="font-weight: 500; color: #0f766e;">(Domain: {{ emailDomain }})</small> }</label>
         <input type="email" [(ngModel)]="newAdminEmail" name="newAdminEmail" placeholder="admin@company.com" class="form-input" required />
+      </div>
+
+      <div class="form-group">
+        <label>Original / Notification Email (Real Inbox for Task Alerts)</label>
+        <input type="email" [(ngModel)]="newAdminOriginalEmail" name="newAdminOriginalEmail" placeholder="e.g. personal@gmail.com" class="form-input" />
+        <small style="font-size: 11px; color: #6b7280; display: block; margin-top: 3px;">When tasks are assigned to this admin, email notices will be dispatched to this address.</small>
       </div>
 
       <div class="form-group">
@@ -177,8 +188,14 @@
         </div>
 
         <div class="form-group">
-          <label>Admin Email Address <span class="req">*</span></label>
+          <label>Admin Email Address (Workspace Login) <span class="req">*</span></label>
           <input type="email" [ngModel]="editAdminEmail()" (ngModelChange)="editAdminEmail.set($event)" name="editAdminEmail" class="form-input" required />
+        </div>
+
+        <div class="form-group">
+          <label>Original / Notification Email (Real Inbox for Task Alerts)</label>
+          <input type="email" [ngModel]="editAdminOriginalEmail()" (ngModelChange)="editAdminOriginalEmail.set($event)" name="editAdminOriginalEmail" placeholder="e.g. personal@gmail.com" class="form-input" />
+          <small style="font-size: 11px; color: #6b7280; display: block; margin-top: 3px;">When tasks are assigned to this admin, email notices will be dispatched to this address.</small>
         </div>
 
         <div class="form-group">

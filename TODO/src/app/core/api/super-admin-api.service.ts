@@ -32,11 +32,11 @@ export class SuperAdminApiService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 
-  addCompanyAdmin(companyId: number, adminData: { username: string; email: string; password: string; roleId?: number }) {
+  addCompanyAdmin(companyId: number, adminData: { username: string; email: string; originalEmail?: string; password: string; roleId?: number }) {
     return this.http.post<{ admin: CompanyAdmin; admins: CompanyAdmin[] }>(`${this.baseUrl}/${companyId}/admins`, adminData);
   }
 
-  updateCompanyAdmin(companyId: number, adminId: number, adminData: { username?: string; email?: string; password?: string; roleId?: number }) {
+  updateCompanyAdmin(companyId: number, adminId: number, adminData: { username?: string; email?: string; originalEmail?: string; password?: string; roleId?: number }) {
     return this.http.put<{ admins: CompanyAdmin[] }>(`${this.baseUrl}/${companyId}/admins/${adminId}`, adminData);
   }
 

@@ -86,6 +86,7 @@ export class SuperAdminDashboardPageComponent implements OnDestroy {
   protected secondaryColor = signal('#ffffff');
   protected adminUsername = signal('');
   protected adminEmail = signal('');
+  protected adminOriginalEmail = signal('');
   protected adminPassword = signal('');
   protected logoFile = signal<File | null>(null);
   protected logoPreview = signal<string | null>(null);
@@ -253,6 +254,7 @@ export class SuperAdminDashboardPageComponent implements OnDestroy {
     this.status.set('active');
     this.adminUsername.set('');
     this.adminEmail.set('');
+    this.adminOriginalEmail.set('');
     this.adminPassword.set('');
     this.logoFile.set(null);
     this.logoPreview.set(null);
@@ -317,6 +319,9 @@ export class SuperAdminDashboardPageComponent implements OnDestroy {
       formData.append('companyName', this.companyName());
       formData.append('adminUsername', this.adminUsername());
       formData.append('adminEmail', this.adminEmail().trim());
+      if (this.adminOriginalEmail().trim()) {
+        formData.append('adminOriginalEmail', this.adminOriginalEmail().trim());
+      }
       formData.append('adminPassword', this.adminPassword());
 
       this.superAdminApi.createCompany(formData).subscribe({

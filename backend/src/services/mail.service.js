@@ -256,7 +256,32 @@ async function sendMarketingInvitationEmail(params) {
   return result;
 }
 
+
+/**
+ * Send Task Assignment Email to assignee's original notification email
+ */
+async function sendTaskAssignedEmail(params) {
+  const { buildTaskAssignedTemplate } = require('./mail/mail.templates');
+  const { subject, html, text } = buildTaskAssignedTemplate(params);
+
+  console.log(`\n================== [EMAIL: TASK ASSIGNMENT] ==================`);
+  console.log(`[MailService] Sending Task Assignment notice to: ${params.recipientEmail}`);
+  console.log(`[MailService] Task: "${params.taskTitle}" | Assignee: ${params.recipientName}`);
+
+  const result = await sendMail({
+    to: params.recipientEmail,
+    subject,
+    text,
+    html
+  });
+
+  console.log(`[MailService] Task Assignment Email Result: ${result.success ? 'DISPATCHED' : 'FAILED'}`);
+  console.log(`==============================================================\n`);
+  return result;
+}
+
 module.exports = {
+  sendTaskAssignedEmail,
   sendMarketingInvitationEmail,
   sendMail,
   sendWorkspaceRegistrationEmail,

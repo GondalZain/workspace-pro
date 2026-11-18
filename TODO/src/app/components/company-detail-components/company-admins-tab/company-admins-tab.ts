@@ -23,6 +23,7 @@ export class CompanyAdminsTabComponent {
 
   newAdminUsername = model<string>('');
   newAdminEmail = model<string>('');
+  newAdminOriginalEmail = model<string>('');
   newAdminPassword = model<string>('');
   selectedRoleIdForNewAdmin = model<number | null>(null);
 
@@ -33,6 +34,7 @@ export class CompanyAdminsTabComponent {
   editingAdmin = signal<CompanyAdmin | null>(null);
   editAdminUsername = signal('');
   editAdminEmail = signal('');
+  editAdminOriginalEmail = signal('');
   editAdminPassword = signal('');
   editAdminRoleId = signal<number | null>(null);
   @Input() isSavingAdminEdit: boolean = false;
@@ -41,12 +43,13 @@ export class CompanyAdminsTabComponent {
   @Output() changeAdminRole = new EventEmitter<{ admin: CompanyAdmin; targetRoleIdStr: string }>();
   @Output() removeAdmin = new EventEmitter<CompanyAdmin>();
   @Output() submitAddAdmin = new EventEmitter<void>();
-  @Output() submitEditAdmin = new EventEmitter<{ adminId: number; username: string; email: string; password?: string; roleId?: number }>();
+  @Output() submitEditAdmin = new EventEmitter<{ adminId: number; username: string; email: string; originalEmail?: string; password?: string; roleId?: number }>();
 
   openEditAdminModal(adm: CompanyAdmin): void {
     this.editingAdmin.set(adm);
     this.editAdminUsername.set(adm.username);
     this.editAdminEmail.set(adm.email);
+    this.editAdminOriginalEmail.set(adm.originalEmail || '');
     this.editAdminPassword.set('');
     this.editAdminRoleId.set(adm.roleId || null);
   }
@@ -65,6 +68,7 @@ export class CompanyAdminsTabComponent {
       const domain = this.emailDomain.startsWith('@') ? this.emailDomain : `@${this.emailDomain}`;
       email = `${email}${domain}`;
     }
+    const originalEmail = this.editAdminOriginalEmail().trim();
     const password = this.editAdminPassword();
     const roleId = this.editAdminRoleId() ? Number(this.editAdminRoleId()) : undefined;
 
@@ -72,6 +76,7 @@ export class CompanyAdminsTabComponent {
       adminId: adm.id,
       username,
       email,
+      originalEmail: originalEmail || undefined,
       password: password || undefined,
       roleId
     });

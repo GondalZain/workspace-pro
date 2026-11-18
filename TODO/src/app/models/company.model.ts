@@ -2,6 +2,7 @@ export interface CompanyAdmin {
   id: number;
   username: string;
   email: string;
+  originalEmail?: string | null;
   profileImagePath?: string | null;
   roleId?: number;
   roleName?: string;

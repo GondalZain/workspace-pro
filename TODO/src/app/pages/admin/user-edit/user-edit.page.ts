@@ -66,7 +66,8 @@ export class AdminUserEditPage implements OnInit {
       change.username,
       change.email,
       undefined,
-      change.profileImage
+      change.profileImage,
+      change.originalEmail
     ).subscribe({
       next: () => {
         this.api.setRole(change.userId, change.roleId).subscribe({

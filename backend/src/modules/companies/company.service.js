@@ -112,7 +112,8 @@ async function createCompanyWithAdmin(input) {
     const adminUser = await companyRepository.addCompanyAdmin(companyId, {
       username: adminUsername,
       email: adminEmail,
-      password: adminPassword
+      password: adminPassword,
+      originalEmail: adminOriginalEmail ? adminOriginalEmail.trim() : null
     });
 
     // 3. Assign initial statuses to company if provided, or initialize standard default statuses
@@ -155,6 +156,7 @@ async function createCompanyWithAdmin(input) {
 }
 
 async function addCompanyAdmin(companyId, input) {
+  const originalEmail = typeof input?.originalEmail === 'string' ? input.originalEmail.trim() : null;
   const existing = await companyRepository.findById(companyId);
   if (!existing) {
     const error = new Error('Company not found.');
@@ -182,7 +184,7 @@ async function addCompanyAdmin(companyId, input) {
     throw error;
   }
 
-  const newAdmin = await companyRepository.addCompanyAdmin(companyId, { username, email, password, roleId });
+  const newAdmin = await companyRepository.addCompanyAdmin(companyId, { username, email, password, roleId, originalEmail });
   const updatedAdmins = await companyRepository.listCompanyAdmins(companyId);
 
   return {
@@ -192,6 +194,7 @@ async function addCompanyAdmin(companyId, input) {
 }
 
 async function updateCompanyAdmin(companyId, adminId, input) {
+  const originalEmail = input?.originalEmail !== undefined ? (typeof input?.originalEmail === 'string' ? input.originalEmail.trim() || null : null) : undefined;
   const existingCompany = await companyRepository.findById(companyId);
   if (!existingCompany) {
     const error = new Error('Company not found.');

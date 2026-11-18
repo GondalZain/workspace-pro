@@ -415,7 +415,76 @@ function buildMarketingInvitationTemplate({ recipientEmail, customMessage }) {
   };
 }
 
+
+/**
+ * 4. Task Assignment Alert Template
+ * Sent to the assignee's real/original notification email when assigned to a task.
+ */
+function buildTaskAssignedTemplate({
+  recipientEmail,
+  recipientName,
+  taskTitle,
+  taskDescription,
+  actorName,
+  companyName,
+  priority,
+  dueDate,
+  taskUrl
+}) {
+  const displayCompany = formatSafeCompanyName(companyName || 'Workspace Pro');
+  const subject = `New Task Assigned: ${taskTitle} (${displayCompany})`;
+
+  const bodyContent = `
+    <p style="margin: 0 0 14px 0; color: #111827;">Hi <strong>${recipientName || 'there'}</strong>,</p>
+
+    <p style="margin: 0 0 16px 0; color: #374151;">
+      <strong>${actorName || 'A team member'}</strong> has assigned you to a task in <strong>${displayCompany}</strong>.
+    </p>
+
+    <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-left: 4px solid #0f766e; border-radius: 8px; padding: 16px 18px; margin: 18px 0;">
+      <div style="font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 8px;">
+        ${taskTitle}
+      </div>
+      ${taskDescription ? `<div style="font-size: 14px; color: #4b5563; margin-bottom: 12px; line-height: 1.6;">${taskDescription}</div>` : ''}
+      <div style="font-size: 13px; line-height: 1.8; color: #374151;">
+        <div><strong>Assigned by:</strong> ${actorName || 'Team Admin'}</div>
+        ${priority ? `<div><strong>Priority:</strong> <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; background: #e0f2fe; color: #0369a1;">${priority}</span></div>` : ''}
+        ${dueDate ? `<div><strong>Due Date:</strong> ${dueDate}</div>` : ''}
+        <div><strong>Workspace:</strong> ${displayCompany}</div>
+      </div>
+    </div>
+
+    ${renderSafeActionUrl('Open Task in Workspace', taskUrl)}
+
+    <p style="margin: 18px 0 0 0; color: #111827;">
+      Warm regards,<br />
+      <strong>${displayCompany} Team</strong>
+    </p>
+  `;
+
+  const text = [
+    `Hi ${recipientName || 'there'},`,
+    '',
+    `${actorName || 'A team member'} has assigned you to a task in ${displayCompany}: "${taskTitle}".`,
+    taskDescription ? `\nDetails: ${taskDescription}` : '',
+    '',
+    `Open Task: ${taskUrl || ''}`,
+    '',
+    `Workspace: ${displayCompany}`
+  ].filter(Boolean).join('\n');
+
+  const html = wrapFormalEmailTemplate({
+    headerTitle: 'Task Assignment Notice',
+    headerSubtitle: `Prepared for ${recipientName || 'Team Member'} (${recipientEmail})`,
+    bodyContent,
+    recipientEmail
+  });
+
+  return { subject, html, text };
+}
+
 module.exports = {
+  buildTaskAssignedTemplate,
   buildMarketingInvitationTemplate,
   buildRegistrationTemplate,
   buildAdminNewRegistrationNoticeTemplate,

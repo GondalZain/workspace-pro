@@ -217,8 +217,14 @@
             </div>
 
             <div class="form-field">
-              <label>Admin Email Address <span class="req">*</span></label>
+              <label>Admin Email Address (Workspace Login) <span class="req">*</span></label>
               <input type="email" [ngModel]="adminEmail()" (ngModelChange)="adminEmail.set($event)" name="adminEmail" placeholder="admin@company.com" required />
+            </div>
+
+            <div class="form-field">
+              <label>Original / Notification Email (Real Inbox for Task Alerts)</label>
+              <input type="email" [ngModel]="adminOriginalEmail()" (ngModelChange)="adminOriginalEmail.set($event)" name="adminOriginalEmail" placeholder="e.g. personal@gmail.com" />
+              <small class="field-hint" style="font-size: 11px; color: #6b7280; margin-top: 3px; display: block;">When tasks are assigned to this admin, alerts will be dispatched directly to this real email address.</small>
             </div>
 
             <div class="form-field">

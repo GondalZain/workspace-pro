@@ -49,6 +49,11 @@
             <div class="user-meta">
               <span class="user-name">{{ user.username }}</span>
               <span class="user-email">{{ user.email }}</span>
+              @if (user.originalEmail) {
+                <span class="user-email" style="font-size: 11px; color: #0f766e; margin-top: 1px;" title="Task notifications are delivered to this real inbox">
+                  ✉️ Real Email: {{ user.originalEmail }}
+                </span>
+              }
             </div>
           </div>
 

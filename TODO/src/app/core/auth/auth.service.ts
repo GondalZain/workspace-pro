@@ -27,6 +27,7 @@ export interface User {
   id: number;
   username: string;
   email: string;
+  originalEmail?: string | null;
   profileImagePath: string | null;
   role: 'super_admin' | 'admin' | 'editor' | 'user' | 'viewer';
   roleId: number | null;

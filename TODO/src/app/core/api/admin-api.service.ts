@@ -16,10 +16,11 @@ export class AdminApiService {
     return this.http.get<User[]>(this.usersUrl);
   }
 
-  createUser(data: { username: string; email: string; password: string; roleId?: number; profileImage?: File | null }) {
+  createUser(data: { username: string; email: string; originalEmail?: string; password: string; roleId?: number; profileImage?: File | null }) {
     const formData = new FormData();
     formData.append('username', data.username);
     formData.append('email', data.email);
+    if (data.originalEmail) formData.append('originalEmail', data.originalEmail);
     formData.append('password', data.password);
     if (data.roleId) formData.append('roleId', String(data.roleId));
     if (data.profileImage) formData.append('profileImage', data.profileImage);
@@ -34,10 +35,11 @@ export class AdminApiService {
     return this.http.patch<User>(`${API_BASE_URL}${API_ROUTES.auth.role(userId)}`, { roleId });
   }
 
-  updateUser(userId: number, username: string, email: string, password?: string, profileImage?: File | null) {
+  updateUser(userId: number, username: string, email: string, password?: string, profileImage?: File | null, originalEmail?: string) {
     const formData = new FormData();
     formData.append('username', username);
     formData.append('email', email);
+    if (originalEmail !== undefined) formData.append('originalEmail', originalEmail);
     if (password) formData.append('password', password);
     if (profileImage) formData.append('profileImage', profileImage);
     return this.http.put<User>(`${API_BASE_URL}${API_ROUTES.auth.userById(userId)}`, formData);

@@ -8,9 +8,14 @@
       </label>
 
       <label>
-        Email
+        Email (Workspace Login)
         <input type="email" formControlName="email" />
         <app-form-field-error [control]="form.controls.email" fieldLabel="Email" [showAfterSubmit]="submitAttempted()" />
+      </label>
+
+      <label>
+        Original / Notification Email <small style="font-weight: normal; color: #6b7280;">(Real Inbox for Task Alerts)</small>
+        <input type="email" formControlName="originalEmail" placeholder="e.g. personal@gmail.com" />
       </label>
 
       <label>

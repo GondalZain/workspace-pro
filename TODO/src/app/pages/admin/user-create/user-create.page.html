@@ -91,6 +91,26 @@
             }
           </div>
 
+          <!-- Original / Notification Email -->
+          <div class="form-group">
+            <label for="original-email-input" class="form-label">Original / Notification Email <small style="font-weight: normal; color: #64748b;">(Real Inbox for Task Alerts)</small></label>
+            <div class="input-wrap">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="input-icon">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              <input
+                id="original-email-input"
+                type="email"
+                class="form-control"
+                [value]="originalEmail()"
+                (input)="originalEmail.set($any($event.target).value)"
+                placeholder="e.g. personal@gmail.com"
+              />
+            </div>
+            <small style="font-size: 11px; color: #64748b; margin-top: 4px; display: block;">When tasks are assigned to this user, system notifications are sent to this address.</small>
+          </div>
+
           <!-- Password -->
           <div class="form-group">
             <label for="password-input" class="form-label">Initial Password <span class="required">*</span></label>

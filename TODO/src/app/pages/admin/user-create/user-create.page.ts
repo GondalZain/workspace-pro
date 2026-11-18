@@ -27,6 +27,7 @@ export class AdminUserCreatePage implements OnInit {
   protected readonly roles = signal<Role[]>([]);
   protected readonly username = signal('');
   protected readonly email = signal('');
+  protected readonly originalEmail = signal('');
   protected readonly password = signal('');
   protected readonly selectedRoleId = signal<number | null>(null);
   protected readonly profileImageFile = signal<File | null>(null);
@@ -153,6 +154,7 @@ export class AdminUserCreatePage implements OnInit {
     this.api.createUser({
       username: nameVal,
       email: emailVal,
+      originalEmail: this.originalEmail().trim() || undefined,
       password: passVal,
       roleId: roleVal || undefined,
       profileImage: this.profileImageFile()

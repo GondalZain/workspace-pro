@@ -48,6 +48,7 @@ function publicUser(user, permissions = []) {
     id: Number(user.id),
     username: user.username,
     email: user.email,
+    originalEmail: user.original_email || null,
     profileImagePath: user.profile_image_path || null,
     roleId: user.role_id ? Number(user.role_id) : null,
     role: user.role_name || user.role || 'user',
@@ -257,6 +258,7 @@ async function updateUser(id, input, { companyId = null, isSuperAdmin = false } 
   const email = typeof input?.email === 'string' ? input.email.trim().toLowerCase() : '';
   const password = typeof input?.password === 'string' ? input.password : '';
   const profileImagePath = input?.profileImagePath === null ? null : (typeof input?.profileImagePath === 'string' && input.profileImagePath.trim() ? input.profileImagePath.trim() : undefined);
+  const originalEmail = input?.originalEmail !== undefined ? (typeof input?.originalEmail === 'string' ? input.originalEmail.trim().toLowerCase() || null : null) : undefined;
   if (!username || !/^\S+@\S+\.\S+$/.test(email)) {
     const error = new Error('A valid username and email address are required.');
     error.statusCode = 400;
@@ -273,7 +275,8 @@ async function updateUser(id, input, { companyId = null, isSuperAdmin = false } 
       username,
       email,
       passwordHash: password ? await bcrypt.hash(password, 12) : undefined,
-      profileImagePath
+      profileImagePath,
+      originalEmail
     });
     if (currentUser?.profile_image_path && shouldReplaceProfileImage(currentUser.profile_image_path, profileImagePath)) {
       await deleteOldProfileImageIfNeeded(currentUser, profileImagePath);
@@ -444,6 +447,7 @@ async function createUser(input, { companyId = null, isSuperAdmin = false } = {}
   const password = typeof input?.password === 'string' ? input.password : '';
   const roleId = input?.roleId ? Number(input.roleId) : null;
   const profileImagePath = input?.profileImagePath || null;
+  const originalEmail = typeof input?.originalEmail === 'string' ? input.originalEmail.trim().toLowerCase() : null;
   const targetCompanyId = isSuperAdmin ? (input?.companyId ? Number(input.companyId) : null) : Number(companyId);
 
   if (!username || !email || password.length < 8) {
@@ -470,6 +474,7 @@ async function createUser(input, { companyId = null, isSuperAdmin = false } = {}
       email,
       passwordHash: await bcrypt.hash(password, 12),
       profileImagePath,
+      originalEmail,
       companyId: targetCompanyId,
       roleId: assignedRoleId
     });

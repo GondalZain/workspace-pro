@@ -105,6 +105,7 @@ export class CompanyDetailPageComponent {
   // New & Edit Admin Fields
   protected newAdminUsername = signal('');
   protected newAdminEmail = signal('');
+  protected newAdminOriginalEmail = signal('');
   protected newAdminPassword = signal('');
   protected selectedRoleIdForNewAdmin = signal<number | null>(null);
   protected adminError = signal<string | null>(null);
@@ -467,11 +468,13 @@ export class CompanyDetailPageComponent {
     this.isAddingAdmin.set(true);
     this.adminError.set(null);
 
-    this.superAdminApi.addCompanyAdmin(comp.id, { username: un, email: em, password: pass, roleId }).subscribe({
+    const origEm = this.newAdminOriginalEmail().trim() || undefined;
+    this.superAdminApi.addCompanyAdmin(comp.id, { username: un, email: em, originalEmail: origEm, password: pass, roleId }).subscribe({
       next: () => {
         this.isAddingAdmin.set(false);
         this.newAdminUsername.set('');
         this.newAdminEmail.set('');
+        this.newAdminOriginalEmail.set('');
         this.newAdminPassword.set('');
         this.setSuccess(`Admin account created for ${un}.`);
         this.loadCompany(comp.id, true);
@@ -483,7 +486,7 @@ export class CompanyDetailPageComponent {
     });
   }
 
-  protected submitEditAdmin(event: { adminId: number; username: string; email: string; password?: string; roleId?: number }): void {
+  protected submitEditAdmin(event: { adminId: number; username: string; email: string; originalEmail?: string; password?: string; roleId?: number }): void {
     const comp = this.company();
     if (!comp) return;
 
@@ -493,6 +496,7 @@ export class CompanyDetailPageComponent {
     this.superAdminApi.updateCompanyAdmin(comp.id, event.adminId, {
       username: event.username,
       email: event.email,
+      originalEmail: event.originalEmail,
       password: event.password,
       roleId: event.roleId
     }).subscribe({

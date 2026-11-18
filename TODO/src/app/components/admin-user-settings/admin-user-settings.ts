@@ -15,6 +15,7 @@ export interface UserProfileChange {
   userId: number;
   username: string;
   email: string;
+  originalEmail?: string;
   profileImage?: File | null;
   roleId: number;
 }
@@ -72,6 +73,7 @@ export class AdminUserSettingsComponent {
       patchFormIfChanged(this.form, {
         username: currentUser.username || '',
         email: currentUser.email || '',
+        originalEmail: currentUser.originalEmail || '',
         roleId: resolvedRoleId
       });
       this.editProfileImage.set(null);
@@ -88,11 +90,12 @@ export class AdminUserSettingsComponent {
     }
     this.submitAttempted.set(false);
 
-    const { username, email, roleId } = adminUserProfileFormValueFromRaw(this.form.getRawValue());
+    const { username, email, originalEmail, roleId } = adminUserProfileFormValueFromRaw(this.form.getRawValue());
     this.profileSaved.emit({
       userId: currentUser.id,
       username,
       email,
+      originalEmail: originalEmail || undefined,
       profileImage: this.editProfileImage(),
       roleId: roleId || 0
     });
