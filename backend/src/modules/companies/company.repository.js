@@ -25,7 +25,7 @@ async function listCompanies() {
   );
 
   const [allAdmins] = await pool.execute(
-    `SELECT u.id, u.username, u.email, u.company_id, u.profile_image_path, u.created_at
+    `SELECT u.id, u.username, u.email, u.original_email, u.company_id, u.profile_image_path, u.created_at
      FROM users u
      JOIN roles r ON r.id = u.role_id
      WHERE r.name = 'admin'
@@ -40,6 +40,7 @@ async function listCompanies() {
       id: Number(a.id),
       username: a.username,
       email: a.email,
+      originalEmail: a.original_email || null,
       profileImagePath: a.profile_image_path || null,
       createdAt: a.created_at
     });
@@ -67,7 +68,8 @@ async function listCompanies() {
       totalAdmins: Number(r.total_admins || 0),
       admins,
       adminUsername: admins[0]?.username || '—',
-      adminEmail: admins[0]?.email || '—'
+      adminEmail: admins[0]?.email || '—',
+      adminOriginalEmail: admins[0]?.originalEmail || null
     };
   });
 }
@@ -95,7 +97,8 @@ async function findById(id) {
     createdAt: r.created_at,
     admins,
     adminUsername: admins[0]?.username || '—',
-    adminEmail: admins[0]?.email || '—'
+    adminEmail: admins[0]?.email || '—',
+    adminOriginalEmail: admins[0]?.originalEmail || null
   };
 }
 

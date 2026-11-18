@@ -213,6 +213,7 @@ export class SuperAdminDashboardPageComponent implements OnDestroy {
     this.status.set(company.status);
     this.adminUsername.set(company.adminUsername);
     this.adminEmail.set(company.adminEmail);
+    this.adminOriginalEmail.set(company.adminOriginalEmail || company.admins?.[0]?.originalEmail || '');
 
     if (company.logoPath) {
       this.logoPreview.set(this.logoUrl(company.logoPath));

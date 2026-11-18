@@ -30,6 +30,7 @@ export interface Company {
   admins: CompanyAdmin[];
   adminUsername: string;
   adminEmail: string;
+  adminOriginalEmail?: string | null;
   createdAt: string;
 }
 

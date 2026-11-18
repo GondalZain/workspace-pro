@@ -47,6 +47,9 @@ async function createCompanyWithAdmin(input) {
     adminEmail = `${adminEmail}${emailDomain}`;
   }
   const adminPassword = typeof input?.adminPassword === 'string' ? input.adminPassword : '';
+  const adminOriginalEmail = typeof input?.adminOriginalEmail === 'string'
+    ? input.adminOriginalEmail.trim()
+    : (typeof input?.originalEmail === 'string' ? input.originalEmail.trim() : null);
 
   if (!companyName) {
     const error = new Error('Company Name is required.');
@@ -222,7 +225,7 @@ async function updateCompanyAdmin(companyId, adminId, input) {
     throw error;
   }
 
-  await companyRepository.updateCompanyAdminDetails(companyId, adminId, { username, email, password, roleId });
+  await companyRepository.updateCompanyAdminDetails(companyId, adminId, { username, email, originalEmail, password, roleId });
   return companyRepository.listCompanyAdmins(companyId);
 }
 
