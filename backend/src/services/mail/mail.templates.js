@@ -427,36 +427,104 @@ function buildTaskAssignedTemplate({
   taskDescription,
   actorName,
   companyName,
+  companyPrimaryColor,
   priority,
   dueDate,
+  category,
+  projectName,
   taskUrl
 }) {
   const displayCompany = formatSafeCompanyName(companyName || 'Workspace Pro');
-  const subject = `New Task Assigned: ${taskTitle} (${displayCompany})`;
+  const brandColor = companyPrimaryColor && /^#[0-9a-f]{3,8}$/i.test(companyPrimaryColor.trim())
+    ? companyPrimaryColor.trim()
+    : '#0f766e';
+  const subject = `Task Assigned: ${taskTitle} (${displayCompany})`;
+
+  // Determine priority badge colors
+  const normPriority = (priority || 'medium').toLowerCase();
+  let priorityBg = '#fef3c7';
+  let priorityColor = '#92400e';
+  let priorityIcon = '🟡';
+  let priorityLabel = 'Medium';
+
+  if (normPriority === 'urgent' || normPriority === 'high') {
+    priorityBg = '#fee2e2';
+    priorityColor = '#991b1b';
+    priorityIcon = '🔴';
+    priorityLabel = normPriority === 'urgent' ? 'Urgent' : 'High';
+  } else if (normPriority === 'low') {
+    priorityBg = '#dcfce7';
+    priorityColor = '#166534';
+    priorityIcon = '🟢';
+    priorityLabel = 'Low';
+  }
+
+  const cleanDescription = (taskDescription || '').trim();
 
   const bodyContent = `
-    <p style="margin: 0 0 14px 0; color: #111827;">Hi <strong>${recipientName || 'there'}</strong>,</p>
-
-    <p style="margin: 0 0 16px 0; color: #374151;">
-      <strong>${actorName || 'A team member'}</strong> has assigned you to a task in <strong>${displayCompany}</strong>.
+    <p style="margin: 0 0 16px 0; color: #1e293b; font-size: 16px;">
+      Hi <strong>${recipientName || 'there'}</strong>,
     </p>
 
-    <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-left: 4px solid #0f766e; border-radius: 8px; padding: 16px 18px; margin: 18px 0;">
-      <div style="font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 8px;">
+    <p style="margin: 0 0 20px 0; color: #475569; font-size: 15px; line-height: 1.6;">
+      <strong>${actorName || 'A team member'}</strong> has assigned a new task to you in <strong>${displayCompany}</strong>.
+    </p>
+
+    <!-- Task Card -->
+    <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-left: 5px solid ${brandColor}; border-radius: 10px; padding: 22px 24px; margin: 20px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
+      
+      <!-- Task Title -->
+      <div style="font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 14px; line-height: 1.4;">
         ${taskTitle}
       </div>
-      ${taskDescription ? `<div style="font-size: 14px; color: #4b5563; margin-bottom: 12px; line-height: 1.6;">${taskDescription}</div>` : ''}
-      <div style="font-size: 13px; line-height: 1.8; color: #374151;">
-        <div><strong>Assigned by:</strong> ${actorName || 'Team Admin'}</div>
-        ${priority ? `<div><strong>Priority:</strong> <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; background: #e0f2fe; color: #0369a1;">${priority}</span></div>` : ''}
-        ${dueDate ? `<div><strong>Due Date:</strong> ${dueDate}</div>` : ''}
-        <div><strong>Workspace:</strong> ${displayCompany}</div>
+
+      <!-- Metadata Badges -->
+      <div style="margin-bottom: 16px;">
+        <span style="display: inline-block; background-color: ${priorityBg}; color: ${priorityColor}; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 8px;">
+          ${priorityIcon} ${priorityLabel} Priority
+        </span>
+        ${projectName ? `
+          <span style="display: inline-block; background-color: #f1f5f9; color: #334155; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; margin-right: 8px;">
+            📁 ${projectName}
+          </span>
+        ` : ''}
+        ${category ? `
+          <span style="display: inline-block; background-color: #f1f5f9; color: #475569; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 9999px;">
+            🏷️ ${category}
+          </span>
+        ` : ''}
       </div>
+
+      <!-- Task Details -->
+      <div style="font-size: 14px; line-height: 1.8; color: #334155; padding-top: 14px; border-top: 1px dashed #e2e8f0;">
+        <div><strong>👤 Assigned by:</strong> ${actorName || 'Team Admin'}</div>
+        ${dueDate ? `<div><strong>📅 Due Date:</strong> <span style="color: #0f172a; font-weight: 600;">${dueDate}</span></div>` : ''}
+        <div><strong>🏢 Workspace:</strong> ${displayCompany}</div>
+      </div>
+
+      <!-- Description Section -->
+      ${cleanDescription ? `
+        <div style="margin-top: 16px; padding: 14px 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 6px;">
+            Task Description
+          </div>
+          <div style="font-size: 14px; color: #334155; line-height: 1.6; white-space: pre-wrap;">${cleanDescription}</div>
+        </div>
+      ` : ''}
     </div>
 
-    ${renderSafeActionUrl('Open Task in Workspace', taskUrl)}
+    <!-- Action Button (CTA) -->
+    <div style="text-align: center; margin: 28px 0 16px 0;">
+      <a href="${taskUrl}" style="display: inline-block; background-color: ${brandColor}; color: #ffffff; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 28px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        Open Task in Workspace &rarr;
+      </a>
+    </div>
 
-    <p style="margin: 18px 0 0 0; color: #111827;">
+    <div style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 24px;">
+      Or open link directly: <a href="${taskUrl}" style="color: ${brandColor}; word-break: break-all;">${taskUrl}</a>
+    </div>
+
+    <p style="margin: 22px 0 0 0; color: #334155; font-size: 14px;">
       Warm regards,<br />
       <strong>${displayCompany} Team</strong>
     </p>
@@ -465,19 +533,27 @@ function buildTaskAssignedTemplate({
   const text = [
     `Hi ${recipientName || 'there'},`,
     '',
-    `${actorName || 'A team member'} has assigned you to a task in ${displayCompany}: "${taskTitle}".`,
-    taskDescription ? `\nDetails: ${taskDescription}` : '',
+    `${actorName || 'A team member'} has assigned a new task to you in ${displayCompany}: "${taskTitle}".`,
+    '',
+    `Priority: ${priorityLabel}`,
+    projectName ? `Project: ${projectName}` : '',
+    dueDate ? `Due Date: ${dueDate}` : '',
+    category ? `Category: ${category}` : '',
+    cleanDescription ? `\nDescription:\n${cleanDescription}` : '',
     '',
     `Open Task: ${taskUrl || ''}`,
     '',
-    `Workspace: ${displayCompany}`
+    `Warm regards,`,
+    `${displayCompany} Team`
   ].filter(Boolean).join('\n');
 
   const html = wrapFormalEmailTemplate({
-    headerTitle: 'Task Assignment Notice',
+    headerTitle: 'Task Assignment',
     headerSubtitle: `Prepared for ${recipientName || 'Team Member'} (${recipientEmail})`,
     bodyContent,
-    recipientEmail
+    recipientEmail,
+    brandColor,
+    brandName: displayCompany
   });
 
   return { subject, html, text };

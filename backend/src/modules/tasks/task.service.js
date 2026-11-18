@@ -1,5 +1,7 @@
 const taskRepository = require('./task.repository');
 const { validateTaskInput } = require('./task.validation');
+const { pool } = require('../../config/database');
+const notificationsRepository = require('../notifications/notifications.repository');
 
 function validate(input) {
   const error = validateTaskInput(input);
@@ -14,16 +16,43 @@ async function getTasks(userId, filters, isAdmin = false, companyId = null, isSu
   return taskRepository.findAll(userId, filters, isAdmin, companyId, isSuperAdmin);
 }
 
-const notificationsRepository = require('../notifications/notifications.repository');
-
 async function notifyAssignedUsers({ task, assigneesToNotify, actorUserId, companyId }) {
   if (!Array.isArray(assigneesToNotify) || assigneesToNotify.length === 0) return;
 
-  const actorName = task.creator?.username || task.creatorUsername || 'A team member';
-  const taskTitle = task.title ? `"${task.title}"` : 'a task';
+  // Retrieve actor details (username and role name)
+  let actorName = 'A team member';
+  try {
+    const [[actorRow]] = await pool.query(
+      `SELECT u.username, r.name AS role_name
+       FROM users u
+       LEFT JOIN roles r ON r.id = u.role_id
+       WHERE u.id = ? LIMIT 1`,
+      [Number(actorUserId)]
+    );
+    if (actorRow?.username) {
+      actorName = actorRow.role_name
+        ? `${actorRow.username} (${actorRow.role_name})`
+        : actorRow.username;
+    }
+  } catch {}
 
+  // Retrieve project name if associated
+  let projectName = null;
+  if (task.projectId) {
+    try {
+      const [[projectRow]] = await pool.query(
+        'SELECT title FROM projects WHERE id = ? LIMIT 1',
+        [Number(task.projectId)]
+      );
+      if (projectRow?.title) {
+        projectName = projectRow.title;
+      }
+    } catch {}
+  }
+
+  const taskTitle = task.title ? `"${task.title}"` : 'a task';
   const mailService = require('../../services/mail.service');
-  const clientBaseUrl = (process.env.APP_CLIENT_URL || 'https://workspace-pro-ten.vercel.app').replace(/\/$/, '');
+  const clientBaseUrl = (process.env.APP_CLIENT_URL || 'https://workspace-pro-cw2a.vercel.app').replace(/\/$/, '');
 
   for (const recipientId of assigneesToNotify) {
     if (Number(recipientId) === Number(actorUserId)) {
@@ -45,7 +74,8 @@ async function notifyAssignedUsers({ task, assigneesToNotify, actorUserId, compa
     // 2. Email alert to assignee's original notification email (or primary email)
     try {
       const [[recipientUser]] = await pool.query(
-        `SELECT u.id, u.username, u.email, u.original_email, c.name AS company_name
+        `SELECT u.id, u.username, u.email, u.original_email,
+                c.name AS company_name, c.primary_color AS company_primary_color, c.domain AS company_domain
          FROM users u
          LEFT JOIN companies c ON c.id = u.company_id
          WHERE u.id = ? LIMIT 1`,
@@ -59,6 +89,10 @@ async function notifyAssignedUsers({ task, assigneesToNotify, actorUserId, compa
 
         if (targetEmail && targetEmail.includes('@')) {
           const taskUrl = `${clientBaseUrl}/tasks`;
+          const formattedDueDate = task.dueDate
+            ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : null;
+
           await mailService.sendTaskAssignedEmail({
             recipientEmail: targetEmail,
             recipientName: recipientUser.username || 'Team Member',
@@ -66,8 +100,11 @@ async function notifyAssignedUsers({ task, assigneesToNotify, actorUserId, compa
             taskDescription: task.description || '',
             actorName,
             companyName: recipientUser.company_name || 'Workspace Pro',
+            companyPrimaryColor: recipientUser.company_primary_color || '#0f766e',
             priority: task.priority || null,
-            dueDate: task.dueDate ? new Date(task.dueDate).toLocaleDateString() : null,
+            dueDate: formattedDueDate,
+            category: task.category || null,
+            projectName,
             taskUrl
           }).catch((err) => console.error('[MailService] Task assignment email dispatch error:', err));
         }
@@ -93,8 +130,6 @@ async function createTask(userId, input, companyId = null) {
 
   return createdTask;
 }
-
-const { pool } = require('../../config/database');
 
 function formatStatus(status) {
   if (!status) return 'Updated';
