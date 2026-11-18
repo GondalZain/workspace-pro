@@ -55,11 +55,6 @@ async function notifyAssignedUsers({ task, assigneesToNotify, actorUserId, compa
   const clientBaseUrl = (process.env.APP_CLIENT_URL || 'https://workspace-pro-cw2a.vercel.app').replace(/\/$/, '');
 
   for (const recipientId of assigneesToNotify) {
-    if (Number(recipientId) === Number(actorUserId)) {
-      // Don't notify the user who assigned themselves
-      continue;
-    }
-
     // 1. In-app database notification
     await notificationsRepository.createNotification({
       companyId: task.companyId || companyId || null,
@@ -120,6 +115,71 @@ async function notifyAssignedUsers({ task, assigneesToNotify, actorUserId, compa
   }
 }
 
+async function notifyTaskCreator({ task, actorUserId, companyId }) {
+  if (!task || !actorUserId) return;
+  const mailService = require('../../services/mail.service');
+  const clientBaseUrl = (process.env.APP_CLIENT_URL || 'https://workspace-pro-cw2a.vercel.app').replace(/\/$/, '');
+
+  try {
+    const [[creatorUser]] = await pool.query(
+      `SELECT u.id, u.username, u.email, u.original_email,
+              c.name AS company_name, c.primary_color AS company_primary_color, c.domain AS company_domain
+       FROM users u
+       LEFT JOIN companies c ON c.id = u.company_id
+       WHERE u.id = ? LIMIT 1`,
+      [Number(actorUserId)]
+    );
+
+    if (creatorUser) {
+      const targetEmail = (creatorUser.original_email && creatorUser.original_email.trim())
+        ? creatorUser.original_email.trim()
+        : (creatorUser.email && creatorUser.email.trim() ? creatorUser.email.trim() : null);
+
+      if (targetEmail && targetEmail.includes('@')) {
+        let projectName = null;
+        if (task.projectId) {
+          try {
+            const [[projectRow]] = await pool.query(
+              'SELECT title FROM projects WHERE id = ? LIMIT 1',
+              [Number(task.projectId)]
+            );
+            if (projectRow?.title) projectName = projectRow.title;
+          } catch {}
+        }
+
+        const companyIdentifier = creatorUser.company_domain || creatorUser.company_name || '';
+        const userLoginEmail = creatorUser.email || targetEmail;
+        const companyLoginUrl = `${clientBaseUrl}/login?company=${encodeURIComponent(companyIdentifier)}&email=${encodeURIComponent(userLoginEmail)}&returnUrl=%2Ftasks`;
+        const taskUrl = `${clientBaseUrl}/tasks?company=${encodeURIComponent(companyIdentifier)}`;
+        const formattedDueDate = (task.dueDate && String(task.dueDate).trim() && !isNaN(new Date(task.dueDate).getTime()))
+          ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : null;
+
+        await mailService.sendTaskUpdatedEmail({
+          recipientEmail: targetEmail,
+          userLoginEmail,
+          recipientName: creatorUser.username || 'Team Member',
+          taskTitle: task.title || 'Untitled Task',
+          updateSummary: 'Task created successfully',
+          taskDescription: task.description || '',
+          actorName: creatorUser.username || 'You',
+          companyName: creatorUser.company_name || 'Workspace Pro',
+          companyPrimaryColor: creatorUser.company_primary_color || '#0f766e',
+          status: task.status ? formatStatus(task.status) : 'To Do',
+          priority: task.priority || null,
+          dueDate: formattedDueDate,
+          category: task.category || null,
+          projectName,
+          taskUrl,
+          companyLoginUrl
+        }).catch((err) => console.error('[MailService] Task creation confirmation dispatch error:', err));
+      }
+    }
+  } catch (err) {
+    console.error('[MailService] Error fetching creator for task creation email:', err);
+  }
+}
+
 async function createTask(userId, input, companyId = null) {
   // Gracefully fallback to company's first project if none explicitly supplied
   if ((input.projectId == null || input.projectId === '') && companyId) {
@@ -137,10 +197,22 @@ async function createTask(userId, input, companyId = null) {
   validate(input);
   const createdTask = await taskRepository.create(userId, input, companyId);
 
-  if (createdTask && Array.isArray(createdTask.assigneeIds) && createdTask.assigneeIds.length > 0) {
+  // 1. Notify all assigned users (including if self-assigned)
+  const assigneeIds = Array.isArray(createdTask?.assigneeIds) ? createdTask.assigneeIds.map(Number) : [];
+  if (assigneeIds.length > 0) {
     await notifyAssignedUsers({
       task: createdTask,
-      assigneesToNotify: createdTask.assigneeIds,
+      assigneesToNotify: assigneeIds,
+      actorUserId: userId,
+      companyId
+    });
+  }
+
+  // 2. If creator was not assigned (or no assignees were selected), send confirmation email to the creator
+  const creatorIsAssignee = assigneeIds.includes(Number(userId));
+  if (!creatorIsAssignee) {
+    await notifyTaskCreator({
+      task: createdTask,
       actorUserId: userId,
       companyId
     });
