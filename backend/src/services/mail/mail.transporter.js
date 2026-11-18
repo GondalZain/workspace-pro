@@ -9,7 +9,7 @@ let transporter = null;
  */
 function getTransporter() {
   if (!transporter) {
-    const host = (smtp.host || 'smtp.resend.com').trim();
+    const host = (smtp.host || 'smtp.gmail.com').trim();
     const port = Number(smtp.port) || 465;
     const isSecure = String(smtp.secure) === 'true' || port === 465;
 
@@ -30,6 +30,10 @@ function getTransporter() {
         user: smtp.user.trim(),
         pass: smtp.pass.trim()
       };
+    }
+
+    if (host.includes('gmail.com') || (smtp.user && smtp.user.includes('@gmail.com'))) {
+      config.service = 'gmail';
     }
 
     transporter = nodemailer.createTransport(config);

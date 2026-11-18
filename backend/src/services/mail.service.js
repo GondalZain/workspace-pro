@@ -81,8 +81,31 @@ async function sendViaResendSmtp({ to, subject, text, html, from, replyTo }) {
 }
 
 /**
- * Resend Delivery Engine:
- * Sends transactional notifications using Resend API / SMTP.
+ * Sends email via Standard SMTP (Gmail, Hostinger, Outlook, etc.).
+ */
+async function sendViaStandardSmtp({ to, subject, text, html, from, replyTo }) {
+  const fromEmail = (smtp.fromEmail && smtp.fromEmail.includes('@'))
+    ? smtp.fromEmail.trim()
+    : (smtp.user && smtp.user.includes('@') ? smtp.user.trim() : 'no-reply@workspacepro.com');
+  const senderName = (smtp.fromName || 'Workspace Pro').replace(/["<>]/g, '').trim();
+  const sender = from || `"${senderName}" <${fromEmail}>`;
+
+  const mailClient = getTransporter();
+  const info = await mailClient.sendMail({
+    from: sender,
+    replyTo: replyTo || fromEmail,
+    to,
+    subject,
+    text,
+    html
+  });
+  console.log(`[MailService] Dispatched via Standard SMTP (${smtp.host || 'smtp'}:${smtp.port || 465}) to ${to}. MessageId: ${info.messageId}`);
+  return { success: true, messageId: info.messageId, deliveredVia: 'smtp' };
+}
+
+/**
+ * Universal Mail Delivery Engine:
+ * Supports Gmail App Password SMTP, custom Hostinger/cPanel SMTP, and Resend.
  */
 async function sendMail({ to, subject, text, html, from, replyTo }) {
   if (!to) {
@@ -93,8 +116,25 @@ async function sendMail({ to, subject, text, html, from, replyTo }) {
   const targetEmail = to.trim();
   const plainText = text || htmlToPlainText(html);
 
+  // Check if provider is Resend
+  const isResend = Boolean(
+    (smtp.host && smtp.host.includes('resend.com')) ||
+    (smtp.resendApiKey && String(smtp.resendApiKey).startsWith('re_')) ||
+    (smtp.pass && String(smtp.pass).startsWith('re_') && (!smtp.host || smtp.host.includes('resend')))
+  );
+
+  // If standard SMTP (e.g. Gmail App Password, Hostinger, Outlook), dispatch directly via SMTP
+  if (!isResend && smtp.host && smtp.user && smtp.pass) {
+    try {
+      return await sendViaStandardSmtp({ to: targetEmail, subject, text: plainText, html, from, replyTo });
+    } catch (smtpErr) {
+      console.error(`[MailService] Standard SMTP delivery failed to ${targetEmail}:`, smtpErr.message);
+      return { success: false, error: smtpErr.message };
+    }
+  }
+
   async function dispatchViaResend(recipient, mailSubject, mailText, mailHtml) {
-    const apiKey = smtp.resendApiKey || smtp.pass;
+    const apiKey = smtp.resendApiKey || (smtp.pass && String(smtp.pass).startsWith('re_') ? smtp.pass : '');
     if (apiKey) {
       try {
         return await sendViaResendApi({ to: recipient, subject: mailSubject, text: mailText, html: mailHtml, replyTo });

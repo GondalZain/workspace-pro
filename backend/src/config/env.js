@@ -27,13 +27,13 @@ module.exports = {
     host: process.env.SMTP_HOST || 'smtp.resend.com',
     port: Number(process.env.SMTP_PORT) || 465,
     secure: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465',
-    user: process.env.SMTP_USER || 'resend',
+    user: process.env.SMTP_USER || '',
     pass: process.env.SMTP_PASS || '',
     fromName: process.env.SMTP_FROM_NAME || 'Workspace Pro',
-    fromEmail: process.env.SMTP_FROM_EMAIL || 'onboarding@resend.dev',
+    fromEmail: process.env.SMTP_FROM_EMAIL || '',
     inboundEmail: process.env.RESEND_INBOUND_EMAIL || 'reply@entuepu.resend.app',
     adminNotificationEmail: process.env.ADMIN_NOTIFICATION_EMAIL || 'gondalzain717@gmail.com',
-    resendApiKey: process.env.RESEND_API_KEY || process.env.SMTP_PASS || '',
+    resendApiKey: process.env.RESEND_API_KEY || (process.env.SMTP_PASS && String(process.env.SMTP_PASS).startsWith('re_') ? process.env.SMTP_PASS : ''),
     resendWebhookSecret: process.env.RESEND_WEBHOOK_SECRET || ''
   },
   stripe: {
