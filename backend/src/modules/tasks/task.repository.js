@@ -15,7 +15,7 @@ const { pool } = require('../../config/database');
 
 // Directory path for persisted task attachments
 const TASK_UPLOADS_ROOT = path.join(__dirname, '../../../uploads/tasks');
-fs.mkdirSync(TASK_UPLOADS_ROOT, { recursive: true });
+try { fs.mkdirSync(TASK_UPLOADS_ROOT, { recursive: true }); } catch {}
 
 /**
  * ============================================================================
@@ -98,7 +98,7 @@ function persistAttachments(attachments, folderName) {
 
   const taskFolder = sanitizeFileName(folderName || `task-${Date.now()}`, `task-${Date.now()}`);
   const folderPath = path.join(TASK_UPLOADS_ROOT, taskFolder);
-  fs.mkdirSync(folderPath, { recursive: true });
+  try { fs.mkdirSync(folderPath, { recursive: true }); } catch {}
 
   return attachments.map((attachment, index) => {
     if (!attachment || typeof attachment !== 'object') return attachment;
@@ -117,7 +117,11 @@ function persistAttachments(attachments, folderName) {
     const filePath = path.join(folderPath, fileName);
 
     const buffer = match ? Buffer.from(match[2], 'base64') : Buffer.from(currentDataUrl, 'base64');
-    fs.writeFileSync(filePath, buffer);
+    try {
+      fs.writeFileSync(filePath, buffer);
+    } catch {
+      return attachment;
+    }
 
     return {
       ...attachment,

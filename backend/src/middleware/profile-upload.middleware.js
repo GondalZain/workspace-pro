@@ -3,7 +3,7 @@ const path = require('node:path');
 const multer = require('multer');
 
 const profileDirectory = path.join(__dirname, '../../uploads/profiles');
-fs.mkdirSync(profileDirectory, { recursive: true });
+try { fs.mkdirSync(profileDirectory, { recursive: true }); } catch {}
 
 const storage = multer.diskStorage({
   destination: profileDirectory,

@@ -4,7 +4,7 @@ const path = require('node:path');
 const { pool } = require('../../config/database');
 
 const PROJECT_UPLOADS_ROOT = path.join(__dirname, '../../../uploads/projects');
-fs.mkdirSync(PROJECT_UPLOADS_ROOT, { recursive: true });
+try { fs.mkdirSync(PROJECT_UPLOADS_ROOT, { recursive: true }); } catch {}
 
 function getExtensionFromMime(mimeType) {
   const map = {
@@ -28,24 +28,30 @@ function sanitizeFileName(name, fallback) {
 
 function persistProjectImage(imagePath) {
   if (!imagePath || typeof imagePath !== 'string') return null;
-  if (imagePath.startsWith('/uploads/')) return imagePath;
+  if (imagePath.startsWith('/uploads/') || /^https?:\/\//i.test(imagePath)) return imagePath;
   if (!imagePath.startsWith('data:')) return imagePath;
 
   const match = imagePath.match(/^data:([^;]+);base64,(.*)$/);
   if (!match) return imagePath;
 
-  const mimeType = match[1] || 'image/png';
-  const extension = getExtensionFromMime(mimeType);
-  const folderName = `project-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-  const folderPath = path.join(PROJECT_UPLOADS_ROOT, folderName);
-  fs.mkdirSync(folderPath, { recursive: true });
+  try {
+    const mimeType = match[1] || 'image/png';
+    const extension = getExtensionFromMime(mimeType);
+    const folderName = `project-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+    const folderPath = path.join(PROJECT_UPLOADS_ROOT, folderName);
+    fs.mkdirSync(folderPath, { recursive: true });
 
-  const fileName = `${sanitizeFileName('project-image', 'project-image')}-${Date.now()}${extension}`;
-  const filePath = path.join(folderPath, fileName);
-  const buffer = Buffer.from(match[2], 'base64');
-  fs.writeFileSync(filePath, buffer);
+    const fileName = `${sanitizeFileName('project-image', 'project-image')}-${Date.now()}${extension}`;
+    const filePath = path.join(folderPath, fileName);
+    const buffer = Buffer.from(match[2], 'base64');
+    fs.writeFileSync(filePath, buffer);
 
-  return `/uploads/projects/${folderName}/${fileName}`;
+    return `/uploads/projects/${folderName}/${fileName}`;
+  } catch (fsErr) {
+    // In serverless / read-only environments (e.g. Vercel), preserve the data URL directly without crashing
+    console.warn('[ProjectRepository] Serverless read-only filesystem detected, storing image directly:', fsErr.message);
+    return imagePath;
+  }
 }
 
 function parseCustomFields(value) {
@@ -127,7 +133,7 @@ async function create(userId, input = {}, companyId = null) {
   const defaultAssigneeId = input.defaultAssigneeId ? Number(input.defaultAssigneeId) : null;
   const formTemplateId = input.formTemplateId ? Number(input.formTemplateId) : null;
   const imagePath = persistProjectImage(input.imagePath || input.image || null);
-  const customFields = input.customFields && typeof input.customFields === 'object' ? JSON.stringify(input.customFields) : null;
+  const customFields = input.customFields ? (typeof input.customFields === 'string' ? input.customFields : JSON.stringify(input.customFields)) : null;
   const [result] = await pool.execute(
     'INSERT INTO projects (user_id, company_id, title, description, image_path, default_assignee_id, form_template_id, custom_fields, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [userId, companyId, title, description, imagePath || null, defaultAssigneeId, formTemplateId, customFields, new Date()]
