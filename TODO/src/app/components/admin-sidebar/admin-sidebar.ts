@@ -27,6 +27,5 @@ export class AdminSidebarComponent {
 
   protected logout(): void {
     this.auth.logout();
-    this.router.navigate(['/login']);
   }
 }

@@ -298,7 +298,13 @@ export class AuthService {
     return ROUTES.dashboardProjects;
   }
 
-  logout(): void {
+  logout(redirect = true): void {
+    const user = this.userSignal();
+    let companyTarget: string | null = null;
+    if (user && user.role !== 'super_admin' && user.company) {
+      companyTarget = user.company.domain || user.company.name;
+    }
+
     if (typeof window !== 'undefined') {
       // 1. Wipe tab-level sessionStorage
       sessionStorage.clear();
@@ -314,6 +320,14 @@ export class AuthService {
 
     this.userSignal.set(null);
     this.companyTheme.resetDefaultTheme();
+
+    if (redirect) {
+      if (companyTarget) {
+        this.router.navigate(['/login'], { queryParams: { company: companyTarget } });
+      } else {
+        this.router.navigateByUrl('/login');
+      }
+    }
   }
 
   applyUserTheme(user: User | null): void {

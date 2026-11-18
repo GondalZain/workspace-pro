@@ -112,6 +112,5 @@ export class HeaderComponent {
 
   protected logout(): void {
     this.auth.logout();
-    this.router.navigateByUrl('/login');
   }
 }

@@ -27,6 +27,5 @@ export class SuperAdminSidebarComponent {
 
   protected logout(): void {
     this.auth.logout();
-    this.router.navigateByUrl('/login');
   }
 }

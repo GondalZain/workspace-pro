@@ -36,7 +36,7 @@ select {
 
 input:focus,
 select:focus {
-  border-color: #0f766e;
+  border-color: var(--brand-primary, #0f766e);
 }
 
 .hint {
@@ -72,17 +72,17 @@ select:focus {
 
 .save-button {
   padding: 7px 16px;
-  background: #0f766e;
+  background: var(--brand-primary, #0f766e);
   border: none;
   border-radius: 5px;
-  color: #ffffff;
+  color: var(--brand-secondary, #ffffff);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
 }
 
 .save-button:hover {
-  background: #115e59;
+  background: var(--brand-primary-hover, color-mix(in srgb, var(--brand-primary, #0f766e) 85%, #000000));
 }
 
 .text-button {
