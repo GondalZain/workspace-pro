@@ -99,7 +99,7 @@ export class SuperAdminApprovalsPageComponent implements OnDestroy {
         this.isLoading.set(false);
         if (err.status === 401 || err.status === 403) {
           this.auth.logout();
-          this.router.navigate(ROUTES.login);
+          this.router.navigateByUrl('/login');
         }
       }
     });

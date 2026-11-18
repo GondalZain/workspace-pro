@@ -23,8 +23,8 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
         !request.url.includes('/auth/create-password')
       ) {
         const router = injector.get(Router);
-        auth.logout(isSuperAdminReq ? 'superadmin' : undefined);
-        router.navigate(isCustomDomainHost() ? ROUTES.login : ['/']);
+        auth.logout();
+        router.navigateByUrl('/login');
       }
       return throwError(() => error);
     })

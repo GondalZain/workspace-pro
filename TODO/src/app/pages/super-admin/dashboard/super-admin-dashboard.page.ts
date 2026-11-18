@@ -163,7 +163,7 @@ export class SuperAdminDashboardPageComponent implements OnDestroy {
         this.isLoading.set(false);
         if (err.status === 401 || err.status === 403) {
           this.auth.logout();
-          this.router.navigate(ROUTES.login);
+          this.router.navigateByUrl('/login');
         } else {
           this.errorMessage.set('Failed to connect to backend server. Make sure port 5000 is active.');
         }

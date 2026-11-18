@@ -112,7 +112,6 @@ export class HeaderComponent {
 
   protected logout(): void {
     this.auth.logout();
-    // user is computed from auth.userSignal
-    this.router.navigate(ROUTES.login);
+    this.router.navigateByUrl('/login');
   }
 }

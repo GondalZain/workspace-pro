@@ -298,22 +298,18 @@ export class AuthService {
     return ROUTES.dashboardProjects;
   }
 
-  logout(scopeOverride?: 'superadmin' | 'user'): void {
-    const scope = scopeOverride || this.getScope();
-    this.clearStoredSession(scope);
-
+  logout(): void {
     if (typeof window !== 'undefined') {
-      // Clear tab-isolated sessionStorage
+      // 1. Wipe tab-level sessionStorage
       sessionStorage.clear();
-      // Ensure current user session and legacy tokens are removed from localStorage
+
+      // 2. Wipe all user and superadmin tokens from persistent localStorage
       localStorage.removeItem(this.tokenKey);
       localStorage.removeItem(this.userKey);
       localStorage.removeItem(`${this.tokenKey}-user`);
       localStorage.removeItem(`${this.userKey}-user`);
-      if (scope === 'superadmin') {
-        localStorage.removeItem(`${this.tokenKey}-superadmin`);
-        localStorage.removeItem(`${this.userKey}-superadmin`);
-      }
+      localStorage.removeItem(`${this.tokenKey}-superadmin`);
+      localStorage.removeItem(`${this.userKey}-superadmin`);
     }
 
     this.userSignal.set(null);

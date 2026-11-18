@@ -45,6 +45,6 @@ export class SuperAdminHeaderComponent {
 
   protected logout(): void {
     this.auth.logout();
-    this.router.navigate(ROUTES.login);
+    this.router.navigateByUrl('/login');
   }
 }

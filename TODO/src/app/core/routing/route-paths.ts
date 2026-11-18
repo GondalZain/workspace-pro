@@ -122,7 +122,8 @@ export function pathToUrl(path: string): string {
 }
 
 export function pathToSegments(path: string): string[] {
-  return path.split('/').filter(Boolean);
+  const parts = path.split('/').filter(Boolean);
+  return parts.length ? ['/', ...parts] : ['/'];
 }
 
 export function projectDetailPath(slug: string): string {
