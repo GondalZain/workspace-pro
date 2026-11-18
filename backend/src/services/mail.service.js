@@ -304,15 +304,23 @@ async function sendTaskAssignedEmail(params) {
   const { buildTaskAssignedTemplate } = require('./mail/mail.templates');
   const { subject, html, text } = buildTaskAssignedTemplate(params);
 
+  const fromEmail = (smtp.fromEmail && smtp.fromEmail.includes('@'))
+    ? smtp.fromEmail.trim()
+    : (smtp.user && smtp.user.includes('@') ? smtp.user.trim() : 'no-reply@workspacepro.com');
+  const companyDisplayName = params.companyName ? params.companyName.replace(/["<>]/g, '').trim() : (smtp.fromName || 'Workspace Pro');
+  const customFrom = `"${companyDisplayName}" <${fromEmail}>`;
+
   console.log(`\n================== [EMAIL: TASK ASSIGNMENT] ==================`);
   console.log(`[MailService] Sending Task Assignment notice to: ${params.recipientEmail}`);
+  console.log(`[MailService] Sender: ${customFrom}`);
   console.log(`[MailService] Task: "${params.taskTitle}" | Assignee: ${params.recipientName}`);
 
   const result = await sendMail({
     to: params.recipientEmail,
     subject,
     text,
-    html
+    html,
+    from: customFrom
   });
 
   console.log(`[MailService] Task Assignment Email Result: ${result.success ? 'DISPATCHED' : 'FAILED'}`);
@@ -327,8 +335,15 @@ async function sendTaskUpdatedEmail(params) {
   const { buildTaskUpdatedTemplate } = require('./mail/mail.templates');
   const { subject, html, text } = buildTaskUpdatedTemplate(params);
 
+  const fromEmail = (smtp.fromEmail && smtp.fromEmail.includes('@'))
+    ? smtp.fromEmail.trim()
+    : (smtp.user && smtp.user.includes('@') ? smtp.user.trim() : 'no-reply@workspacepro.com');
+  const companyDisplayName = params.companyName ? params.companyName.replace(/["<>]/g, '').trim() : (smtp.fromName || 'Workspace Pro');
+  const customFrom = `"${companyDisplayName}" <${fromEmail}>`;
+
   console.log(`\n================== [EMAIL: TASK UPDATE] ==================`);
   console.log(`[MailService] Sending Task Update notice to: ${params.recipientEmail}`);
+  console.log(`[MailService] Sender: ${customFrom}`);
   console.log(`[MailService] Task: "${params.taskTitle}" | Involved Member: ${params.recipientName}`);
   console.log(`[MailService] Update: ${params.updateSummary}`);
 
@@ -336,7 +351,8 @@ async function sendTaskUpdatedEmail(params) {
     to: params.recipientEmail,
     subject,
     text,
-    html
+    html,
+    from: customFrom
   });
 
   console.log(`[MailService] Task Update Email Result: ${result.success ? 'DISPATCHED' : 'FAILED'}`);

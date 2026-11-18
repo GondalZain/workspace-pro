@@ -441,7 +441,6 @@ function buildTaskAssignedTemplate({
     ? companyPrimaryColor.trim()
     : '#0f766e';
   const effectiveLoginUrl = companyLoginUrl || taskUrl;
-  const subject = `Task Assigned: ${taskTitle} (${displayCompany})`;
 
   // Determine priority badge colors
   const normPriority = (priority || 'medium').toLowerCase();
@@ -461,6 +460,9 @@ function buildTaskAssignedTemplate({
     priorityIcon = '🟢';
     priorityLabel = 'Low';
   }
+
+  const subject = `[${displayCompany}] Task Assigned: ${taskTitle}`;
+  const preheader = `${actorName || 'A team member'} assigned you to "${taskTitle}" in ${displayCompany} • Priority: ${priorityLabel}${dueDate ? ' • Due ' + dueDate : ''}`;
 
   const cleanDescription = (taskDescription || '').trim();
 
@@ -571,7 +573,8 @@ function buildTaskAssignedTemplate({
     bodyContent,
     recipientEmail,
     brandColor,
-    brandName: displayCompany
+    brandName: displayCompany,
+    preheader
   });
 
   return { subject, html, text };
@@ -604,7 +607,8 @@ function buildTaskUpdatedTemplate({
     ? companyPrimaryColor.trim()
     : '#0f766e';
   const effectiveLoginUrl = companyLoginUrl || taskUrl;
-  const subject = `Task Updated: ${taskTitle} (${displayCompany})`;
+  const subject = `[${displayCompany}] Task Updated: ${taskTitle}`;
+  const preheader = `${actorName || 'A team member'} updated "${taskTitle}" in ${displayCompany}: ${updateSummary}`;
 
   // Determine priority badge colors
   const normPriority = (priority || 'medium').toLowerCase();
@@ -748,7 +752,8 @@ function buildTaskUpdatedTemplate({
     bodyContent,
     recipientEmail,
     brandColor,
-    brandName: displayCompany
+    brandName: displayCompany,
+    preheader
   });
 
   return { subject, html, text };

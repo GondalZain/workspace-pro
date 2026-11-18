@@ -52,7 +52,7 @@ async function notifyAssignedUsers({ task, assigneesToNotify, actorUserId, compa
 
   const taskTitle = task.title ? `"${task.title}"` : 'a task';
   const mailService = require('../../services/mail.service');
-  const clientBaseUrl = (process.env.APP_CLIENT_URL || 'https://workspace-pro-cw2a.vercel.app').replace(/\/$/, '');
+  const clientBaseUrl = (process.env.APP_CLIENT_URL || 'https://workspace-pro-ten.vercel.app').replace(/\/$/, '');
 
   for (const recipientId of assigneesToNotify) {
     // 1. In-app database notification
@@ -118,7 +118,7 @@ async function notifyAssignedUsers({ task, assigneesToNotify, actorUserId, compa
 async function notifyTaskCreator({ task, actorUserId, companyId }) {
   if (!task || !actorUserId) return;
   const mailService = require('../../services/mail.service');
-  const clientBaseUrl = (process.env.APP_CLIENT_URL || 'https://workspace-pro-cw2a.vercel.app').replace(/\/$/, '');
+  const clientBaseUrl = (process.env.APP_CLIENT_URL || 'https://workspace-pro-ten.vercel.app').replace(/\/$/, '');
 
   try {
     const [[creatorUser]] = await pool.query(
@@ -349,7 +349,7 @@ async function notifyTaskUpdate({ task, existingTask, actorUserId, companyId, cu
   if (recipients.size === 0) return;
 
   const mailService = require('../../services/mail.service');
-  const clientBaseUrl = (process.env.APP_CLIENT_URL || 'https://workspace-pro-cw2a.vercel.app').replace(/\/$/, '');
+  const clientBaseUrl = (process.env.APP_CLIENT_URL || 'https://workspace-pro-ten.vercel.app').replace(/\/$/, '');
   const taskTitle = task.title ? `"${task.title}"` : 'a task';
 
   for (const recipientId of recipients) {
