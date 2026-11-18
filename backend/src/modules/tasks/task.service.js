@@ -92,7 +92,7 @@ async function notifyAssignedUsers({ task, assigneesToNotify, actorUserId, compa
           const userLoginEmail = recipientUser.email || targetEmail;
           const companyLoginUrl = `${clientBaseUrl}/login?company=${encodeURIComponent(companyIdentifier)}&email=${encodeURIComponent(userLoginEmail)}&returnUrl=%2Ftasks`;
           const taskUrl = `${clientBaseUrl}/tasks?company=${encodeURIComponent(companyIdentifier)}`;
-          const formattedDueDate = task.dueDate
+          const formattedDueDate = (task.dueDate && String(task.dueDate).trim() && !isNaN(new Date(task.dueDate).getTime()))
             ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
             : null;
 
@@ -121,6 +121,19 @@ async function notifyAssignedUsers({ task, assigneesToNotify, actorUserId, compa
 }
 
 async function createTask(userId, input, companyId = null) {
+  // Gracefully fallback to company's first project if none explicitly supplied
+  if ((input.projectId == null || input.projectId === '') && companyId) {
+    try {
+      const [[firstProject]] = await pool.query(
+        'SELECT id FROM projects WHERE company_id = ? ORDER BY id ASC LIMIT 1',
+        [Number(companyId)]
+      );
+      if (firstProject?.id) {
+        input.projectId = firstProject.id;
+      }
+    } catch {}
+  }
+
   validate(input);
   const createdTask = await taskRepository.create(userId, input, companyId);
 
@@ -153,7 +166,9 @@ async function notifyTaskUpdate({ task, existingTask, actorUserId, companyId, cu
     changeParts.push(`Priority changed from "${formatStatus(existingTask.priority)}" to "${formatStatus(task.priority)}"`);
   }
   if (existingTask && existingTask.dueDate !== task.dueDate) {
-    const formattedDue = task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No due date';
+    const formattedDue = (task.dueDate && String(task.dueDate).trim() && !isNaN(new Date(task.dueDate).getTime()))
+      ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      : 'No due date';
     changeParts.push(`Due date updated to ${formattedDue}`);
   }
   if (existingTask && existingTask.title && task.title && existingTask.title !== task.title) {
@@ -298,7 +313,7 @@ async function notifyTaskUpdate({ task, existingTask, actorUserId, companyId, cu
           const userLoginEmail = recipientUser.email || targetEmail;
           const companyLoginUrl = `${clientBaseUrl}/login?company=${encodeURIComponent(companyIdentifier)}&email=${encodeURIComponent(userLoginEmail)}&returnUrl=%2Ftasks`;
           const taskUrl = `${clientBaseUrl}/tasks?company=${encodeURIComponent(companyIdentifier)}`;
-          const formattedDueDate = task.dueDate
+          const formattedDueDate = (task.dueDate && String(task.dueDate).trim() && !isNaN(new Date(task.dueDate).getTime()))
             ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
             : null;
 

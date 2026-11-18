@@ -177,10 +177,18 @@ export class TaskEditorComponent implements OnInit {
       }
 
       if (!currentTask) {
+        if (!this.form.controls.projectId.value) {
+          const fallbackProjectId = defaultProjectId
+            ?? this.projectStore.activeProjectId()
+            ?? (this.projectOptions().length === 1 ? this.projectOptions()[0].id : null);
+          if (fallbackProjectId) {
+            this.form.controls.projectId.setValue(fallbackProjectId);
+          }
+        }
         const activeProjectId = this.form.controls.projectId.value || defaultProjectId;
         if (activeProjectId) {
           const project = this.projectOptions().find((p) => p.id === Number(activeProjectId));
-          if (project?.defaultAssigneeId) {
+          if (project?.defaultAssigneeId && (!this.form.controls.assigneeIds.value || this.form.controls.assigneeIds.value.length === 0)) {
             this.form.controls.assigneeIds.setValue([project.defaultAssigneeId]);
           }
         }

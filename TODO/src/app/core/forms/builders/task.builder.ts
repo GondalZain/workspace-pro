@@ -38,7 +38,7 @@ export function createTaskEditorForm(fb: NonNullableFormBuilder) {
     status: fb.control<TaskStatus>('pending'),
     category: fb.control('Personal'),
     tags: fb.control(''),
-    projectId: fb.control<number | null>(null, { validators: [appValidators.requiredSelect] }),
+    projectId: fb.control<number | null>(null),
     assigneeIds: fb.control<number[]>([]),
     formTemplateId: fb.control<number | null>(null),
   });

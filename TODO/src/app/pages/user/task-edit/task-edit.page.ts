@@ -27,6 +27,9 @@ export class TaskEditPage {
   );
 
   constructor() {
+    if (this.isNewTask()) {
+      this.taskStore.setActiveTaskId(null);
+    }
     if (this.taskStore.tasks().length === 0) {
       this.taskStore.refresh();
     }
@@ -99,6 +102,11 @@ export class TaskEditPage {
   }
 
   protected onSaved(taskData: NewTask): void {
+    if (this.isNewTask()) {
+      this.taskStore.add(taskData, () => this.navigateBackToOrigin());
+      return;
+    }
+
     const current = this.task();
     const targetId = current?.id ?? this.taskStore.activeTaskId();
 

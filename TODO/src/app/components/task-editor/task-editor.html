@@ -201,9 +201,9 @@
       <div class="card">
         <h2 class="card-heading">Project &amp; Status</h2>
         <div class="form-group">
-          <label for="task-project">Project <span class="required-star">*</span></label>
+          <label for="task-project">Project</label>
           <select id="task-project" class="form-select" formControlName="projectId" (change)="onProjectChange()">
-            <option [ngValue]="null" disabled>Select a project</option>
+            <option [ngValue]="null">Select a project (optional)</option>
             @for (project of projectOptions(); track project.id) {
             <option [ngValue]="project.id">{{ project.title }}</option>
             }

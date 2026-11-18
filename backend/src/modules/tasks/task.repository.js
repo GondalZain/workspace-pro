@@ -518,7 +518,21 @@ async function syncTimesheetForTask(task) {
  * @returns {Promise<Object>} Created task object
  */
 async function create(userId, input, companyId = null) {
-  const resolvedStage = await resolveStatusStage(companyId, input.status, input.statusId);
+  let effectiveCompanyId = companyId;
+  if (!effectiveCompanyId && input.projectId) {
+    try {
+      const [[pRow]] = await pool.query('SELECT company_id FROM projects WHERE id = ? LIMIT 1', [Number(input.projectId)]);
+      if (pRow?.company_id) effectiveCompanyId = pRow.company_id;
+    } catch {}
+  }
+  if (!effectiveCompanyId && userId) {
+    try {
+      const [[uRow]] = await pool.query('SELECT company_id FROM users WHERE id = ? LIMIT 1', [Number(userId)]);
+      if (uRow?.company_id) effectiveCompanyId = uRow.company_id;
+    } catch {}
+  }
+
+  const resolvedStage = await resolveStatusStage(effectiveCompanyId, input.status, input.statusId);
   const folderName = `user-${userId}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
   const normalizedInput = { ...input, attachments: persistAttachments(input.attachments, folderName) };
   const values = taskValues(normalizedInput, resolvedStage, userId);
@@ -530,9 +544,9 @@ async function create(userId, input, companyId = null) {
 
   const [result] = await pool.execute(
     'INSERT INTO tasks (user_id, company_id, project_id, form_template_id, title, description, completed, status, status_id, priority, due_date, due_time, estimated_minutes, spent_minutes, category, tags, attachments, assignee_ids, custom_fields, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [values[0], companyId, values[1], formTemplateId, values[2], values[3], values[4], statusName, values[5], values[6], values[7], values[8], values[9], values[10], values[11], values[12], values[13], values[14], input.customFields && typeof input.customFields === 'object' ? JSON.stringify(input.customFields) : null, new Date()]
+    [values[0], effectiveCompanyId, values[1], formTemplateId, values[2], values[3], values[4], statusName, values[5], values[6], values[7], values[8], values[9], values[10], values[11], values[12], values[13], values[14], input.customFields && typeof input.customFields === 'object' ? JSON.stringify(input.customFields) : null, new Date()]
   );
-  const createdTask = await findById(userId, result.insertId, true, companyId, true);
+  const createdTask = await findById(userId, result.insertId, true, effectiveCompanyId, true);
   if (createdTask) await syncTimesheetForTask(createdTask);
   return createdTask;
 }

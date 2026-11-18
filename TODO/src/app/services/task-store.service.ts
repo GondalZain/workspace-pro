@@ -145,7 +145,7 @@ export class TaskStoreService {
     const newTask = typeof task === 'string' ? this.createTask(task) : task;
     this.api.create(newTask).subscribe({
       next: (createdTask) => {
-        this.tasks.update((tasks) => [...tasks, createdTask]);
+        this.tasks.update((tasks) => [createdTask, ...tasks.filter((t) => t.id !== createdTask.id)]);
         this.notificationService.refresh(true);
         onCreated?.(createdTask);
       },
