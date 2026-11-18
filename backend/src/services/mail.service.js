@@ -320,8 +320,33 @@ async function sendTaskAssignedEmail(params) {
   return result;
 }
 
+/**
+ * Send Task Update Email to involved users (assignees, creator)
+ */
+async function sendTaskUpdatedEmail(params) {
+  const { buildTaskUpdatedTemplate } = require('./mail/mail.templates');
+  const { subject, html, text } = buildTaskUpdatedTemplate(params);
+
+  console.log(`\n================== [EMAIL: TASK UPDATE] ==================`);
+  console.log(`[MailService] Sending Task Update notice to: ${params.recipientEmail}`);
+  console.log(`[MailService] Task: "${params.taskTitle}" | Involved Member: ${params.recipientName}`);
+  console.log(`[MailService] Update: ${params.updateSummary}`);
+
+  const result = await sendMail({
+    to: params.recipientEmail,
+    subject,
+    text,
+    html
+  });
+
+  console.log(`[MailService] Task Update Email Result: ${result.success ? 'DISPATCHED' : 'FAILED'}`);
+  console.log(`==========================================================\n`);
+  return result;
+}
+
 module.exports = {
   sendTaskAssignedEmail,
+  sendTaskUpdatedEmail,
   sendMarketingInvitationEmail,
   sendMail,
   sendWorkspaceRegistrationEmail,

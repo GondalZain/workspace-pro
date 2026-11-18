@@ -141,19 +141,65 @@ function formatStatus(status) {
   return String(status).replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-async function notifyStatusChange({ task, oldStatus, newStatus, actorUserId, companyId }) {
-  if (!task || !newStatus || oldStatus === newStatus) return;
+async function notifyTaskUpdate({ task, existingTask, actorUserId, companyId, customUpdateMessage = null }) {
+  if (!task) return;
 
-  const [[actorRow]] = await pool.query(
-    'SELECT username FROM users WHERE id = ?',
-    [Number(actorUserId)]
-  ).catch(() => [[null]]);
+  // Determine what changed
+  const changeParts = [];
+  if (existingTask && existingTask.status && task.status && existingTask.status !== task.status) {
+    changeParts.push(`Status changed from "${formatStatus(existingTask.status)}" to "${formatStatus(task.status)}"`);
+  }
+  if (existingTask && existingTask.priority && task.priority && existingTask.priority !== task.priority) {
+    changeParts.push(`Priority changed from "${formatStatus(existingTask.priority)}" to "${formatStatus(task.priority)}"`);
+  }
+  if (existingTask && existingTask.dueDate !== task.dueDate) {
+    const formattedDue = task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No due date';
+    changeParts.push(`Due date updated to ${formattedDue}`);
+  }
+  if (existingTask && existingTask.title && task.title && existingTask.title !== task.title) {
+    changeParts.push(`Title updated to "${task.title}"`);
+  }
+  if (customUpdateMessage) {
+    changeParts.push(customUpdateMessage);
+  }
+  if (changeParts.length === 0) {
+    changeParts.push('Task details were updated');
+  }
 
-  const actorName = actorRow?.username || 'A team member';
-  const taskTitle = task.title ? `"${task.title}"` : 'a task';
+  const updateSummary = changeParts.join(' • ');
+
+  // Retrieve actor details
+  let actorName = 'A team member';
+  try {
+    const [[actorRow]] = await pool.query(
+      `SELECT u.username, r.name AS role_name
+       FROM users u
+       LEFT JOIN roles r ON r.id = u.role_id
+       WHERE u.id = ? LIMIT 1`,
+      [Number(actorUserId)]
+    );
+    if (actorRow?.username) {
+      actorName = actorRow.role_name
+        ? `${actorRow.username} (${actorRow.role_name})`
+        : actorRow.username;
+    }
+  } catch {}
+
+  // Retrieve project name if associated
+  let projectName = null;
+  if (task.projectId) {
+    try {
+      const [[projectRow]] = await pool.query(
+        'SELECT title FROM projects WHERE id = ? LIMIT 1',
+        [Number(task.projectId)]
+      );
+      if (projectRow?.title) projectName = projectRow.title;
+    } catch {}
+  }
+
   const recipients = new Set();
 
-  // 1. Task Assignees
+  // 1. Task Assignees (except actor)
   if (Array.isArray(task.assigneeIds)) {
     task.assigneeIds.forEach((id) => {
       if (id && Number(id) !== Number(actorUserId)) {
@@ -162,7 +208,7 @@ async function notifyStatusChange({ task, oldStatus, newStatus, actorUserId, com
     });
   }
 
-  // 2. Task Creator
+  // 2. Task Creator (except actor)
   if (task.userId && Number(task.userId) !== Number(actorUserId)) {
     recipients.add(Number(task.userId));
   }
@@ -213,19 +259,72 @@ async function notifyStatusChange({ task, oldStatus, newStatus, actorUserId, com
     }
   }
 
-  const oldStatusLabel = formatStatus(oldStatus);
-  const newStatusLabel = formatStatus(newStatus);
+  if (recipients.size === 0) return;
+
+  const mailService = require('../../services/mail.service');
+  const clientBaseUrl = (process.env.APP_CLIENT_URL || 'https://workspace-pro-cw2a.vercel.app').replace(/\/$/, '');
+  const taskTitle = task.title ? `"${task.title}"` : 'a task';
 
   for (const recipientId of recipients) {
+    // 1. In-app database notification
     await notificationsRepository.createNotification({
       companyId: task.companyId || companyId || null,
       recipientUserId: recipientId,
       actorUserId: Number(actorUserId),
-      type: 'status_change',
-      title: `${actorName} changed status of ${taskTitle}`,
-      message: `Status updated from "${oldStatusLabel}" to "${newStatusLabel}"`,
+      type: 'task_update',
+      title: `${actorName} updated ${taskTitle}`,
+      message: updateSummary,
       taskId: task.id
-    }).catch((err) => console.error('Failed to create status change notification:', err));
+    }).catch((err) => console.error('Failed to create task update notification:', err));
+
+    // 2. Email alert to involved user's original notification email
+    try {
+      const [[recipientUser]] = await pool.query(
+        `SELECT u.id, u.username, u.email, u.original_email,
+                c.name AS company_name, c.primary_color AS company_primary_color, c.domain AS company_domain
+         FROM users u
+         LEFT JOIN companies c ON c.id = u.company_id
+         WHERE u.id = ? LIMIT 1`,
+        [Number(recipientId)]
+      ).catch(() => [[null]]);
+
+      if (recipientUser) {
+        const targetEmail = (recipientUser.original_email && recipientUser.original_email.trim())
+          ? recipientUser.original_email.trim()
+          : (recipientUser.email && recipientUser.email.trim() ? recipientUser.email.trim() : null);
+
+        if (targetEmail && targetEmail.includes('@')) {
+          const companyIdentifier = recipientUser.company_domain || recipientUser.company_name || '';
+          const userLoginEmail = recipientUser.email || targetEmail;
+          const companyLoginUrl = `${clientBaseUrl}/login?company=${encodeURIComponent(companyIdentifier)}&email=${encodeURIComponent(userLoginEmail)}&returnUrl=%2Ftasks`;
+          const taskUrl = `${clientBaseUrl}/tasks?company=${encodeURIComponent(companyIdentifier)}`;
+          const formattedDueDate = task.dueDate
+            ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : null;
+
+          await mailService.sendTaskUpdatedEmail({
+            recipientEmail: targetEmail,
+            userLoginEmail,
+            recipientName: recipientUser.username || 'Team Member',
+            taskTitle: task.title || 'Untitled Task',
+            updateSummary,
+            taskDescription: task.description || '',
+            actorName,
+            companyName: recipientUser.company_name || 'Workspace Pro',
+            companyPrimaryColor: recipientUser.company_primary_color || '#0f766e',
+            status: task.status ? formatStatus(task.status) : 'Updated',
+            priority: task.priority || null,
+            dueDate: formattedDueDate,
+            category: task.category || null,
+            projectName,
+            taskUrl,
+            companyLoginUrl
+          }).catch((err) => console.error('[MailService] Task update email dispatch error:', err));
+        }
+      }
+    } catch (mailErr) {
+      console.error('[MailService] Error fetching recipient for update email:', mailErr);
+    }
   }
 }
 
@@ -235,7 +334,7 @@ async function updateTask(userId, id, input, isAdmin = false, companyId = null, 
   const updatedTask = await taskRepository.update(userId, id, input, isAdmin, companyId, isSuperAdmin);
 
   if (updatedTask) {
-    // Notify newly added assignees
+    // 1. Notify newly added assignees
     if (Array.isArray(updatedTask.assigneeIds)) {
       const existingIds = new Set((existing?.assigneeIds || []).map((aid) => Number(aid)));
       const newAssignees = updatedTask.assigneeIds.filter((aid) => !existingIds.has(Number(aid)));
@@ -250,16 +349,13 @@ async function updateTask(userId, id, input, isAdmin = false, companyId = null, 
       }
     }
 
-    // Notify involved & mentioned users if status changed
-    if (existing && updatedTask.status && existing.status !== updatedTask.status) {
-      await notifyStatusChange({
-        task: updatedTask,
-        oldStatus: existing.status,
-        newStatus: updatedTask.status,
-        actorUserId: userId,
-        companyId
-      });
-    }
+    // 2. Notify all involved users (assignees, creator, mentioned users) about the update
+    await notifyTaskUpdate({
+      task: updatedTask,
+      existingTask: existing,
+      actorUserId: userId,
+      companyId
+    });
   }
 
   return updatedTask;
@@ -270,12 +366,12 @@ async function toggleTask(userId, id, isAdmin = false, companyId = null, isSuper
   const toggledTask = await taskRepository.toggle(userId, id, isAdmin, companyId, isSuperAdmin);
 
   if (existing && toggledTask && existing.status !== toggledTask.status) {
-    await notifyStatusChange({
+    await notifyTaskUpdate({
       task: toggledTask,
-      oldStatus: existing.status,
-      newStatus: toggledTask.status,
+      existingTask: existing,
       actorUserId: userId,
-      companyId
+      companyId,
+      customUpdateMessage: `Task status toggled to "${formatStatus(toggledTask.status)}"`
     });
   }
 

@@ -577,8 +577,186 @@ function buildTaskAssignedTemplate({
   return { subject, html, text };
 }
 
+/**
+ * 5. Task Updated Alert Template
+ * Sent to involved users (assignees, creator) when someone updates a task.
+ */
+function buildTaskUpdatedTemplate({
+  recipientEmail,
+  userLoginEmail,
+  recipientName,
+  taskTitle,
+  updateSummary,
+  taskDescription,
+  actorName,
+  companyName,
+  companyPrimaryColor,
+  status,
+  priority,
+  dueDate,
+  category,
+  projectName,
+  taskUrl,
+  companyLoginUrl
+}) {
+  const displayCompany = formatSafeCompanyName(companyName || 'Workspace Pro');
+  const brandColor = companyPrimaryColor && /^#[0-9a-f]{3,8}$/i.test(companyPrimaryColor.trim())
+    ? companyPrimaryColor.trim()
+    : '#0f766e';
+  const effectiveLoginUrl = companyLoginUrl || taskUrl;
+  const subject = `Task Updated: ${taskTitle} (${displayCompany})`;
+
+  // Determine priority badge colors
+  const normPriority = (priority || 'medium').toLowerCase();
+  let priorityBg = '#fef3c7';
+  let priorityColor = '#92400e';
+  let priorityIcon = '🟡';
+  let priorityLabel = 'Medium';
+
+  if (normPriority === 'urgent' || normPriority === 'high') {
+    priorityBg = '#fee2e2';
+    priorityColor = '#991b1b';
+    priorityIcon = '🔴';
+    priorityLabel = normPriority === 'urgent' ? 'Urgent' : 'High';
+  } else if (normPriority === 'low') {
+    priorityBg = '#dcfce7';
+    priorityColor = '#166534';
+    priorityIcon = '🟢';
+    priorityLabel = 'Low';
+  }
+
+  const cleanDescription = (taskDescription || '').trim();
+
+  const bodyContent = `
+    <p style="margin: 0 0 16px 0; color: #1e293b; font-size: 16px;">
+      Hi <strong>${recipientName || 'there'}</strong>,
+    </p>
+
+    <p style="margin: 0 0 16px 0; color: #475569; font-size: 15px; line-height: 1.6;">
+      <strong>${actorName || 'A team member'}</strong> updated a task you are involved with in <strong>${displayCompany}</strong>.
+    </p>
+
+    <!-- Update Summary Banner -->
+    <div style="background-color: #f0fdfa; border: 1px solid #ccfbf1; border-left: 4px solid ${brandColor}; border-radius: 8px; padding: 14px 16px; margin: 18px 0;">
+      <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: ${brandColor}; margin-bottom: 4px;">
+        Update Summary
+      </div>
+      <div style="font-size: 14px; font-weight: 600; color: #0f172a;">
+        ${updateSummary || 'Task details were updated'}
+      </div>
+    </div>
+
+    <!-- Task Card -->
+    <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px 22px; margin: 20px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
+      
+      <!-- Task Title -->
+      <div style="font-size: 17px; font-weight: 700; color: #0f172a; margin-bottom: 12px; line-height: 1.4;">
+        ${taskTitle}
+      </div>
+
+      <!-- Metadata Badges -->
+      <div style="margin-bottom: 14px;">
+        ${status ? `
+          <span style="display: inline-block; background-color: #f1f5f9; color: #334155; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; margin-right: 8px;">
+            Status: ${status}
+          </span>
+        ` : ''}
+        <span style="display: inline-block; background-color: ${priorityBg}; color: ${priorityColor}; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 8px;">
+          ${priorityIcon} ${priorityLabel}
+        </span>
+        ${projectName ? `
+          <span style="display: inline-block; background-color: #f1f5f9; color: #334155; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; margin-right: 8px;">
+            📁 ${projectName}
+          </span>
+        ` : ''}
+        ${category ? `
+          <span style="display: inline-block; background-color: #f1f5f9; color: #475569; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 9999px;">
+            🏷️ ${category}
+          </span>
+        ` : ''}
+      </div>
+
+      <!-- Task Details -->
+      <div style="font-size: 14px; line-height: 1.8; color: #334155; padding-top: 12px; border-top: 1px dashed #e2e8f0;">
+        <div><strong>👤 Updated by:</strong> ${actorName || 'Team Admin'}</div>
+        ${dueDate ? `<div><strong>📅 Due Date:</strong> <span style="color: #0f172a; font-weight: 600;">${dueDate}</span></div>` : ''}
+        <div><strong>🏢 Workspace:</strong> ${displayCompany}</div>
+      </div>
+
+      <!-- Description Section -->
+      ${cleanDescription ? `
+        <div style="margin-top: 14px; padding: 12px 14px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 6px;">
+            Current Description
+          </div>
+          <div style="font-size: 13px; color: #334155; line-height: 1.6; white-space: pre-wrap;">${cleanDescription}</div>
+        </div>
+      ` : ''}
+    </div>
+
+    <!-- Action Button (CTA) -->
+    <div style="text-align: center; margin: 26px 0 16px 0;">
+      <a href="${taskUrl}" style="display: inline-block; background-color: ${brandColor}; color: #ffffff; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 28px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        View Updated Task &rarr;
+      </a>
+    </div>
+
+    <!-- Direct Company Portal Login Card -->
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; margin: 18px 0; text-align: center;">
+      <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">
+        Need to sign in first? Open your dedicated <strong>${displayCompany}</strong> login portal:
+      </div>
+      <div>
+        <a href="${effectiveLoginUrl}" style="display: inline-block; background-color: #ffffff; color: ${brandColor}; border: 1.5px solid ${brandColor}; font-size: 13px; font-weight: 600; text-decoration: none; padding: 7px 18px; border-radius: 6px;">
+          Sign In to ${displayCompany} &rarr;
+        </a>
+      </div>
+      <div style="font-size: 11px; color: #94a3b8; word-break: break-all; margin-top: 8px;">
+        Portal Link: <a href="${effectiveLoginUrl}" style="color: ${brandColor};">${effectiveLoginUrl}</a>
+      </div>
+    </div>
+
+    <p style="margin: 22px 0 0 0; color: #334155; font-size: 14px;">
+      Warm regards,<br />
+      <strong>${displayCompany} Team</strong>
+    </p>
+  `;
+
+  const text = [
+    `Hi ${recipientName || 'there'},`,
+    '',
+    `${actorName || 'A team member'} updated a task you are involved with in ${displayCompany}: "${taskTitle}".`,
+    '',
+    `Update: ${updateSummary || 'Task details updated'}`,
+    status ? `Status: ${status}` : '',
+    `Priority: ${priorityLabel}`,
+    projectName ? `Project: ${projectName}` : '',
+    dueDate ? `Due Date: ${dueDate}` : '',
+    category ? `Category: ${category}` : '',
+    cleanDescription ? `\nDescription:\n${cleanDescription}` : '',
+    '',
+    `Open Task: ${taskUrl || ''}`,
+    `Company Portal: ${effectiveLoginUrl}`,
+    '',
+    `Warm regards,`,
+    `${displayCompany} Team`
+  ].filter(Boolean).join('\n');
+
+  const html = wrapFormalEmailTemplate({
+    headerTitle: 'Task Update Notice',
+    headerSubtitle: `Notification for ${recipientName || 'Team Member'} (${recipientEmail})`,
+    bodyContent,
+    recipientEmail,
+    brandColor,
+    brandName: displayCompany
+  });
+
+  return { subject, html, text };
+}
+
 module.exports = {
   buildTaskAssignedTemplate,
+  buildTaskUpdatedTemplate,
   buildMarketingInvitationTemplate,
   buildRegistrationTemplate,
   buildAdminNewRegistrationNoticeTemplate,
