@@ -37,31 +37,20 @@ export const guestGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  // If user is already logged in:
-  if (hasSession()) {
-    return router.createUrlTree(auth.getHomeRoute(auth.getUser()));
-  }
-
   // If on ANY Company domain / subdomain or Super Admin domain:
-  // Default root page ('/') redirects to the Login page
   if (isCustomDomainHost()) {
+    if (hasSession()) {
+      return router.createUrlTree(auth.getHomeRoute(auth.getUser()));
+    }
     return router.createUrlTree(ROUTES.login);
   }
 
-  // Bare root platform (default localhost or root site): allow landing page
+  // Bare root platform (default localhost or root cloud site): allow landing page
   return true;
 };
 
 export const loginGuard: CanActivateFn = () => {
-  const auth = inject(AuthService);
-  const router = inject(Router);
-
-  // If already logged in, redirect away from login page to their home workspace
-  if (hasSession()) {
-    return router.createUrlTree(auth.getHomeRoute(auth.getUser()));
-  }
-
-  // Allow visiting the login portal on root domain, cloud platform, and tenant subdomains
+  // Always permit opening the login portal directly so users can switch accounts or view login cleanly
   return true;
 };
 

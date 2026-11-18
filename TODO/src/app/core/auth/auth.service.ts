@@ -55,6 +55,7 @@ export class AuthService {
   }
 
   constructor() {
+    this.migrateLegacyStorage();
     this.applyUserTheme(this.getUser());
     if (this.getToken()) {
       this.refreshCurrentUser().subscribe({
@@ -72,6 +73,31 @@ export class AuthService {
         }
       });
     }
+  }
+
+  private migrateLegacyStorage(): void {
+    if (typeof window === 'undefined') return;
+    try {
+      const legacyToken = localStorage.getItem(this.tokenKey);
+      const legacyUserRaw = localStorage.getItem(this.userKey);
+      if (legacyToken && legacyUserRaw) {
+        const user = JSON.parse(legacyUserRaw) as User;
+        const scope = user.role === 'super_admin' ? 'superadmin' : 'user';
+        const scopedTokenKey = `${this.tokenKey}-${scope}`;
+        const scopedUserKey = `${this.userKey}-${scope}`;
+        if (!localStorage.getItem(scopedTokenKey)) {
+          localStorage.setItem(scopedTokenKey, legacyToken);
+        }
+        if (!localStorage.getItem(scopedUserKey)) {
+          localStorage.setItem(scopedUserKey, legacyUserRaw);
+        }
+      }
+      // Always delete the un-scoped legacy keys so they never cross-contaminate sessions
+      localStorage.removeItem(this.tokenKey);
+      localStorage.removeItem(this.userKey);
+      sessionStorage.removeItem(this.tokenKey);
+      sessionStorage.removeItem(this.userKey);
+    } catch {}
   }
 
 
@@ -157,8 +183,8 @@ export class AuthService {
     const localVal = localStorage.getItem(scopedKey);
     if (localVal) return localVal;
 
-    // 3. Fallback to generic un-scoped key
-    return sessionStorage.getItem(baseKey) || localStorage.getItem(baseKey);
+    // STRICT ISOLATION: Never fall back to generic un-scoped keys or other scopes
+    return null;
   }
 
   private writeStorageItem(baseKey: string, value: string, scope?: 'superadmin' | 'user'): void {
@@ -167,10 +193,6 @@ export class AuthService {
 
     sessionStorage.setItem(scopedKey, value);
     localStorage.setItem(scopedKey, value);
-
-    // Keep generic key in sync for backwards-compatibility
-    sessionStorage.setItem(baseKey, value);
-    localStorage.setItem(baseKey, value);
   }
 
   private removeStorageItem(baseKey: string, scope?: 'superadmin' | 'user'): void {
@@ -179,6 +201,8 @@ export class AuthService {
 
     sessionStorage.removeItem(scopedKey);
     localStorage.removeItem(scopedKey);
+    sessionStorage.removeItem(baseKey);
+    localStorage.removeItem(baseKey);
   }
 
   saveSession(response: LoginResponse | User): void {
@@ -277,6 +301,21 @@ export class AuthService {
   logout(scopeOverride?: 'superadmin' | 'user'): void {
     const scope = scopeOverride || this.getScope();
     this.clearStoredSession(scope);
+
+    if (typeof window !== 'undefined') {
+      // Clear tab-isolated sessionStorage
+      sessionStorage.clear();
+      // Ensure current user session and legacy tokens are removed from localStorage
+      localStorage.removeItem(this.tokenKey);
+      localStorage.removeItem(this.userKey);
+      localStorage.removeItem(`${this.tokenKey}-user`);
+      localStorage.removeItem(`${this.userKey}-user`);
+      if (scope === 'superadmin') {
+        localStorage.removeItem(`${this.tokenKey}-superadmin`);
+        localStorage.removeItem(`${this.userKey}-superadmin`);
+      }
+    }
+
     this.userSignal.set(null);
     this.companyTheme.resetDefaultTheme();
   }
