@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { Component, computed, effect, inject, input, output, signal, OnInit } from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal, OnInit, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { NewTask, Task, TaskAttachment } from '../../models/task.model';
@@ -159,40 +159,52 @@ export class TaskEditorComponent implements OnInit {
       .filter(Boolean);
   }
 
+  private isFormInitialized = false;
+
   constructor() {
     this.projectStore.refresh();
 
     effect(() => {
       const currentTask = this.task();
       const defaultProjectId = currentTask ? null : this.initialProjectId();
-      patchTaskEditorForm(this.form, currentTask, { defaultProjectId });
-      this.attachments.set(currentTask?.attachments ?? []);
-      this.customFields.set(currentTask?.customFields ?? {});
 
-      if (currentTask?.formTemplateId) {
-        this.selectedTemplateId.set(currentTask.formTemplateId);
-      } else {
-        const def = this.availableTemplates().find((t) => t.isDefault) || null;
-        this.selectedTemplateId.set(def ? def.id : null);
+      // Only patch form on initial component setup or when editing an existing task
+      if (!this.isFormInitialized || currentTask) {
+        patchTaskEditorForm(this.form, currentTask, { defaultProjectId });
+        this.attachments.set(currentTask?.attachments ?? []);
+        this.customFields.set(currentTask?.customFields ?? {});
+        this.isFormInitialized = true;
       }
 
-      if (!currentTask) {
-        if (!this.form.controls.projectId.value) {
-          const fallbackProjectId = defaultProjectId
-            ?? this.projectStore.activeProjectId()
-            ?? (this.projectOptions().length === 1 ? this.projectOptions()[0].id : null);
-          if (fallbackProjectId) {
-            this.form.controls.projectId.setValue(fallbackProjectId);
+      untracked(() => {
+        if (currentTask?.formTemplateId) {
+          this.selectedTemplateId.set(currentTask.formTemplateId);
+        } else {
+          const def = this.availableTemplates().find((t) => t.isDefault) || null;
+          if (def && !this.selectedTemplateId()) {
+            this.selectedTemplateId.set(def.id);
+            this.form.controls.formTemplateId.setValue(def.id);
           }
         }
-        const activeProjectId = this.form.controls.projectId.value || defaultProjectId;
-        if (activeProjectId) {
-          const project = this.projectOptions().find((p) => p.id === Number(activeProjectId));
-          if (project?.defaultAssigneeId && (!this.form.controls.assigneeIds.value || this.form.controls.assigneeIds.value.length === 0)) {
-            this.form.controls.assigneeIds.setValue([project.defaultAssigneeId]);
+
+        if (!currentTask) {
+          if (!this.form.controls.projectId.value) {
+            const fallbackProjectId = defaultProjectId
+              ?? this.projectStore.activeProjectId()
+              ?? (this.projectOptions().length === 1 ? this.projectOptions()[0].id : null);
+            if (fallbackProjectId) {
+              this.form.controls.projectId.setValue(fallbackProjectId);
+            }
+          }
+          const activeProjectId = this.form.controls.projectId.value || defaultProjectId;
+          if (activeProjectId) {
+            const project = this.projectOptions().find((p) => p.id === Number(activeProjectId));
+            if (project?.defaultAssigneeId && (!this.form.controls.assigneeIds.value || this.form.controls.assigneeIds.value.length === 0)) {
+              this.form.controls.assigneeIds.setValue([project.defaultAssigneeId]);
+            }
           }
         }
-      }
+      });
     }, { allowSignalWrites: true });
   }
 
@@ -243,6 +255,14 @@ export class TaskEditorComponent implements OnInit {
     const isCustomValid = this.validateCustomFields();
     const isStandardValid = this.validateTemplateStandardFields();
     if (this.form.invalid || !isCustomValid || !isStandardValid) {
+      console.warn('Task validation check failed:', {
+        formInvalid: this.form.invalid,
+        controls: Object.keys(this.form.controls)
+          .filter((k) => (this.form.controls as any)[k].invalid)
+          .map((k) => ({ key: k, errors: (this.form.controls as any)[k].errors })),
+        isCustomValid,
+        isStandardValid
+      });
       return;
     }
 

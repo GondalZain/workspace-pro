@@ -80,7 +80,7 @@ export interface UpdateTaskFormTemplatePayload {
 
 export const DEFAULT_STANDARD_FIELDS_CONFIG: StandardFieldsConfig = {
   description: { enabled: true, required: false },
-  project: { enabled: true, required: true },
+  project: { enabled: true, required: false },
   status: { enabled: true, required: false },
   priority: { enabled: true, required: false },
   assignees: { enabled: true, required: false },

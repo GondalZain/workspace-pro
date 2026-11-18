@@ -84,7 +84,7 @@ export class TaskEditPage {
     }
 
     if (returnOrigin === 'kanban') {
-      this.router.navigate(ROUTES.dashboardKanban);
+      this.router.navigate(this.isAdminRoute() ? ROUTES.adminTasksKanban : ROUTES.dashboardKanban);
       return;
     }
 
