@@ -24,8 +24,6 @@ const loadAdminSubscriptionPage = () => import('../../pages/admin/subscription/s
 const loadAdminNewRolePage = () => import('../../pages/admin/new-role/new-role.page').then((m) => m.AdminNewRolePage);
 const loadAdminAssessmentsPage = () => import('../../pages/admin/assessments/admin-assessments.page').then((m) => m.AdminAssessmentsPage);
 
-
-
 const adminCanActivate = [authGuard, adminGuard];
 
 export const adminRoutes: Routes = [
