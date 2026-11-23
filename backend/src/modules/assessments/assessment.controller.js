@@ -146,6 +146,19 @@ async function runAutoWorkflow(request, response, next) {
   }
 }
 
+async function getCompanyAssessments(request, response, next) {
+  try {
+    const assessments = await assessmentService.getCompanyAssessments(
+      Number(request.user.sub),
+      request.user.companyId,
+      request.user.isSuperAdmin
+    );
+    response.json(assessments);
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getProjectMembers,
   setProjectMembers,
@@ -156,5 +169,6 @@ module.exports = {
   smartMatchTasks,
   applyTaskAssignments,
   startProject,
-  runAutoWorkflow
+  runAutoWorkflow,
+  getCompanyAssessments
 };

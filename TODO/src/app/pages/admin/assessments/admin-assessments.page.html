@@ -1,0 +1,354 @@
+<div class="admin-assessments-page">
+  <app-admin-page-header
+    title="AI Technical Assessments & Team Readiness"
+    description="Track developer evaluations, competency tiers, and autonomous task matching across your workspace."
+  />
+
+  <!-- Feedback and Alerts -->
+  @if (actionMessage()) {
+    <div class="alert alert-success">
+      <span>{{ actionMessage() }}</span>
+      <button type="button" class="btn-dismiss" (click)="actionMessage.set(null)">×</button>
+    </div>
+  }
+  @if (errorMessage()) {
+    <div class="alert alert-error">
+      <span>⚠️ {{ errorMessage() }}</span>
+      <button type="button" class="btn-dismiss" (click)="errorMessage.set(null)">×</button>
+    </div>
+  }
+
+  <!-- Pipeline Stepper Guide Banner -->
+  <div class="pipeline-guide-card">
+    <div class="pipeline-guide-head">
+      <div class="pipeline-guide-badge">
+        <span class="sparkle-dot">✨</span>
+        AUTONOMOUS LLM ORCHESTRATION WORKFLOW
+      </div>
+      <h3 class="pipeline-guide-title">From SRS Requirements to Verified Task Execution</h3>
+      <p class="pipeline-guide-desc">
+        Projects analyze functional specifications, auto-generate real-world technical assessments, benchmark developer capability, and smart-allocate tasks using our <strong>6.0 productive hours/day</strong> velocity engine.
+      </p>
+    </div>
+
+    <div class="pipeline-steps-row">
+      <div class="p-step">
+        <span class="p-step-badge">1</span>
+        <div class="p-step-info">
+          <strong>SRS Decomposition</strong>
+          <span>Tasks &amp; Dependencies</span>
+        </div>
+      </div>
+      <span class="p-step-sep">➔</span>
+
+      <div class="p-step">
+        <span class="p-step-badge">2</span>
+        <div class="p-step-info">
+          <strong>AI Technical Test</strong>
+          <span>5 Tailored Scenarios</span>
+        </div>
+      </div>
+      <span class="p-step-sep">➔</span>
+
+      <div class="p-step">
+        <span class="p-step-badge">3</span>
+        <div class="p-step-info">
+          <strong>Gemini Evaluation</strong>
+          <span>Score, Tier &amp; Complexity</span>
+        </div>
+      </div>
+      <span class="p-step-sep">➔</span>
+
+      <div class="p-step">
+        <span class="p-step-badge">4</span>
+        <div class="p-step-info">
+          <strong>Smart Allocation</strong>
+          <span>6h/day Velocity Limit</span>
+        </div>
+      </div>
+      <span class="p-step-sep">➔</span>
+
+      <div class="p-step">
+        <span class="p-step-badge highlight">5</span>
+        <div class="p-step-info">
+          <strong>Active Kickoff</strong>
+          <span>Production Delivery</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI Metrics Grid -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap kpi-blue">📋</div>
+      <div class="kpi-meta">
+        <span class="kpi-label">Total Assessments</span>
+        <span class="kpi-val">{{ totalCount() }}</span>
+        <span class="kpi-sub">Across all workspace projects</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap kpi-green">✅</div>
+      <div class="kpi-meta">
+        <span class="kpi-label">Evaluated &amp; Ready</span>
+        <span class="kpi-val">{{ evaluatedCount() }}</span>
+        <span class="kpi-sub">{{ totalCount() > 0 ? Math.round((evaluatedCount() / totalCount()) * 100) : 0 }}% completed</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap kpi-amber">⏳</div>
+      <div class="kpi-meta">
+        <span class="kpi-label">Pending Developer Tests</span>
+        <span class="kpi-val">{{ pendingCount() }}</span>
+        <span class="kpi-sub">Awaiting developer responses</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap kpi-teal">⭐</div>
+      <div class="kpi-meta">
+        <span class="kpi-label">Avg. Company Score</span>
+        <span class="kpi-val">{{ avgCompanyScore() > 0 ? avgCompanyScore() + '%' : '—' }}</span>
+        <span class="kpi-sub">Gemini technical benchmark</span>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-tiers">
+      <div class="kpi-meta">
+        <span class="kpi-label">Seniority Distribution</span>
+        <div class="tier-tags-row">
+          <span class="tier-tag architect" title="Lead/Architect">
+            🏛️ Architect: <strong>{{ tierDistribution().architect }}</strong>
+          </span>
+          <span class="tier-tag senior" title="Senior">
+            ⭐ Senior: <strong>{{ tierDistribution().senior }}</strong>
+          </span>
+          <span class="tier-tag mid" title="Mid-Level">
+            ⚡ Mid: <strong>{{ tierDistribution().mid }}</strong>
+          </span>
+          <span class="tier-tag junior" title="Junior">
+            🌱 Junior: <strong>{{ tierDistribution().junior }}</strong>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter & Actions Bar -->
+  <div class="filter-actions-bar">
+    <div class="filter-controls">
+      <!-- Search Input -->
+      <div class="search-wrap">
+        <svg class="search-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search by developer, email, or project…"
+          [(ngModel)]="searchTerm"
+        />
+      </div>
+
+      <!-- Project Filter -->
+      <select class="filter-select" [(ngModel)]="selectedProjectFilter">
+        <option value="all">All Projects ({{ projects().length }})</option>
+        @for (p of projects(); track p.id) {
+          <option [value]="p.id">{{ p.title }}</option>
+        }
+      </select>
+
+      <!-- Status Filter -->
+      <select class="filter-select" [(ngModel)]="selectedStatusFilter">
+        <option value="all">All Statuses</option>
+        <option value="evaluated">✅ Evaluated</option>
+        <option value="in_progress">✍️ In Progress</option>
+        <option value="pending">⏳ Pending Test</option>
+      </select>
+
+      <!-- Tier Filter -->
+      <select class="filter-select" [(ngModel)]="selectedTierFilter">
+        <option value="all">All Seniority Tiers</option>
+        <option value="Lead/Architect">🏛️ Lead/Architect</option>
+        <option value="Senior">⭐ Senior</option>
+        <option value="Mid-Level">⚡ Mid-Level</option>
+        <option value="Junior">🌱 Junior</option>
+      </select>
+    </div>
+
+    <div class="filter-right-buttons">
+      <button type="button" class="btn-create-proj" (click)="goToNewProject()">
+        ✨ New AI Project (SRS)
+      </button>
+      <button type="button" class="btn-refresh" (click)="loadData()" [disabled]="loading()">
+        🔄 Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Assessments Table -->
+  <div class="table-container">
+    @if (loading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <span>Loading company assessments...</span>
+      </div>
+    } @else if (filteredAssessments().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">📝</div>
+        <h4 class="empty-title">No Assessments Found</h4>
+        <p class="empty-desc">
+          @if (searchTerm() || selectedProjectFilter() !== 'all' || selectedStatusFilter() !== 'all') {
+            No assessments match your current filters. Try resetting your filter criteria.
+          } @else {
+            No technical assessments have been created yet. Create a project from an SRS or assign developers to generate assessments.
+          }
+        </p>
+        <button type="button" class="btn-primary" (click)="goToNewProject()">
+          🚀 Create Project with AI SRS
+        </button>
+      </div>
+    } @else {
+      <table class="assessments-table">
+        <thead>
+          <tr>
+            <th>Developer</th>
+            <th>Project</th>
+            <th>Status</th>
+            <th>Score</th>
+            <th>Evaluated Level</th>
+            <th>Max Complexity</th>
+            <th>Completed</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of filteredAssessments(); track item.id) {
+            <tr>
+              <!-- Developer Info -->
+              <td class="dev-cell">
+                <div class="dev-avatar-wrap">
+                  <div class="dev-avatar">
+                    {{ item.username.slice(0, 2) | uppercase }}
+                  </div>
+                  <div class="dev-text">
+                    <span class="dev-name">{{ item.username }}</span>
+                    <span class="dev-email">{{ item.email || 'Developer' }}</span>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Project -->
+              <td class="proj-cell">
+                <span class="proj-badge">📁 {{ item.projectTitle }}</span>
+                @if (item.projectDeadline) {
+                  <span class="proj-deadline">🎯 {{ item.projectDeadline | date:'shortDate' }}</span>
+                }
+              </td>
+
+              <!-- Readiness Status -->
+              <td>
+                <span class="status-pill" [attr.data-status]="item.status">
+                  @if (item.status === 'evaluated') {
+                    ✅ Evaluated
+                  } @else if (item.status === 'in_progress') {
+                    ✍️ Testing
+                  } @else {
+                    ⏳ Pending Test
+                  }
+                </span>
+              </td>
+
+              <!-- Score -->
+              <td class="score-cell">
+                @if (item.score !== null && item.score !== undefined) {
+                  <div class="score-display">
+                    <strong class="score-val" [class.high]="item.score >= 80" [class.mid]="item.score >= 60 && item.score < 80">
+                      {{ item.score }}
+                    </strong>
+                    <span class="score-denom">/100</span>
+                  </div>
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </td>
+
+              <!-- Evaluated Level -->
+              <td>
+                @if (item.evaluatedLevel) {
+                  <span class="level-pill" [attr.data-tier]="item.evaluatedLevel">
+                    {{ item.evaluatedLevel }}
+                  </span>
+                } @else {
+                  <span class="text-muted">Awaiting test</span>
+                }
+              </td>
+
+              <!-- Max Complexity -->
+              <td>
+                @if (item.maxComplexity) {
+                  <span class="complexity-pill" [attr.data-complexity]="item.maxComplexity">
+                    {{ item.maxComplexity | uppercase }}
+                  </span>
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </td>
+
+              <!-- Completed At -->
+              <td class="date-cell">
+                @if (item.completedAt) {
+                  <span>{{ item.completedAt | date:'mediumDate' }}</span>
+                } @else {
+                  <span class="text-muted">In review</span>
+                }
+              </td>
+
+              <!-- Actions -->
+              <td class="actions-cell">
+                <div class="row-actions">
+                  @if (item.status === 'evaluated') {
+                    <button
+                      type="button"
+                      class="btn-icon-action btn-scorecard"
+                      title="View Detailed AI Scorecard"
+                      (click)="inspectScorecard(item)"
+                    >
+                      🔍 Scorecard
+                    </button>
+                  }
+
+                  <button
+                    type="button"
+                    class="btn-icon-action btn-workflow"
+                    title="Run Auto-Workflow for Project"
+                    [disabled]="runningWorkflowProjectId() === item.projectId"
+                    (click)="runAutoWorkflow(item.projectId)"
+                  >
+                    @if (runningWorkflowProjectId() === item.projectId) {
+                      <span class="spinner-sm"></span>
+                    } @else {
+                      ⚡ Auto-Flow
+                    }
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+  <!-- Detailed Assessment Scorecard Modal -->
+  <app-developer-test-runner
+    [assessmentId]="inspectingAssessmentId()"
+    [initialAssessment]="inspectingAssessment()"
+    [isOpen]="showInspectorModal()"
+    (close)="closeInspector()"
+  ></app-developer-test-runner>
+</div>

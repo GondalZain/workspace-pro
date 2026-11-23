@@ -268,6 +268,50 @@ async function updateProjectStatus(projectId, status) {
   return true;
 }
 
+async function findAllCompanyAssessments(companyId) {
+  let sql = `
+    SELECT 
+      da.id,
+      da.project_id AS projectId,
+      p.title AS projectTitle,
+      p.deadline AS projectDeadline,
+      p.status AS projectStatus,
+      da.user_id AS userId,
+      u.username,
+      u.email,
+      u.profile_image_path AS profileImagePath,
+      da.status,
+      da.score,
+      da.evaluated_level AS evaluatedLevel,
+      da.max_complexity AS maxComplexity,
+      da.questions_payload AS questions,
+      da.answers_payload AS answers,
+      da.ai_feedback_payload AS feedback,
+      da.completed_at AS completedAt,
+      da.created_at AS createdAt
+    FROM developer_assessments da
+    JOIN projects p ON da.project_id = p.id
+    JOIN users u ON da.user_id = u.id
+  `;
+  const params = [];
+
+  if (companyId) {
+    sql += ` WHERE da.company_id = ? `;
+    params.push(companyId);
+  }
+
+  sql += ` ORDER BY da.created_at DESC`;
+
+  const [rows] = await pool.execute(sql, params);
+
+  return rows.map((r) => ({
+    ...r,
+    questions: typeof r.questions === 'string' ? JSON.parse(r.questions) : r.questions,
+    answers: typeof r.answers === 'string' ? JSON.parse(r.answers) : r.answers,
+    feedback: typeof r.feedback === 'string' ? JSON.parse(r.feedback) : r.feedback
+  }));
+}
+
 module.exports = {
   getProjectMembers,
   setProjectMembers,
@@ -276,5 +320,6 @@ module.exports = {
   findMyPendingAssessments,
   saveAssessmentEvaluation,
   applyTaskAssignments,
-  updateProjectStatus
+  updateProjectStatus,
+  findAllCompanyAssessments
 };

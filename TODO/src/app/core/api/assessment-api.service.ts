@@ -36,6 +36,10 @@ export class AssessmentApiService {
     return this.http.get<DeveloperAssessment[]>(`${this.baseUrl}/my-pending`);
   }
 
+  getCompanyAssessments(): Observable<DeveloperAssessment[]> {
+    return this.http.get<DeveloperAssessment[]>(`${this.baseUrl}/company/all`);
+  }
+
   getAssessmentById(assessmentId: number): Observable<DeveloperAssessment> {
     return this.http.get<DeveloperAssessment>(`${this.baseUrl}/${assessmentId}`);
   }

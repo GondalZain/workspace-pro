@@ -5,6 +5,7 @@ const router = express.Router();
 
 // Current logged-in developer's pending assessments
 router.get('/my-pending', controller.getMyPendingAssessments);
+router.get('/company/all', controller.getCompanyAssessments);
 
 // Specific assessment by ID (for taking the test / viewing results)
 router.get('/:id', controller.getAssessmentById);

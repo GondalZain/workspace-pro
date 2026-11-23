@@ -38,6 +38,7 @@ export const ADMIN_PATH = {
   customFields: 'admin/custom-fields',
   formTemplates: 'admin/form-templates',
   subscription: 'admin/subscription',
+  assessments: 'admin/assessments',
   newRole: 'admin/new-role'
 } as const;
 
@@ -54,6 +55,7 @@ export const ADMIN_CHILD_PATH = {
   statusDetailById: 'statuses/:id',
   customFields: 'custom-fields',
   formTemplates: 'form-templates',
+  assessments: 'assessments',
   projects: 'projects',
   projectNew: 'projects/new',
   projectDetail: 'projects/:slug',
@@ -172,6 +174,7 @@ export const ROUTE_URL = {
   adminCustomFields: pathToUrl(ADMIN_PATH.customFields),
   adminFormTemplates: pathToUrl(ADMIN_PATH.formTemplates),
   adminSubscription: pathToUrl(ADMIN_PATH.subscription),
+  adminAssessments: pathToUrl(ADMIN_PATH.assessments),
   adminProjects: pathToUrl(ADMIN_PATH.projects),
   adminProjectNew: pathToUrl(ADMIN_PATH.projectNew),
   adminProjectDetail: (slug: string) => pathToUrl(adminProjectDetailPath(slug)),

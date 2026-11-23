@@ -314,6 +314,11 @@ async function runAutoWorkflow(userId, projectId, companyId, isSuperAdmin) {
   };
 }
 
+async function getCompanyAssessments(userId, companyId, isSuperAdmin) {
+  const targetCompanyId = isSuperAdmin ? null : companyId;
+  return assessmentRepository.findAllCompanyAssessments(targetCompanyId);
+}
+
 module.exports = {
   getProjectMembers,
   setProjectMembers,
@@ -324,5 +329,6 @@ module.exports = {
   smartMatchTasks,
   applyTaskAssignments,
   startProject,
-  runAutoWorkflow
+  runAutoWorkflow,
+  getCompanyAssessments
 };

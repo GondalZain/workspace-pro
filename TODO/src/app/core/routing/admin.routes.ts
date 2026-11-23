@@ -22,6 +22,7 @@ const loadAdminCustomFieldsPage = () => import('../../pages/admin/custom-fields/
 const loadAdminFormTemplatesPage = () => import('../../pages/admin/form-templates/form-templates.page').then((m) => m.AdminFormTemplatesPage);
 const loadAdminSubscriptionPage = () => import('../../pages/admin/subscription/subscription.page').then((m) => m.AdminSubscriptionPage);
 const loadAdminNewRolePage = () => import('../../pages/admin/new-role/new-role.page').then((m) => m.AdminNewRolePage);
+const loadAdminAssessmentsPage = () => import('../../pages/admin/assessments/admin-assessments.page').then((m) => m.AdminAssessmentsPage);
 
 
 
@@ -45,6 +46,7 @@ export const adminRoutes: Routes = [
       { path: ADMIN_CHILD_PATH.customFields, loadComponent: loadAdminFormTemplatesPage },
       { path: ADMIN_CHILD_PATH.formTemplates, loadComponent: loadAdminFormTemplatesPage },
       { path: ADMIN_CHILD_PATH.subscription, loadComponent: loadAdminSubscriptionPage },
+      { path: ADMIN_CHILD_PATH.assessments, loadComponent: loadAdminAssessmentsPage },
       { path: ADMIN_CHILD_PATH.projects, loadComponent: loadAdminProjectsPage },
       { path: ADMIN_CHILD_PATH.projectNew, loadComponent: loadAdminProjectCreatePage },
       { path: ADMIN_CHILD_PATH.projectEdit, loadComponent: loadAdminProjectEditPage },
