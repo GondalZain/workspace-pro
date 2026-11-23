@@ -19,6 +19,19 @@
   }
 
   <!-- Pipeline Stepper Guide Banner -->
+  @if (myPendingAssessments().length > 0) {
+    <div class="my-assessment-card-banner">
+      <div class="banner-icon">💻</div>
+      <div class="banner-body">
+        <strong>You Have {{ myPendingAssessments().length }} Assigned Developer Coding Assessment(s)</strong>
+        <p>You are assigned as a project team developer. Complete your technical coding test to benchmark your skill tier and unlock automated sprint task allocations.</p>
+      </div>
+      <a [routerLink]="url.dashboardAssessments" class="btn-start-my-test">
+        Open My Coding Studio →
+      </a>
+    </div>
+  }
+
   <div class="pipeline-guide-card">
     <div class="pipeline-guide-head">
       <div class="pipeline-guide-badge">
@@ -311,6 +324,17 @@
               <!-- Actions -->
               <td class="actions-cell">
                 <div class="row-actions">
+                  @if (item.userId === currentUserId() && item.status !== 'evaluated') {
+                    <a
+                      [routerLink]="url.dashboardAssessments"
+                      [queryParams]="{ id: item.id }"
+                      class="btn-icon-action btn-solve-test"
+                      title="Open Coding Studio and Solve Your Assessment"
+                    >
+                      🚀 Take Test
+                    </a>
+                  }
+
                   @if (item.status === 'evaluated') {
                     <button
                       type="button"

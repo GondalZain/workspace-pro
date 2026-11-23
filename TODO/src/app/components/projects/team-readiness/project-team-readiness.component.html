@@ -285,6 +285,15 @@
                       No assessment created yet. Click "Generate Technical Assessment" above.
                     }
                   </span>
+                  @if (m.userId === currentUserId() && m.assessmentId) {
+                    <a
+                      [routerLink]="['/dashboard/assessments']"
+                      [queryParams]="{ id: m.assessmentId }"
+                      class="btn-take-my-test-card"
+                    >
+                      🚀 Take My Coding Assessment
+                    </a>
+                  }
                 </div>
               }
             </div>

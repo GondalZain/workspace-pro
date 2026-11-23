@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { AdminPageHeaderComponent } from '../../../components/admin-page-header/admin-page-header';
 import { AssessmentApiService } from '../../../core/api/assessment-api.service';
 import { ProjectApiService } from '../../../core/api/project-api.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import { DeveloperAssessment } from '../../../models/assessment.model';
 import { Project } from '../../../models/project.model';
 import { DeveloperTestRunnerComponent } from '../../../components/assessments/test-runner/developer-test-runner.component';
@@ -26,10 +27,12 @@ import { ROUTE_URL } from '../../../core/routing/route-paths';
 export class AdminAssessmentsPage {
   private readonly assessmentApi = inject(AssessmentApiService);
   private readonly projectApi = inject(ProjectApiService);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
   protected readonly url = ROUTE_URL;
   protected readonly Math = Math;
+  protected readonly currentUserId = computed(() => this.auth.getUser()?.id);
 
   protected readonly assessments = signal<DeveloperAssessment[]>([]);
   protected readonly projects = signal<Project[]>([]);
@@ -78,6 +81,12 @@ export class AdminAssessmentsPage {
 
   // Computed KPI Metrics
   protected readonly totalCount = computed(() => this.assessments().length);
+
+  protected readonly myPendingAssessments = computed(() => {
+    const uid = this.currentUserId();
+    if (!uid) return [];
+    return this.assessments().filter((a) => Number(a.userId) === Number(uid) && a.status !== 'evaluated');
+  });
 
   protected readonly evaluatedCount = computed(() => {
     return this.assessments().filter((a) => a.status === 'evaluated').length;

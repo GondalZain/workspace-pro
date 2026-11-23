@@ -1,8 +1,10 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { AssessmentApiService } from '../../../core/api/assessment-api.service';
 import { AdminApiService } from '../../../core/api/admin-api.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import { User } from '../../../core/auth/auth.service';
 import {
   ProjectMember,
@@ -16,7 +18,7 @@ import { DeveloperTestRunnerComponent } from '../../assessments/test-runner/deve
 @Component({
   selector: 'app-project-team-readiness',
   standalone: true,
-  imports: [CommonModule, FormsModule, DeveloperTestRunnerComponent],
+  imports: [CommonModule, FormsModule, RouterModule, DeveloperTestRunnerComponent],
   templateUrl: './project-team-readiness.component.html',
   styleUrls: ['./project-team-readiness.component.css']
 })
@@ -27,7 +29,9 @@ export class ProjectTeamReadinessComponent {
 
   private readonly assessmentApi = inject(AssessmentApiService);
   private readonly adminApi = inject(AdminApiService);
+  private readonly auth = inject(AuthService);
 
+  protected readonly currentUserId = computed(() => this.auth.getUser()?.id);
   protected readonly loading = signal<boolean>(false);
   protected readonly runningAutoWorkflow = signal<boolean>(false);
   protected readonly generatingTests = signal<boolean>(false);
