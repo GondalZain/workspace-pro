@@ -160,7 +160,7 @@ export class DeveloperTestRunnerComponent {
       },
       error: (err) => {
         this.evaluating.set(false);
-        this.errorMessage.set(err?.error?.message || 'Gemini evaluation failed. Please try again.');
+        this.errorMessage.set(err?.error?.message || 'Evaluation failed. Please try again.');
       }
     });
   }

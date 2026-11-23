@@ -7,7 +7,7 @@
         <div class="header-left">
           <div class="ai-badge">
             <span class="ai-pulse-dot"></span>
-            GEMINI AI TECHNICAL ASSESSMENT
+            TECHNICAL READINESS ASSESSMENT
           </div>
           <h2 class="test-project-title">
             {{ assessment()?.projectTitle || 'Project Assessment' }}
@@ -38,7 +38,7 @@
         <div class="evaluating-overlay">
           <div class="evaluating-card">
             <div class="ai-eval-spinner"></div>
-            <h3 class="eval-title">🤖 Gemini AI is evaluating your assessment...</h3>
+            <h3 class="eval-title">Evaluating your assessment...</h3>
             <p class="eval-desc">
               Analyzing architectural design, code robustness, security awareness, and problem-solving complexity.
             </p>
@@ -219,7 +219,7 @@
 
           <!-- Per-question breakdown -->
           <div class="question-breakdown">
-            <h4>Question Breakdown & AI Feedback</h4>
+            <h4>Question Breakdown & Review</h4>
             <div class="critique-list">
               @for (qr of evalRes.questionResults; track qr.qId) {
                 <div class="critique-item">
@@ -336,7 +336,7 @@
                 </button>
               } @else {
                 <button type="button" class="btn-submit-eval" (click)="submitForAiEvaluation()">
-                  🚀 Submit for AI Evaluation
+                  Submit Assessment
                 </button>
               }
             </div>

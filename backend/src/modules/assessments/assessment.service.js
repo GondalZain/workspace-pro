@@ -80,7 +80,7 @@ async function generateAssessmentsForProject(userId, projectId, targetUserIds = 
           member.userId,
           project.company_id || companyId,
           `Technical Assessment Required: ${project.title}`,
-          `You have been assigned to project "${project.title}". Please complete your AI technical readiness assessment.`,
+          `You have been assigned to project "${project.title}". Please complete your technical readiness assessment.`,
           `/projects/${projectId}`
         ]
       );

@@ -1,10 +1,10 @@
 <app-workspace-user-layout
   sectionId="user-assessments-page"
   [showHero]="true"
-  heroBadge="AI Technical Assessment"
-  heroBadgeMeta="Gemini Evaluator"
+  heroBadge="Skills Assessment"
+  heroBadgeMeta="Technical Readiness"
   heroTitle="Developer Assessment & Readiness Portal"
-  heroSubtitle="Complete project-specific technical scenario assessments evaluated by Gemini AI to measure architectural depth, workload stamina, and complexity limits."
+  heroSubtitle="Complete project-specific technical scenario assessments to register your architectural strengths, skills profile, and delivery readiness."
 >
   <div class="assessment-portal-container">
     <!-- Top Action / Error Alert -->
@@ -178,8 +178,8 @@
 
                     <div class="eval-rubric-card">
                       <div class="rubric-header">
-                        <span class="rubric-icon">🤖</span>
-                        <span>Gemini AI Evaluation Criteria</span>
+                        <span class="rubric-icon">📋</span>
+                        <span>System Evaluation Criteria</span>
                       </div>
                       <ul class="rubric-list">
                         <li><strong>Architectural Soundness:</strong> Separation of concerns, resilience, modularity.</li>
@@ -255,9 +255,9 @@
                         (click)="submitAssessment()"
                       >
                         @if (isSubmitting()) {
-                          <span class="spinner-small"></span> Evaluating with AI...
+                          <span class="spinner-small"></span> Evaluating responses...
                         } @else {
-                          🚀 Submit for AI Evaluation
+                          Submit Assessment
                         }
                       </button>
                     </div>
@@ -271,11 +271,11 @@
               <div class="evaluation-overlay">
                 <div class="eval-modal-card">
                   <div class="ai-orbit-spinner">
-                    <div class="orbit-center">✨</div>
+                    <div class="orbit-center">⚡</div>
                   </div>
-                  <h3>Gemini AI is Evaluating Your Assessment...</h3>
+                  <h3>Evaluating Your Assessment...</h3>
                   <p class="eval-modal-sub">
-                    Analyzing technical scenario depth, cognitive stamina, architecture robustness, and calculating your seniority standing.
+                    Analyzing technical scenario responses, code structure, architecture robustness, and compiling your profile.
                   </p>
 
                   <div class="eval-steps-list">
@@ -289,11 +289,11 @@
                     </div>
                     <div class="eval-step active">
                       <span class="step-dot"></span>
-                      <span>3. Calculating workload stamina & complexity ceiling</span>
+                      <span>3. Calculating workload capacity & complexity ceiling</span>
                     </div>
                     <div class="eval-step active">
                       <span class="step-dot"></span>
-                      <span>4. Formulating domain expertise matrix & task assignments</span>
+                      <span>4. Compiling domain expertise matrix & profile summary</span>
                     </div>
                   </div>
                 </div>
@@ -311,8 +311,8 @@
             <div class="results-hero">
               <div class="results-hero-left">
                 <div class="evaluated-badge">
-                  <span class="badge-icon">🏆</span>
-                  <span>AI Evaluation Completed</span>
+                  <span class="badge-icon">✓</span>
+                  <span>Evaluation Completed</span>
                 </div>
                 <h2 class="results-project-title">{{ assessment.projectTitle }}</h2>
                 <p class="results-subtitle">
@@ -454,7 +454,7 @@
               <div class="details-card">
                 <div class="details-card-header">
                   <span class="header-icon">💡</span>
-                  <h3>AI Qualitative Evaluation</h3>
+                  <h3>Qualitative Review & Strengths</h3>
                 </div>
 
                 <div class="insights-container">
@@ -511,7 +511,7 @@
                   <span class="header-icon">🔍</span>
                   <div>
                     <h3>Per-Question Technical Critique & Rubric Review</h3>
-                    <p>Review the exact scenario prompt, your submitted answer, and Gemini's question-by-question analysis.</p>
+                    <p>Review the scenario prompt, your submitted answer, and the automated question-by-question evaluation.</p>
                   </div>
                 </div>
 
@@ -552,7 +552,7 @@
                             @if (res.qId === q.qId) {
                               <div class="ai-critique-box">
                                 <div class="ai-critique-head">
-                                  <span>🤖 Gemini AI Critique & Rubric Score:</span>
+                                  <span>Automated Review & Rubric Score:</span>
                                   <span class="score-pill">{{ res.pointsEarned }} / {{ res.maxPoints }} pts</span>
                                 </div>
                                 <p class="ai-critique-text">{{ res.critique }}</p>

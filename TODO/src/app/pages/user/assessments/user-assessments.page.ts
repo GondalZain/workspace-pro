@@ -183,7 +183,7 @@ export class UserAssessmentsPage implements OnInit {
     const unanswered = this.questions().length - this.answeredCount();
     if (unanswered > 0) {
       const confirmSubmit = confirm(
-        `You have ${unanswered} unanswered question(s). Are you sure you want to submit for Gemini AI evaluation?`
+        `You have ${unanswered} unanswered question(s). Are you sure you want to submit your assessment?`
       );
       if (!confirmSubmit) return;
     }
