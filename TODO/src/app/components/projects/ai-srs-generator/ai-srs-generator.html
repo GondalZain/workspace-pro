@@ -200,10 +200,25 @@
                 <textarea
                   id="rev-proj-desc"
                   class="srs-textarea srs-textarea-sm"
-                  rows="2"
+                  rows="3"
                   placeholder="Short project description..."
                   [(ngModel)]="customProjectDescription"
                 ></textarea>
+              </div>
+
+              <div class="meta-field">
+                <label class="input-label">Project Cover Banner (Optional)</label>
+                @if (projectCoverImage(); as coverUrl) {
+                  <div class="project-cover-preview-wrap">
+                    <img [src]="coverUrl" alt="Cover preview" class="project-cover-img" />
+                    <button type="button" class="btn-remove-cover" (click)="removeCoverImage()">Remove Image</button>
+                  </div>
+                } @else {
+                  <div class="cover-upload-trigger" (click)="coverFileInput.click()">
+                    <input #coverFileInput type="file" class="hidden-file-input" accept="image/*" (change)="onCoverImageSelected($event)" />
+                    <span>🖼️ Add Project Cover Banner Image</span>
+                  </div>
+                }
               </div>
             </div>
           }

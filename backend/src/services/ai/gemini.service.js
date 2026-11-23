@@ -78,13 +78,17 @@ const srsTaskSchema = {
       }
     }
   },
-  required: ['summary', 'totalEstimatedMinutes', 'modules']
+  required: ['projectTitle', 'projectDescription', 'summary', 'totalEstimatedMinutes', 'modules']
 };
 
 const SYSTEM_INSTRUCTION = `You are a Senior Technical Project Manager, Solutions Architect, and Agile Scrum Master.
 Your goal is to thoroughly analyze the provided Software Requirements Specification (SRS) or project requirements document, decompose it into an actionable Work Breakdown Structure (WBS), and generate engineering tasks with clear, realistic dependency relationships.
 
 Follow these strict rules:
+0. PROJECT METADATA (TITLE & DESCRIPTION):
+   - Extract or formulate a clean, professional, descriptive project title (projectTitle), e.g. "Smart Parking Guidance & Revenue System", "Warehouse & Inventory ERP Portal".
+   - Formulate a comprehensive project description (projectDescription) of 1 to 3 sentences summarizing the system's core purpose, business value, key capabilities, and architecture.
+
 1. DECOMPOSE INTO GRANULAR TASKS:
    - Each task should represent a concrete engineering unit of work (typically 2 to 8 hours / 120 to 480 minutes).
    - Group tasks logically into distinct modules/subsystems (e.g., Database, Authentication, Core Services, Frontend UI, External APIs, Deployment/DevOps).

@@ -35,6 +35,7 @@ export class AiSrsTaskGeneratorModalComponent {
   // Input states
   protected readonly customProjectTitle = signal<string>('');
   protected readonly customProjectDescription = signal<string>('');
+  protected readonly projectCoverImage = signal<string | null>(null);
   protected readonly selectedFile = signal<File | null>(null);
   protected readonly pastedText = signal<string>('');
   protected readonly isDraggingOver = signal<boolean>(false);
@@ -239,6 +240,26 @@ export class AiSrsTaskGeneratorModalComponent {
     });
   }
 
+  protected onCoverImageSelected(event: Event): void {
+    const inputEl = event.target as HTMLInputElement;
+    if (inputEl.files && inputEl.files[0]) {
+      const file = inputEl.files[0];
+      if (!file.type.startsWith('image/')) {
+        this.errorMessage.set('Please select an image file (.png, .jpg, .webp).');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.projectCoverImage.set(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  protected removeCoverImage(): void {
+    this.projectCoverImage.set(null);
+  }
+
   protected commitApprovedTasks(): void {
     if (this.isSubmitting() || this.selectedTasksCount() === 0) return;
 
@@ -260,10 +281,13 @@ export class AiSrsTaskGeneratorModalComponent {
       this.projectApi.createWithAiTasks({
         title: finalTitle,
         description: finalDesc,
+        imagePath: this.projectCoverImage() || null,
         modules: approvedModules
       }).subscribe({
         next: (res) => {
           this.isSubmitting.set(false);
+          // Sync directly into project store signal so detail route finds it without delay
+          this.projectStore.projects.update((items) => [res.project, ...items.filter((p) => p.id !== res.project.id)]);
           this.projectStore.refresh();
           this.taskStore.refresh();
           this.projectCreated.emit({ project: res.project, tasksCount: res.createdTasksCount });

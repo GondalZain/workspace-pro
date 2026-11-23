@@ -10,6 +10,7 @@ import {
 import { AiSrsTaskGeneratorModalComponent } from '../../../components/projects/ai-srs-generator/ai-srs-generator';
 import { ProjectStoreService } from '../../../services/project-store.service';
 import { ROUTES } from '../../../core/routing/route-paths';
+import { projectDetailNav } from '../../../components/projects/shared/project-slug.util';
 
 @Component({
   selector: 'app-user-project-create-page',
@@ -52,20 +53,9 @@ export class UserProjectCreatePage {
   }
 
   protected onAiProjectCreated(event: { project: any; tasksCount: number }): void {
-    const slug = event.project?.slug || String(event.project?.id || '');
-    if (this.isAdminRoute()) {
-      if (slug) {
-        this.router.navigate(ROUTES.adminProjectDetail(slug));
-      } else {
-        this.router.navigate(ROUTES.adminProjects);
-      }
-    } else {
-      if (slug) {
-        this.router.navigate(ROUTES.projectDetail(slug));
-      } else {
-        this.router.navigate(ROUTES.dashboardProjects);
-      }
-    }
+    const allProjects = this.projectStore.projects();
+    const navSegments = projectDetailNav(event.project, allProjects, this.isAdminRoute());
+    this.router.navigate(navSegments);
   }
 
   protected goBack(): void {
