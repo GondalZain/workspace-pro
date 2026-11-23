@@ -7,7 +7,8 @@ import { AssessmentApiService } from '../../../core/api/assessment-api.service';
 import {
   AssessmentQuestion,
   DeveloperAssessment,
-  AssessmentFeedback
+  AssessmentFeedback,
+  AssessmentExample
 } from '../../../models/assessment.model';
 
 @Component({
@@ -34,10 +35,13 @@ export class UserAssessmentsPage implements OnInit {
   readonly answers = signal<Record<string, string>>({});
   readonly flaggedQuestions = signal<Record<string, boolean>>({});
   readonly saveStatus = signal<'saved' | 'saving'>('saved');
-  readonly editorView = signal<'edit' | 'preview'>('edit');
+  readonly editorTab = signal<'code' | 'testcases'>('code');
+  readonly isCopied = signal<boolean>(false);
+  readonly codeLanguage = signal<string>('TypeScript');
+
   readonly showReviewModal = signal<boolean>(false);
   readonly showInstructionsModal = signal<boolean>(false);
-  readonly instructionsTab = signal<'format' | 'guide' | 'rubric'>('format');
+  readonly instructionsTab = signal<'rules' | 'codeGuide' | 'rubric'>('rules');
   readonly expandedQuestions = signal<Record<string, boolean>>({});
 
   // Computed state
@@ -79,6 +83,15 @@ export class UserAssessmentsPage implements OnInit {
     return this.questions().filter((q) => !!flags[q.qId]).length;
   });
 
+  readonly currentCodeLines = computed<number[]>(() => {
+    const q = this.currentQuestion();
+    if (!q) return Array.from({ length: 18 }, (_, i) => i + 1);
+    const code = this.answers()[q.qId] || '';
+    const lineCount = code.split('\n').length;
+    const total = Math.max(lineCount, 18);
+    return Array.from({ length: total }, (_, i) => i + 1);
+  });
+
   ngOnInit(): void {
     this.loadAssessments();
   }
@@ -118,7 +131,6 @@ export class UserAssessmentsPage implements OnInit {
   }
 
   selectAssessment(assessment: DeveloperAssessment): void {
-    // If not fully populated with questions and feedback, fetch full details
     if (!assessment.questions) {
       this.assessmentApi.getAssessmentById(assessment.id).subscribe({
         next: (full) => {
@@ -138,27 +150,69 @@ export class UserAssessmentsPage implements OnInit {
 
   private initAnswers(assessment: DeveloperAssessment): void {
     this.activeQuestionIndex.set(0);
-    const existing = assessment.answers || {};
-    this.answers.set({ ...existing });
+    const existing = { ...(assessment.answers || {}) };
+    const qList = assessment.questions?.questions || [];
+    for (const q of qList) {
+      if (!existing[q.qId] || !existing[q.qId].trim()) {
+        existing[q.qId] = this.getStarterCode(q);
+      }
+    }
+    this.answers.set(existing);
+  }
+
+  getStarterCode(q: AssessmentQuestion | null): string {
+    if (!q) return '';
+    if (q.starterCode && q.starterCode.trim()) {
+      return q.starterCode.trim();
+    }
+    const fnName = q.functionName || this.generateFunctionName(q.title);
+    return `/**
+ * @problem ${q.title}
+ * @category ${q.category} (${q.difficulty || 'medium'})
+ * @points ${q.maxPoints} pts
+ */
+export async function ${fnName}(input: any): Promise<any> {
+  // 1. Input validation & boundary checks
+  if (!input) {
+    throw new Error('Invalid input parameter');
+  }
+
+  // 2. Implement your core logic here
+  
+
+  // 3. Return computed result
+  return { success: true };
+}
+`;
+  }
+
+  generateFunctionName(title: string): string {
+    const clean = (title || 'solution')
+      .replace(/[^a-zA-Z0-9 ]/g, '')
+      .split(' ')
+      .filter(Boolean);
+    if (clean.length === 0) return 'solution';
+    return clean[0].toLowerCase() + clean.slice(1).map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
   }
 
   setQuestionIndex(idx: number): void {
     if (idx >= 0 && idx < this.questions().length) {
       this.activeQuestionIndex.set(idx);
+      this.editorTab.set('code');
     }
   }
 
   nextQuestion(): void {
     const nextIdx = this.activeQuestionIndex() + 1;
     if (nextIdx < this.questions().length) {
-      this.activeQuestionIndex.set(nextIdx);
+      this.setQuestionIndex(nextIdx);
     }
   }
 
   prevQuestion(): void {
     const prevIdx = this.activeQuestionIndex() - 1;
     if (prevIdx >= 0) {
-      this.activeQuestionIndex.set(prevIdx);
+      this.setQuestionIndex(prevIdx);
     }
   }
 
@@ -166,24 +220,95 @@ export class UserAssessmentsPage implements OnInit {
     const updated = { ...this.answers(), [qId]: value };
     this.answers.set(updated);
     this.saveStatus.set('saving');
-    setTimeout(() => this.saveStatus.set('saved'), 400);
+    setTimeout(() => this.saveStatus.set('saved'), 350);
   }
 
-  insertSnippet(type: 'code' | 'architecture' | 'tradeoffs'): void {
+  handleTabKey(event: KeyboardEvent, textarea: HTMLTextAreaElement): void {
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const q = this.currentQuestion();
+      if (!q) return;
+
+      const current = this.answers()[q.qId] || '';
+      const updated = current.substring(0, start) + '  ' + current.substring(end);
+      this.updateAnswer(q.qId, updated);
+
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + 2;
+      }, 0);
+    }
+  }
+
+  resetCurrentStarterCode(): void {
+    const q = this.currentQuestion();
+    if (!q) return;
+    if (confirm('Reset editor to initial starter template? Your current edits for this question will be cleared.')) {
+      this.updateAnswer(q.qId, this.getStarterCode(q));
+    }
+  }
+
+  copyCurrentCode(): void {
+    const q = this.currentQuestion();
+    if (!q) return;
+    const code = this.answers()[q.qId] || '';
+    if (navigator?.clipboard) {
+      navigator.clipboard.writeText(code).then(() => {
+        this.isCopied.set(true);
+        setTimeout(() => this.isCopied.set(false), 1600);
+      });
+    }
+  }
+
+  insertSnippet(type: 'try-catch' | 'validation' | 'async-return'): void {
     const q = this.currentQuestion();
     if (!q) return;
 
     let snippet = '';
-    if (type === 'code') {
-      snippet = `\n\`\`\`typescript\n// Implementation approach\nfunction handleWorkflow() {\n  // Logic here\n}\n\`\`\`\n`;
-    } else if (type === 'architecture') {
-      snippet = `\n### Architecture & Strategy:\n1. Core Components:\n2. Data Flow & State Management:\n3. Concurrency Handling:\n`;
-    } else if (type === 'tradeoffs') {
-      snippet = `\n### Trade-offs & Edge Cases:\n- Pros & Performance benefits:\n- Potential failure modes & mitigations:\n- Scalability limits:\n`;
+    if (type === 'try-catch') {
+      snippet = `\n  try {\n    // Execute protected operation\n  } catch (error) {\n    throw new Error(\`Operation failed: \${error}\`);\n  }\n`;
+    } else if (type === 'validation') {
+      snippet = `\n  if (!input || typeof input !== 'object') {\n    throw new TypeError('Expected input argument to be an object');\n  }\n`;
+    } else if (type === 'async-return') {
+      snippet = `\n  return {\n    success: true,\n    processedCount: 1,\n    timestamp: new Date().toISOString()\n  };\n`;
     }
 
     const currentText = this.answers()[q.qId] || '';
     this.updateAnswer(q.qId, currentText + snippet);
+  }
+
+  getQuestionExamples(q: AssessmentQuestion | null): AssessmentExample[] {
+    if (!q) return [];
+    if (q.examples && q.examples.length > 0) {
+      return q.examples;
+    }
+    const fn = q.functionName || this.generateFunctionName(q.title);
+    return [
+      {
+        input: `${fn}({ id: "TX-4091", amount: 1500, currency: "USD" })`,
+        output: `{ success: true, transactionId: "TX-4091", status: "VERIFIED" }`,
+        explanation: 'Standard valid payload: validates parameters, completes business logic, and returns formatted result.'
+      },
+      {
+        input: `${fn}(null)`,
+        output: `throws Error("Invalid input parameter")`,
+        explanation: 'Boundary case: null or malformed payload throws immediate clear validation exception.'
+      }
+    ];
+  }
+
+  getQuestionConstraints(q: AssessmentQuestion | null): string[] {
+    if (!q) return [];
+    if (q.constraints && q.constraints.length > 0) {
+      return q.constraints;
+    }
+    return [
+      'Type safety: Ensure all parameters and return types are strictly validated.',
+      'Edge-case resilience: Gracefully handle null, undefined, empty strings, and arrays.',
+      'Algorithmic performance: Strive for O(N) or better; avoid blocking synchronous calls in async routines.',
+      'Error propagation: Throw clear error instances with descriptive messages on failures.'
+    ];
   }
 
   submitAssessment(): void {
@@ -193,7 +318,7 @@ export class UserAssessmentsPage implements OnInit {
     const unanswered = this.questions().length - this.answeredCount();
     if (unanswered > 0) {
       const confirmSubmit = confirm(
-        `You have ${unanswered} unanswered question(s). Are you sure you want to submit your assessment?`
+        `You have ${unanswered} question(s) with blank or unedited code. Are you sure you want to submit your assessment?`
       );
       if (!confirmSubmit) return;
     }
@@ -208,7 +333,6 @@ export class UserAssessmentsPage implements OnInit {
           next: (evaluated) => {
             this.activeAssessment.set(evaluated);
             this.isSubmitting.set(false);
-            // Update in allAssessments list
             const currentList = this.allAssessments().map((a) =>
               a.id === evaluated.id ? evaluated : a
             );
@@ -265,8 +389,8 @@ export class UserAssessmentsPage implements OnInit {
     return !!this.flaggedQuestions()[qId];
   }
 
-  setEditorView(view: 'edit' | 'preview'): void {
-    this.editorView.set(view);
+  setEditorTab(tab: 'code' | 'testcases'): void {
+    this.editorTab.set(tab);
   }
 
   openReviewModal(): void {
@@ -285,65 +409,8 @@ export class UserAssessmentsPage implements OnInit {
     this.showInstructionsModal.set(false);
   }
 
-  setInstructionsTab(tab: 'format' | 'guide' | 'rubric'): void {
+  setInstructionsTab(tab: 'rules' | 'codeGuide' | 'rubric'): void {
     this.instructionsTab.set(tab);
-  }
-
-  getExpectedFormat(q: AssessmentQuestion | null): { type: string; icon: string; description: string; advice: string } {
-    if (!q) {
-      return {
-        type: 'Hybrid (Code + Written Strategy)',
-        icon: '📝',
-        description: 'Provide code snippets along with architectural and structural explanations.',
-        advice: 'State assumptions, write clean functions/schema, and highlight trade-offs.'
-      };
-    }
-
-    const cat = (q.category || '').toLowerCase();
-    const title = (q.title || '').toLowerCase();
-
-    if (cat.includes('backend') || cat.includes('api') || title.includes('endpoint') || title.includes('service') || title.includes('logic')) {
-      return {
-        type: 'Code Implementation + Error Handling',
-        icon: '💻',
-        description: 'Write executable functions, service contracts, and error resilience logic.',
-        advice: 'Include request/response types, input validation, and async error boundaries.'
-      };
-    }
-
-    if (cat.includes('database') || cat.includes('data') || title.includes('sql') || title.includes('schema') || title.includes('migration')) {
-      return {
-        type: 'Database Schema & Query Architecture',
-        icon: '🗄️',
-        description: 'Provide DDL tables, indexes, query logic, and concurrency locks.',
-        advice: 'Address isolation levels, deadlock prevention, and query performance.'
-      };
-    }
-
-    if (cat.includes('architecture') || cat.includes('system') || title.includes('scaling') || title.includes('pipeline')) {
-      return {
-        type: 'System Architecture & Data Flow',
-        icon: '📐',
-        description: 'Describe service topology, message brokers, caching, and state synchronization.',
-        advice: 'Use structured sections (Components, Data Flow, Failure Modes, Trade-offs).'
-      };
-    }
-
-    if (cat.includes('security') || title.includes('auth') || title.includes('token') || title.includes('vulnerability')) {
-      return {
-        type: 'Security Safeguards & Defense Logic',
-        icon: '🛡️',
-        description: 'Specify authorization checks, payload sanitization, and encryption strategies.',
-        advice: 'Walk through attack vectors (injection, replay, race conditions) and your countermeasures.'
-      };
-    }
-
-    return {
-      type: 'Technical Solution & Code Blueprint',
-      icon: '⚡',
-      description: 'Combine working code blocks with concise technical explanations.',
-      advice: 'Explain your reasoning, write clean code, and mention edge cases.'
-    };
   }
 
   jumpToQuestion(idx: number): void {

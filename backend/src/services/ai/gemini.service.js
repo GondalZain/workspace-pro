@@ -127,9 +127,27 @@ const assessmentQuestionsSchema = {
           difficulty: { type: Type.STRING, enum: ['easy', 'medium', 'hard'] },
           scenario: { type: Type.STRING },
           question: { type: Type.STRING },
+          functionName: { type: Type.STRING, description: 'Expected function name e.g. processOrder or calculateRevenue' },
+          starterCode: { type: Type.STRING, description: 'Ready-to-edit starter code template with function signature' },
+          examples: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                input: { type: Type.STRING },
+                output: { type: Type.STRING },
+                explanation: { type: Type.STRING }
+              },
+              required: ['input', 'output']
+            }
+          },
+          constraints: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING }
+          },
           maxPoints: { type: Type.INTEGER }
         },
-        required: ['qId', 'title', 'category', 'difficulty', 'scenario', 'question', 'maxPoints']
+        required: ['qId', 'title', 'category', 'difficulty', 'scenario', 'question', 'functionName', 'starterCode', 'maxPoints']
       }
     }
   },
@@ -298,7 +316,7 @@ async function callGeminiWithFallback({ systemInstruction, contents, responseSch
 }
 
 /**
- * Generates 5 project-tailored technical assessment questions based on project tasks & architecture.
+ * Generates 5 project-tailored practical CODING assessment questions based on project tasks & codebase needs.
  */
 async function generateAssessmentQuestions({ projectTitle, projectDescription, tasks = [] }) {
   const taskSample = tasks.slice(0, 30).map((t) => ({
@@ -314,16 +332,25 @@ Project Description: "${projectDescription || 'Technical application'}"
 Project Tasks Sample (${taskSample.length} tasks):
 ${JSON.stringify(taskSample, null, 2)}
 
-Generate a focused, practical technical assessment with exactly 5 questions (worth 20 points each, 100 points total).
-Questions must directly test the real engineering problems, database queries, API logic, frontend state, and security considerations required to build this specific project.`;
+Generate a focused, practical technical assessment with exactly 5 hands-on CODING questions (worth 20 points each, 100 points total).
+IMPORTANT:
+1. Every question MUST be a pure programming / code implementation challenge (TypeScript, JavaScript, SQL, or Node.js logic).
+2. NO theoretical essay questions, NO system architecture whiteboards, and NO trade-off write-ups.
+3. Every question must include:
+   - functionName: clear concise identifier (e.g. processOrderWorkflow, calculateProjectMetrics, sanitizeAuditPayload).
+   - starterCode: complete starter code boilerplate with TypeScript function signature, input parameter types, and TODO comment.
+   - examples: at least 1 or 2 realistic input and output examples.
+   - constraints: list of constraints (e.g. time complexity, edge cases, null handling, error throwing).`;
 
-  const systemInstruction = `You are a Principal Engineering Director and Technical Hiring Architect.
-Analyze the project requirements and generate 5 rigorous, practical scenario-based questions:
-1. Question 1 (Database / Data Modeling): Schema design, indexing, transactions, or query optimization.
-2. Question 2 (Backend Core Logic): API controller/service, algorithm, edge-case validation, concurrency.
-3. Question 3 (Frontend / Client State): Reactive components, API integration, caching, UX resilience.
-4. Question 4 (Security / Authentication): JWT/OAuth, role-based authorization, rate-limiting, data isolation.
-5. Question 5 (Architecture / Problem Solving): Fault tolerance, asynchronous jobs, third-party webhook handling.`;
+  const systemInstruction = `You are a Principal Engineering Director designing a 100% hands-on CODING benchmark test.
+Analyze the project requirements and generate 5 practical coding challenges:
+1. Question 1 (Data Processing / Database Logic): SQL query execution, transaction handling, or data aggregation function.
+2. Question 2 (Backend Core Service): API handler, service method, concurrency coordination, or business rule validation.
+3. Question 3 (Client / State Logic): Data transform, reactive state reducer, optimistic update, or event pipeline.
+4. Question 4 (Security & Authentication): Token validation, input sanitizer, rate-limiting check, or permission guard.
+5. Question 5 (Resilience & Error Recovery): Retry logic with exponential backoff, webhook signature verification, or async queue worker.
+
+All questions must provide runnable starter code templates and concrete input/output test examples.`;
 
   return callGeminiWithFallback({
     systemInstruction,
@@ -344,28 +371,32 @@ async function evaluateAssessmentAnswers({ projectTitle, questions = [], answers
     maxPoints: q.maxPoints,
     scenario: q.scenario,
     question: q.question,
-    developerAnswer: answers[q.qId] || 'No answer submitted.'
+    starterCode: q.starterCode || '',
+    developerCodeSubmission: answers[q.qId] || '// No code submitted.'
   }));
 
   const userPrompt = `Project: "${projectTitle}"
 
-Assessment Questions & Developer Submissions:
+Assessment Coding Challenges & Developer Submissions:
 ${JSON.stringify(qaPairs, null, 2)}
 
-Grade each answer rigorously. Calculate:
-1. Points earned per question and total score (0 to 100).
-2. Technical seniority tier (Junior: 0-59, Mid-Level: 60-79, Senior: 80-91, Lead/Architect: 92-100).
-3. Max task complexity (low, medium, high).
-4. Developer Stamina Profile: Sustainable daily deep-work hours (standard 6.0 hrs/day benchmark), complexity tolerance (what level of complex edge cases and architectural ambiguity they can sustain), supervision level needed (Autonomous, Peer Review Needed, Requires Senior Mentorship), recommended task types, and tasks to avoid.
-5. Domain Expertise Breakdown: Granular score (0-100), proficiency level (Novice, Competent, Advanced, Expert), and summary for each core engineering discipline (Backend, Database, Frontend, Security, Architecture).
-6. Strengths, growth gaps, and per-question critique.`;
+Grade each submitted code implementation rigorously:
+1. Check functional correctness, algorithmic logic, and edge-case handling.
+2. Verify if error boundaries, input validations, and required return types are properly implemented.
+3. Calculate:
+   - Points earned per question and total score (0 to 100).
+   - Technical seniority tier (Junior: 0-59, Mid-Level: 60-79, Senior: 80-91, Lead/Architect: 92-100).
+   - Max task complexity (low, medium, high).
+   - Developer Stamina Profile: Sustainable daily deep-work hours (standard 6.0 hrs/day benchmark), complexity tolerance (what level of complex edge cases and architectural ambiguity they can sustain), supervision level needed (Autonomous, Peer Review Needed, Requires Senior Mentorship), recommended task types, and tasks to avoid.
+   - Domain Expertise Breakdown: Granular score (0-100), proficiency level (Novice, Competent, Advanced, Expert), and summary for each core engineering discipline (Backend, Database, Frontend, Security, Architecture).
+   - Strengths, growth gaps, and per-question code critique.`;
 
-  const systemInstruction = `You are an expert Technical Assessment Evaluator, Engineering Manager, and Code Reviewer.
-Grade developer answers objectively:
-- Reward deep understanding of clean code, security best practices, proper error handling, concurrency, and scalable architecture.
-- Penalize superficial, vague, hallucinated, or insecure answers.
+  const systemInstruction = `You are an expert Technical Assessment Evaluator, Engineering Manager, and Senior Code Reviewer.
+Grade the developer's submitted CODE objectively:
+- Reward clean syntax, correct algorithmic logic, edge-case handling, and robust error management.
+- Penalize broken code, syntax failures, unhandled null/undefined pointers, or incomplete implementations.
 - Benchmark developer stamina and complexity endurance: analyze how complex of a system the developer can handle without burning out or introducing security vulnerabilities.
-- Set maxComplexity to 'high' only if score >= 80 and technical architecture is sound; 'medium' if 60-79; 'low' if < 60.
+- Set maxComplexity to 'high' only if code quality is senior/lead caliber (score >= 80); 'medium' if 60-79; 'low' if < 60.
 - Provide a rigorous, constructive breakdown of expertise across all 5 engineering domains so management knows exactly which tasks to assign.`;
 
   return callGeminiWithFallback({

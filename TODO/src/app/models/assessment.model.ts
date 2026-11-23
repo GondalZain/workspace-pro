@@ -3,6 +3,12 @@ export type AssessmentStatus = 'pending' | 'in_progress' | 'completed' | 'evalua
 export type EvaluatedLevel = 'Junior' | 'Mid-Level' | 'Senior' | 'Lead/Architect';
 export type ComplexityLevel = 'low' | 'medium' | 'high';
 
+export interface AssessmentExample {
+  input: string;
+  output: string;
+  explanation?: string;
+}
+
 export interface AssessmentQuestion {
   qId: string;
   title: string;
@@ -11,6 +17,10 @@ export interface AssessmentQuestion {
   scenario: string;
   question: string;
   maxPoints: number;
+  functionName?: string;
+  starterCode?: string;
+  examples?: AssessmentExample[];
+  constraints?: string[];
 }
 
 export interface AssessmentQuestionsPayload {
