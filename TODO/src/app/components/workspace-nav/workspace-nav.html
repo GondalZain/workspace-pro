@@ -15,4 +15,28 @@
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
     <span>Time Sheet</span>
   </a>
+
+  <!-- Dynamic AI Assessment Tab when test comes for the user -->
+  @if (pendingAssessments().length > 0) {
+    <button
+      type="button"
+      class="nav-tab nav-tab--assessment"
+      (click)="openPendingAssessment(pendingAssessments()[0])"
+      title="You have a pending AI Technical Assessment to complete!"
+    >
+      <span class="nav-tab-pulse-dot"></span>
+      <span class="nav-tab-sparkle">✨</span>
+      <span>Assessment</span>
+      <span class="nav-tab-badge">{{ pendingAssessments().length }}</span>
+    </button>
+  }
 </nav>
+
+<!-- Test Runner Modal -->
+<app-developer-test-runner
+  [assessmentId]="activeAssessmentId()"
+  [initialAssessment]="activeAssessment()"
+  [isOpen]="showModal()"
+  (close)="closeModal()"
+  (completed)="onAssessmentCompleted($event)"
+/>
