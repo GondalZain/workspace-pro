@@ -67,6 +67,8 @@ export interface AiSrsModuleDraft {
 }
 
 export interface AiSrsAnalysisResult {
+  projectTitle?: string;
+  projectDescription?: string;
   summary: string;
   totalEstimatedMinutes: number;
   modules: AiSrsModuleDraft[];

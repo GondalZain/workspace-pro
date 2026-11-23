@@ -1,20 +1,28 @@
 @if (isOpen()) {
-  <div class="ai-modal-backdrop" (click)="closeModal()">
-    <div class="ai-modal-container" (click)="$event.stopPropagation()">
+  <div [class.ai-modal-backdrop]="!inline()" (click)="!inline() ? closeModal() : null">
+    <div [class.ai-modal-container]="!inline()" [class.ai-inline-container]="inline()" (click)="$event.stopPropagation()">
       
-      <!-- MODAL HEADER -->
+      <!-- HEADER -->
       <header class="ai-modal-header">
         <div class="ai-header-title-row">
           <div class="ai-badge">
             <span class="sparkle">✨</span>
             <span>Gemini AI Engine</span>
           </div>
-          <h2 class="ai-modal-heading">Generate Tasks &amp; Dependencies from SRS</h2>
+          <h2 class="ai-modal-heading">
+            {{ mode() === 'new-project' ? 'AI Project & Task Generator' : 'Generate Tasks & Dependencies from SRS' }}
+          </h2>
           <p class="ai-modal-sub">
-            Target Project: <strong>{{ projectTitle() }}</strong>
+            @if (mode() === 'new-project') {
+              Upload an SRS document or paste requirements to automatically create your project, modules, and prerequisite task dependencies.
+            } @else {
+              Target Project: <strong>{{ projectTitle() }}</strong>
+            }
           </p>
         </div>
-        <button type="button" class="btn-close-modal" (click)="closeModal()" [disabled]="isSubmitting()" title="Close">&times;</button>
+        @if (!inline()) {
+          <button type="button" class="btn-close-modal" (click)="closeModal()" [disabled]="isSubmitting()" title="Close">&times;</button>
+        }
       </header>
 
       <!-- ERROR BANNER -->
@@ -28,6 +36,21 @@
       <!-- STEP 1: INPUT MODE -->
       @if (currentStep() === 'input') {
         <div class="ai-modal-body">
+
+          <!-- PROJECT NAME (Optional for New Project Mode) -->
+          @if (mode() === 'new-project') {
+            <div class="project-title-input-box">
+              <label class="input-label" for="srs-proj-title">Project Name (Optional)</label>
+              <input
+                id="srs-proj-title"
+                type="text"
+                class="srs-text-input"
+                placeholder="e.g. Smart Parking System (Leave empty to let AI deduce from document)"
+                [(ngModel)]="customProjectTitle"
+              />
+            </div>
+          }
+
           <div class="ai-tab-switcher">
             <button
               type="button"
@@ -110,7 +133,7 @@
           <div class="ai-info-callout">
             <span class="info-icon">💡</span>
             <div>
-              <strong>Gemini 2.0 AI Decomposition</strong>
+              <strong>Gemini AI Work Breakdown Engine</strong>
               <p>The AI will extract functional modules, concrete developer tasks, effort estimates, and construct a logical prerequisite dependency tree (e.g. Database Schema &rarr; APIs &rarr; Frontend &rarr; Testing).</p>
             </div>
           </div>
@@ -158,6 +181,32 @@
       <!-- STEP 3: REVIEW & EDIT MODE -->
       @if (currentStep() === 'review') {
         <div class="ai-modal-body ai-review-body">
+
+          <!-- PROJECT METADATA EDIT (NEW PROJECT MODE) -->
+          @if (mode() === 'new-project') {
+            <div class="project-meta-review-box">
+              <div class="meta-field">
+                <label class="input-label" for="rev-proj-title">Project Name</label>
+                <input
+                  id="rev-proj-title"
+                  type="text"
+                  class="srs-text-input srs-title-lg"
+                  placeholder="Project Name"
+                  [(ngModel)]="customProjectTitle"
+                />
+              </div>
+              <div class="meta-field">
+                <label class="input-label" for="rev-proj-desc">Project Overview Description</label>
+                <textarea
+                  id="rev-proj-desc"
+                  class="srs-textarea srs-textarea-sm"
+                  rows="2"
+                  placeholder="Short project description..."
+                  [(ngModel)]="customProjectDescription"
+                ></textarea>
+              </div>
+            </div>
+          }
           
           <!-- SUMMARY STATS BANNER -->
           <div class="review-stats-banner">
@@ -274,9 +323,13 @@
             >
               @if (isSubmitting()) {
                 <span class="btn-spinner"></span>
-                <span>Creating {{ selectedTasksCount() }} Tasks &amp; Dependencies...</span>
+                <span>
+                  {{ mode() === 'new-project' ? 'Launching Project & Creating Tasks...' : 'Creating Tasks & Dependencies...' }}
+                </span>
               } @else {
-                <span>✓ Create {{ selectedTasksCount() }} Tasks with Dependencies</span>
+                <span>
+                  {{ mode() === 'new-project' ? '🚀 Create Project & Launch (' + selectedTasksCount() + ' Tasks)' : '✓ Create ' + selectedTasksCount() + ' Tasks with Dependencies' }}
+                </span>
               }
             </button>
           </div>

@@ -3,6 +3,14 @@ const { GoogleGenAI, Type } = require('@google/genai');
 const srsTaskSchema = {
   type: Type.OBJECT,
   properties: {
+    projectTitle: {
+      type: Type.STRING,
+      description: 'Clean, descriptive name for the project (e.g. "Smart Parking Management System").'
+    },
+    projectDescription: {
+      type: Type.STRING,
+      description: 'Concise 1-2 sentence overview of the project purpose, architecture, and scope.'
+    },
     summary: {
       type: Type.STRING,
       description: 'Executive summary of the SRS project scope, architecture, and objectives.'

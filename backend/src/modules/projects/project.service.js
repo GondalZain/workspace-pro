@@ -62,6 +62,41 @@ async function getProjectDependencies(userId, projectId, companyId = null, isSup
   return taskRepository.getProjectDependencies(projectId);
 }
 
+async function analyzeSrsDraft(userId, { fileBuffer, mimeType, fileName, rawText, projectTitle }, companyId = null, isSuperAdmin = false) {
+  return geminiService.analyzeSrsDocument({
+    fileBuffer,
+    mimeType,
+    fileName,
+    rawText,
+    projectTitle: projectTitle || 'New Project'
+  });
+}
+
+async function createProjectWithAiTasks(userId, input, companyId = null) {
+  const { modules, ...projectInput } = input;
+
+  // 1. Create the project
+  const project = await projectRepository.create(userId, projectInput, companyId);
+
+  // 2. Batch create tasks with dependencies if any modules provided
+  let tasksResult = { createdTasksCount: 0, insertedDependenciesCount: 0, tasks: [] };
+  if (Array.isArray(modules) && modules.length > 0) {
+    tasksResult = await taskRepository.batchCreateTasksWithDependencies({
+      userId,
+      companyId: project.company_id || companyId,
+      projectId: project.id,
+      modules
+    });
+  }
+
+  return {
+    project,
+    createdTasksCount: tasksResult.createdTasksCount,
+    insertedDependenciesCount: tasksResult.insertedDependenciesCount,
+    tasks: tasksResult.tasks
+  };
+}
+
 module.exports = {
   listProjects,
   createProject,
@@ -69,5 +104,7 @@ module.exports = {
   deleteProject,
   analyzeSrs,
   commitAiTasks,
-  getProjectDependencies
+  getProjectDependencies,
+  analyzeSrsDraft,
+  createProjectWithAiTasks
 };

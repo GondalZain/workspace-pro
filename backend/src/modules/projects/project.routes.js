@@ -10,7 +10,11 @@ const srsUpload = multer({
   limits: { fileSize: 30 * 1024 * 1024 } // 30 MB for large PDF/SRS documents
 });
 
-// AI SRS Task & Dependency Auto-Generation
+// AI SRS Draft & New Project Creation (must be registered before /:id routes)
+router.post('/ai/srs-analyze-draft', srsUpload.single('file'), controller.analyzeSrsDraft);
+router.post('/ai/create-with-tasks', controller.createProjectWithAiTasks);
+
+// AI SRS Task & Dependency Auto-Generation for existing projects
 router.post('/:id/ai/srs-analyze', srsUpload.single('file'), controller.analyzeSrs);
 router.post('/:id/ai/commit-tasks', controller.commitAiTasks);
 router.get('/:id/dependencies', controller.getProjectDependencies);

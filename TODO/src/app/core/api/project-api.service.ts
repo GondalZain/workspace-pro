@@ -25,6 +25,35 @@ export class ProjectApiService {
     return this.http.delete<void>(`${this.projectsUrl}/${projectId}`);
   }
 
+  analyzeSrsDraft(payload: { file?: File | null; rawText?: string | null; projectTitle?: string }) {
+    if (payload.file) {
+      const formData = new FormData();
+      formData.append('file', payload.file);
+      if (payload.rawText) formData.append('rawText', payload.rawText);
+      if (payload.projectTitle) formData.append('projectTitle', payload.projectTitle);
+      return this.http.post<AiSrsAnalysisResult>(`${this.projectsUrl}/ai/srs-analyze-draft`, formData);
+    }
+    return this.http.post<AiSrsAnalysisResult>(`${this.projectsUrl}/ai/srs-analyze-draft`, {
+      rawText: payload.rawText || '',
+      projectTitle: payload.projectTitle || ''
+    });
+  }
+
+  createWithAiTasks(payload: {
+    title: string;
+    description?: string;
+    imagePath?: string | null;
+    defaultAssigneeId?: number | null;
+    formTemplateId?: number | null;
+    customFields?: any;
+    modules: AiSrsModuleDraft[];
+  }) {
+    return this.http.post<{ project: Project; createdTasksCount: number; insertedDependenciesCount: number }>(
+      `${this.projectsUrl}/ai/create-with-tasks`,
+      payload
+    );
+  }
+
   analyzeSrs(projectId: number, payload: { file?: File | null; rawText?: string | null }) {
     if (payload.file) {
       const formData = new FormData();

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ProjectApiService } from '../../../core/api/project-api.service';
 import { AiSrsAnalysisResult, AiSrsModuleDraft, AiSrsTaskDraft } from '../../../models/task.model';
 import { TaskStoreService } from '../../../services/task-store.service';
+import { ProjectStoreService } from '../../../services/project-store.service';
 
 type StepMode = 'input' | 'analyzing' | 'review';
 
@@ -15,18 +16,25 @@ type StepMode = 'input' | 'analyzing' | 'review';
   styleUrl: './ai-srs-generator.css'
 })
 export class AiSrsTaskGeneratorModalComponent {
-  readonly projectId = input.required<number>();
+  readonly projectId = input<number | null>(null);
   readonly projectTitle = input<string>('Project');
-  readonly isOpen = model<boolean>(false);
+  readonly inline = input<boolean>(false);
+  readonly mode = input<'new-project' | 'existing-project'>('existing-project');
+  readonly isOpen = model<boolean>(true);
   readonly tasksGenerated = output<{ count: number }>();
+  readonly projectCreated = output<{ project: any; tasksCount: number }>();
+  readonly cancelled = output<void>();
 
   private readonly projectApi = inject(ProjectApiService);
   private readonly taskStore = inject(TaskStoreService);
+  private readonly projectStore = inject(ProjectStoreService);
 
   protected readonly currentStep = signal<StepMode>('input');
   protected readonly inputTab = signal<'file' | 'text'>('file');
 
   // Input states
+  protected readonly customProjectTitle = signal<string>('');
+  protected readonly customProjectDescription = signal<string>('');
   protected readonly selectedFile = signal<File | null>(null);
   protected readonly pastedText = signal<string>('');
   protected readonly isDraggingOver = signal<boolean>(false);
@@ -77,6 +85,7 @@ export class AiSrsTaskGeneratorModalComponent {
 
   protected closeModal(): void {
     if (this.isSubmitting()) return;
+    this.cancelled.emit();
     this.isOpen.set(false);
     this.resetState();
   }
@@ -147,37 +156,67 @@ export class AiSrsTaskGeneratorModalComponent {
     this.errorMessage.set('');
     this.currentStep.set('analyzing');
 
-    this.projectApi.analyzeSrs(this.projectId(), {
-      file: this.inputTab() === 'file' ? file : null,
-      rawText: this.inputTab() === 'text' ? text : null
-    }).subscribe({
-      next: (result) => {
-        this.analysisResult.set(result);
-        const modulesWithSelection = (result.modules || []).map((m) => ({
-          ...m,
-          tasks: (m.tasks || []).map((t) => ({ ...t, selected: true }))
-        }));
-        this.reviewModules.set(modulesWithSelection);
-
-        // Expand first 2 modules by default
-        const initialExpanded: Record<number, boolean> = {};
-        modulesWithSelection.forEach((_, idx) => {
-          initialExpanded[idx] = idx < 2;
-        });
-        this.expandedModules.set(initialExpanded);
-
-        this.currentStep.set('review');
-      },
-      error: (err) => {
-        console.error('SRS Analysis failed:', err);
-        this.currentStep.set('input');
-        this.errorMessage.set(
-          err.error?.error ||
-          err.message ||
-          'Failed to analyze SRS document. Please verify your GEMINI_API_KEY in backend/.env.'
-        );
+    const handleSuccess = (result: AiSrsAnalysisResult) => {
+      this.analysisResult.set(result);
+      if (this.mode() === 'new-project') {
+        if (result.projectTitle && !this.customProjectTitle().trim()) {
+          this.customProjectTitle.set(result.projectTitle);
+        }
+        if (result.projectDescription && !this.customProjectDescription().trim()) {
+          this.customProjectDescription.set(result.projectDescription);
+        }
       }
-    });
+
+      const modulesWithSelection = (result.modules || []).map((m) => ({
+        ...m,
+        tasks: (m.tasks || []).map((t) => ({ ...t, selected: true }))
+      }));
+      this.reviewModules.set(modulesWithSelection);
+
+      // Expand first 2 modules by default
+      const initialExpanded: Record<number, boolean> = {};
+      modulesWithSelection.forEach((_, idx) => {
+        initialExpanded[idx] = idx < 2;
+      });
+      this.expandedModules.set(initialExpanded);
+
+      this.currentStep.set('review');
+    };
+
+    const handleError = (err: any) => {
+      console.error('SRS Analysis failed:', err);
+      this.currentStep.set('input');
+      this.errorMessage.set(
+        err.error?.error ||
+        err.message ||
+        'Failed to analyze SRS document. Please verify your GEMINI_API_KEY in backend/.env.'
+      );
+    };
+
+    if (this.mode() === 'new-project') {
+      this.projectApi.analyzeSrsDraft({
+        file: this.inputTab() === 'file' ? file : null,
+        rawText: this.inputTab() === 'text' ? text : null,
+        projectTitle: this.customProjectTitle().trim() || undefined
+      }).subscribe({
+        next: handleSuccess,
+        error: handleError
+      });
+    } else {
+      const pId = this.projectId();
+      if (!pId) {
+        this.currentStep.set('input');
+        this.errorMessage.set('Project ID is required.');
+        return;
+      }
+      this.projectApi.analyzeSrs(pId, {
+        file: this.inputTab() === 'file' ? file : null,
+        rawText: this.inputTab() === 'text' ? text : null
+      }).subscribe({
+        next: handleSuccess,
+        error: handleError
+      });
+    }
   }
 
   protected toggleModuleAccordion(index: number): void {
@@ -214,19 +253,45 @@ export class AiSrsTaskGeneratorModalComponent {
       }))
       .filter((mod) => mod.tasks.length > 0);
 
-    this.projectApi.commitAiTasks(this.projectId(), approvedModules).subscribe({
-      next: (res) => {
-        this.isSubmitting.set(false);
-        this.taskStore.refresh();
-        this.tasksGenerated.emit({ count: res.createdTasksCount });
-        this.closeModal();
-      },
-      error: (err) => {
-        this.isSubmitting.set(false);
-        console.error('Failed to commit AI tasks:', err);
-        this.errorMessage.set(err.error?.error || 'Failed to save generated tasks to the database.');
-      }
-    });
+    if (this.mode() === 'new-project') {
+      const finalTitle = this.customProjectTitle().trim() || this.analysisResult()?.projectTitle || 'AI Generated Project';
+      const finalDesc = this.customProjectDescription().trim() || this.analysisResult()?.projectDescription || this.analysisResult()?.summary || '';
+
+      this.projectApi.createWithAiTasks({
+        title: finalTitle,
+        description: finalDesc,
+        modules: approvedModules
+      }).subscribe({
+        next: (res) => {
+          this.isSubmitting.set(false);
+          this.projectStore.refresh();
+          this.taskStore.refresh();
+          this.projectCreated.emit({ project: res.project, tasksCount: res.createdTasksCount });
+        },
+        error: (err) => {
+          this.isSubmitting.set(false);
+          console.error('Failed to create AI project & tasks:', err);
+          this.errorMessage.set(err.error?.error || 'Failed to create project and tasks.');
+        }
+      });
+    } else {
+      const pId = this.projectId();
+      if (!pId) return;
+
+      this.projectApi.commitAiTasks(pId, approvedModules).subscribe({
+        next: (res) => {
+          this.isSubmitting.set(false);
+          this.taskStore.refresh();
+          this.tasksGenerated.emit({ count: res.createdTasksCount });
+          this.closeModal();
+        },
+        error: (err) => {
+          this.isSubmitting.set(false);
+          console.error('Failed to commit AI tasks:', err);
+          this.errorMessage.set(err.error?.error || 'Failed to save generated tasks to the database.');
+        }
+      });
+    }
   }
 
   protected getTaskTitleByTempId(tempId: string): string {

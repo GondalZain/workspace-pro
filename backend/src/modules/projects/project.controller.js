@@ -115,6 +115,55 @@ async function getProjectDependencies(request, response, next) {
   }
 }
 
+async function analyzeSrsDraft(request, response, next) {
+  try {
+    const file = request.file;
+    const rawText = request.body?.rawText;
+    const projectTitle = request.body?.projectTitle;
+
+    const result = await projectService.analyzeSrsDraft(
+      Number(request.user.sub),
+      {
+        fileBuffer: file ? file.buffer : null,
+        mimeType: file ? file.mimetype : null,
+        fileName: file ? file.originalname : null,
+        rawText,
+        projectTitle
+      },
+      request.user.companyId,
+      request.user.isSuperAdmin
+    );
+
+    response.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function createProjectWithAiTasks(request, response, next) {
+  try {
+    const { title, description, imagePath, defaultAssigneeId, formTemplateId, customFields, modules } = request.body;
+
+    const result = await projectService.createProjectWithAiTasks(
+      Number(request.user.sub),
+      {
+        title,
+        description,
+        imagePath,
+        defaultAssigneeId,
+        formTemplateId,
+        customFields,
+        modules: modules || []
+      },
+      request.user.companyId
+    );
+
+    response.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   listProjects,
   createProject,
@@ -122,5 +171,7 @@ module.exports = {
   deleteProject,
   analyzeSrs,
   commitAiTasks,
-  getProjectDependencies
+  getProjectDependencies,
+  analyzeSrsDraft,
+  createProjectWithAiTasks
 };
