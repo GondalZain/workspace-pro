@@ -36,6 +36,8 @@ export class UserAssessmentsPage implements OnInit {
   readonly saveStatus = signal<'saved' | 'saving'>('saved');
   readonly editorView = signal<'edit' | 'preview'>('edit');
   readonly showReviewModal = signal<boolean>(false);
+  readonly showInstructionsModal = signal<boolean>(false);
+  readonly instructionsTab = signal<'format' | 'guide' | 'rubric'>('format');
   readonly guidelinesExpanded = signal<boolean>(false);
   readonly critiqueCategoryFilter = signal<string>('all');
   readonly expandedQuestions = signal<Record<string, boolean>>({});
@@ -306,6 +308,75 @@ export class UserAssessmentsPage implements OnInit {
 
   closeReviewModal(): void {
     this.showReviewModal.set(false);
+  }
+
+  openInstructions(): void {
+    this.showInstructionsModal.set(true);
+  }
+
+  closeInstructions(): void {
+    this.showInstructionsModal.set(false);
+  }
+
+  setInstructionsTab(tab: 'format' | 'guide' | 'rubric'): void {
+    this.instructionsTab.set(tab);
+  }
+
+  getExpectedFormat(q: AssessmentQuestion | null): { type: string; icon: string; description: string; advice: string } {
+    if (!q) {
+      return {
+        type: 'Hybrid (Code + Written Strategy)',
+        icon: '📝',
+        description: 'Provide code snippets along with architectural and structural explanations.',
+        advice: 'State assumptions, write clean functions/schema, and highlight trade-offs.'
+      };
+    }
+
+    const cat = (q.category || '').toLowerCase();
+    const title = (q.title || '').toLowerCase();
+
+    if (cat.includes('backend') || cat.includes('api') || title.includes('endpoint') || title.includes('service') || title.includes('logic')) {
+      return {
+        type: 'Code Implementation + Error Handling',
+        icon: '💻',
+        description: 'Write executable functions, service contracts, and error resilience logic.',
+        advice: 'Include request/response types, input validation, and async error boundaries.'
+      };
+    }
+
+    if (cat.includes('database') || cat.includes('data') || title.includes('sql') || title.includes('schema') || title.includes('migration')) {
+      return {
+        type: 'Database Schema & Query Architecture',
+        icon: '🗄️',
+        description: 'Provide DDL tables, indexes, query logic, and concurrency locks.',
+        advice: 'Address isolation levels, deadlock prevention, and query performance.'
+      };
+    }
+
+    if (cat.includes('architecture') || cat.includes('system') || title.includes('scaling') || title.includes('pipeline')) {
+      return {
+        type: 'System Architecture & Data Flow',
+        icon: '📐',
+        description: 'Describe service topology, message brokers, caching, and state synchronization.',
+        advice: 'Use structured sections (Components, Data Flow, Failure Modes, Trade-offs).'
+      };
+    }
+
+    if (cat.includes('security') || title.includes('auth') || title.includes('token') || title.includes('vulnerability')) {
+      return {
+        type: 'Security Safeguards & Defense Logic',
+        icon: '🛡️',
+        description: 'Specify authorization checks, payload sanitization, and encryption strategies.',
+        advice: 'Walk through attack vectors (injection, replay, race conditions) and your countermeasures.'
+      };
+    }
+
+    return {
+      type: 'Technical Solution & Code Blueprint',
+      icon: '⚡',
+      description: 'Combine working code blocks with concise technical explanations.',
+      advice: 'Explain your reasoning, write clean code, and mention edge cases.'
+    };
   }
 
   jumpToQuestion(idx: number): void {

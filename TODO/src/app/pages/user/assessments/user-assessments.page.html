@@ -164,11 +164,12 @@
                   <div class="header-action-row">
                     <button
                       type="button"
-                      class="btn-guidelines-toggle"
-                      (click)="toggleGuidelines()"
+                      class="btn-instructions-trigger"
+                      (click)="openInstructions()"
+                      title="Open test instructions, format guide, and answer expectations"
                     >
-                      <span>ℹ️ Guidelines & Rubric</span>
-                      <span>{{ guidelinesExpanded() ? '▲' : '▼' }}</span>
+                      <span class="btn-icon">📖</span>
+                      <span>Instructions & Format</span>
                     </button>
 
                     <div class="save-status-badge">
@@ -258,14 +259,40 @@
                         <span class="meta-tag meta-tag--pts">{{ q.maxPoints }} Points</span>
                       </div>
 
-                      <button
-                        type="button"
-                        class="btn-flag-toggle"
-                        [class.active]="isFlagged(q.qId)"
-                        (click)="toggleFlag(q.qId)"
-                      >
-                        <span>{{ isFlagged(q.qId) ? '🚩 Flagged' : '🏳️ Flag for Review' }}</span>
-                      </button>
+                      <div class="meta-actions-group">
+                        <button
+                          type="button"
+                          class="btn-format-help-link"
+                          (click)="openInstructions()"
+                          title="Open Instructions to see what type of answer is expected"
+                        >
+                          <span>📖 Format Guide</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          class="btn-flag-toggle"
+                          [class.active]="isFlagged(q.qId)"
+                          (click)="toggleFlag(q.qId)"
+                        >
+                          <span>{{ isFlagged(q.qId) ? '🚩 Flagged' : '🏳️ Flag for Review' }}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Expected Deliverable Banner -->
+                    <div class="deliverable-format-box">
+                      <div class="deliverable-head">
+                        <span class="deliverable-icon">{{ getExpectedFormat(q).icon }}</span>
+                        <div class="deliverable-meta">
+                          <span class="deliverable-lbl">Test Deliverable Format</span>
+                          <strong class="deliverable-name">{{ getExpectedFormat(q).type }}</strong>
+                        </div>
+                      </div>
+                      <p class="deliverable-summary">{{ getExpectedFormat(q).description }}</p>
+                      <div class="deliverable-hint">
+                        <strong>💡 What to write:</strong> {{ getExpectedFormat(q).advice }}
+                      </div>
                     </div>
 
                     <h3 class="scenario-heading">{{ q.title }}</h3>
@@ -492,6 +519,186 @@
                         (click)="closeReviewModal(); submitAssessment()"
                       >
                         Confirm & Submit Assessment
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <!-- Test Instructions & Format Guide Modal -->
+              @if (showInstructionsModal()) {
+                <div class="modal-backdrop" (click)="closeInstructions()">
+                  <div class="instructions-modal-box" (click)="$event.stopPropagation()">
+                    <div class="modal-header">
+                      <div class="modal-header-left">
+                        <span class="modal-icon">📖</span>
+                        <div>
+                          <h3>Assessment Instructions & Test Format</h3>
+                          <p>Understand the evaluation type, what to write (coding vs written strategy), and how your submission is graded.</p>
+                        </div>
+                      </div>
+                      <button type="button" class="btn-modal-close" (click)="closeInstructions()">✕</button>
+                    </div>
+
+                    <div class="instructions-tabs-bar">
+                      <button
+                        type="button"
+                        class="instr-tab"
+                        [class.active]="instructionsTab() === 'format'"
+                        (click)="setInstructionsTab('format')"
+                      >
+                        <span>1. What Type of Test Is This?</span>
+                      </button>
+                      <button
+                        type="button"
+                        class="instr-tab"
+                        [class.active]="instructionsTab() === 'guide'"
+                        (click)="setInstructionsTab('guide')"
+                      >
+                        <span>2. What & How to Write</span>
+                      </button>
+                      <button
+                        type="button"
+                        class="instr-tab"
+                        [class.active]="instructionsTab() === 'rubric'"
+                        (click)="setInstructionsTab('rubric')"
+                      >
+                        <span>3. Evaluation Rubric & Scoring</span>
+                      </button>
+                    </div>
+
+                    <div class="modal-body instructions-body">
+                      <!-- TAB 1: Test Type -->
+                      @if (instructionsTab() === 'format') {
+                        <div class="instr-section">
+                          <div class="instr-highlight-banner">
+                            <span class="banner-icon">💡</span>
+                            <div>
+                              <strong>Hybrid Engineering Scenario Assessment:</strong>
+                              <p>This assessment evaluates your real-world technical capabilities across both <strong>executable code implementation</strong> and <strong>architectural design reasoning</strong>.</p>
+                            </div>
+                          </div>
+
+                          <div class="format-cards-grid">
+                            <div class="format-card">
+                              <div class="format-card-icon">💻</div>
+                              <h4>1. Code Implementation</h4>
+                              <p>When asked for an algorithm, service handler, or API logic, write actual working code (TypeScript, JavaScript, SQL, or Python). Include input validation and error containment.</p>
+                            </div>
+
+                            <div class="format-card">
+                              <div class="format-card-icon">📐</div>
+                              <h4>2. Architecture & Systems</h4>
+                              <p>Explain component breakdown, data flow, caching layers, and database schemas. State your reasoning for technology and pattern choices.</p>
+                            </div>
+
+                            <div class="format-card">
+                              <div class="format-card-icon">⚡</div>
+                              <h4>3. Concurrency & Edge Cases</h4>
+                              <p>Identify race conditions, high-throughput bottlenecks, data consistency risks, and how your solution guarantees reliability.</p>
+                            </div>
+
+                            <div class="format-card">
+                              <div class="format-card-icon">⚖️</div>
+                              <h4>4. Trade-offs & Limitations</h4>
+                              <p>Demonstrate architectural maturity by articulating pros, cons, and when an alternative pattern or database engine might be preferred.</p>
+                            </div>
+                          </div>
+                        </div>
+                      }
+
+                      <!-- TAB 2: How to Write -->
+                      @if (instructionsTab() === 'guide') {
+                        <div class="instr-section">
+                          <h4>Structuring Your Solution</h4>
+                          <p class="section-subtext">Follow this structured template for maximum score and clarity:</p>
+
+                          <div class="code-template-preview">
+                            <div class="preview-header">
+                              <span>Recommended Solution Blueprint</span>
+                            </div>
+                            <pre class="template-pre"><code>### 1. Architectural Strategy &amp; Assumptions
+- State throughput, latency assumptions, and chosen data store.
+- High-level design pattern (e.g. Repository pattern, Saga, Idempotent Worker).
+
+### 2. Code Implementation
+```typescript
+// Clear function signature with strict typing
+export async function processOrder(req: OrderRequest): Promise&lt;OrderResult&gt; &#123;
+  // 1. Validate payload &amp; check idempotency key
+  // 2. Begin transaction / database locks
+  // 3. Handle errors and guarantee cleanup
+&#125;
+```
+
+### 3. Edge Cases &amp; Concurrency Guardrails
+- How race conditions are prevented (e.g., SELECT ... FOR UPDATE or Redis locks).
+- Network retry policies and dead-letter queues.</code></pre>
+                          </div>
+
+                          <div class="formatting-tips-row">
+                            <div class="tip-pill">
+                              <span class="tip-icon">✓</span>
+                              <span>Use the <strong>+ Code Block</strong> snippet button in the editor toolbar.</span>
+                            </div>
+                            <div class="tip-pill">
+                              <span class="tip-icon">✓</span>
+                              <span>Switch to <strong>👁️ Formatted Preview</strong> to inspect your markdown.</span>
+                            </div>
+                            <div class="tip-pill">
+                              <span class="tip-icon">✓</span>
+                              <span>Your drafts are <strong>auto-saved</strong> locally in real time.</span>
+                            </div>
+                          </div>
+                        </div>
+                      }
+
+                      <!-- TAB 3: Scoring & Rubric -->
+                      @if (instructionsTab() === 'rubric') {
+                        <div class="instr-section">
+                          <h4>How Your Answers Are Graded</h4>
+                          <p class="section-subtext">The system evaluates your answers across four equal dimensions (0 to 100 points total):</p>
+
+                          <div class="rubric-breakdown-list">
+                            <div class="rubric-dim-card">
+                              <div class="dim-badge">25%</div>
+                              <div class="dim-content">
+                                <strong>Technical Correctness & Code Quality</strong>
+                                <p>Working code logic, clean syntax, type safety, modular functions, and adherence to language idioms.</p>
+                              </div>
+                            </div>
+
+                            <div class="rubric-dim-card">
+                              <div class="dim-badge">25%</div>
+                              <div class="dim-content">
+                                <strong>System Resilience & Edge Case Handling</strong>
+                                <p>Anticipation of errors, race conditions, memory leaks, invalid payloads, and distributed failure modes.</p>
+                              </div>
+                            </div>
+
+                            <div class="rubric-dim-card">
+                              <div class="dim-badge">25%</div>
+                              <div class="dim-content">
+                                <strong>Architectural Depth & Scalability</strong>
+                                <p>Separation of concerns, clean interfaces, schema normalization/indexing, and horizontal scaling strategy.</p>
+                              </div>
+                            </div>
+
+                            <div class="rubric-dim-card">
+                              <div class="dim-badge">25%</div>
+                              <div class="dim-content">
+                                <strong>Clarity of Reasoning & Cognitive Stamina</strong>
+                                <p>Thoroughness of explanation, structured problem solving, and ability to handle multi-tier complexity.</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    </div>
+
+                    <div class="modal-footer">
+                      <button type="button" class="btn-modal-submit" (click)="closeInstructions()">
+                        Got It, Return to Assessment →
                       </button>
                     </div>
                   </div>
