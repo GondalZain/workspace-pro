@@ -89,11 +89,31 @@ async function createProjectWithAiTasks(userId, input, companyId = null) {
     });
   }
 
+  // 3. Auto-Workflow: If developerUserIds are provided, enroll members & auto-generate AI assessments!
+  let assessmentsResult = null;
+  if (Array.isArray(input.developerUserIds) && input.developerUserIds.length > 0) {
+    try {
+      const assessmentService = require('../assessments/assessment.service');
+      await assessmentService.setProjectMembers(userId, project.id, input.developerUserIds, project.company_id || companyId, true);
+      assessmentsResult = await assessmentService.generateAssessmentsForProject(
+        userId,
+        project.id,
+        input.developerUserIds,
+        project.company_id || companyId,
+        true
+      );
+      console.log(`[ProjectService] Auto-generated assessments for ${input.developerUserIds.length} developers on project #${project.id}`);
+    } catch (assErr) {
+      console.warn(`[ProjectService] Auto-assessment generation warning:`, assErr.message);
+    }
+  }
+
   return {
     project,
     createdTasksCount: tasksResult.createdTasksCount,
     insertedDependenciesCount: tasksResult.insertedDependenciesCount,
-    tasks: tasksResult.tasks
+    tasks: tasksResult.tasks,
+    generatedAssessmentsCount: assessmentsResult?.generatedCount || 0
   };
 }
 

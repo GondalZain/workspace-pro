@@ -322,6 +322,35 @@
             </div>
           </div>
 
+          <!-- DEVELOPER TEAM ENROLLMENT & AUTO-ASSESSMENT (NEW PROJECT MODE) -->
+          @if (mode() === 'new-project' && availableDevelopers().length > 0) {
+            <div class="team-enrollment-card">
+              <div class="team-enrollment-head">
+                <div class="team-enrollment-badge">
+                  <span>👥</span>
+                  <span>Assign Developers &amp; Auto-Generate Technical Assessments</span>
+                </div>
+                <p class="team-enrollment-sub">
+                  Selected developers will be automatically assigned to the project team and enrolled in Gemini AI technical assessments based on project complexity.
+                </p>
+              </div>
+
+              <div class="team-enrollment-list">
+                @for (dev of availableDevelopers(); track dev.id) {
+                  <label class="team-dev-checkbox" [class.selected]="selectedDeveloperIds().includes(dev.id)">
+                    <input
+                      type="checkbox"
+                      [checked]="selectedDeveloperIds().includes(dev.id)"
+                      (change)="toggleDeveloperSelection(dev.id)"
+                    />
+                    <span class="team-dev-name">{{ dev.username }}</span>
+                    <span class="team-dev-role">{{ dev.role || 'Developer' }}</span>
+                  </label>
+                }
+              </div>
+            </div>
+          }
+
           <!-- SUMMARY TEXT -->
           @if (analysisResult()?.summary; as summary) {
             <div class="ai-summary-box">

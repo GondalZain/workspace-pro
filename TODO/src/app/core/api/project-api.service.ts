@@ -48,8 +48,9 @@ export class ProjectApiService {
     formTemplateId?: number | null;
     customFields?: any;
     modules: AiSrsModuleDraft[];
+    developerUserIds?: number[];
   }) {
-    return this.http.post<{ project: Project; createdTasksCount: number; insertedDependenciesCount: number }>(
+    return this.http.post<{ project: Project; createdTasksCount: number; insertedDependenciesCount: number; generatedAssessmentsCount?: number }>(
       `${this.projectsUrl}/ai/create-with-tasks`,
       payload
     );

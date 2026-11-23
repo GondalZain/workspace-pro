@@ -29,6 +29,7 @@ export class ProjectTeamReadinessComponent {
   private readonly adminApi = inject(AdminApiService);
 
   protected readonly loading = signal<boolean>(false);
+  protected readonly runningAutoWorkflow = signal<boolean>(false);
   protected readonly generatingTests = signal<boolean>(false);
   protected readonly matchingTasks = signal<boolean>(false);
   protected readonly startingProject = signal<boolean>(false);
@@ -39,6 +40,26 @@ export class ProjectTeamReadinessComponent {
   protected readonly availableUsers = signal<User[]>([]);
   protected readonly selectedUserIds = signal<number[]>([]);
   protected readonly smartMatchResult = signal<SmartMatchingResult | null>(null);
+
+  // Computed Workflow Stepper States
+  protected readonly step2RosterDone = computed(() => this.members().length > 0);
+  protected readonly step3AssessmentsDone = computed(() => {
+    const mems = this.members();
+    return mems.length > 0 && mems.every((m) => !!m.assessmentId);
+  });
+  protected readonly step4EvaluationsCount = computed(() => {
+    return this.members().filter((m) => m.readinessStatus === 'evaluated').length;
+  });
+  protected readonly step4EvaluationsDone = computed(() => {
+    const mems = this.members();
+    return mems.length > 0 && this.step4EvaluationsCount() === mems.length;
+  });
+  protected readonly step5AllocationsDone = computed(() => {
+    return this.members().length > 0 && this.step4EvaluationsCount() > 0;
+  });
+  protected readonly step6ProjectActive = computed(() => {
+    return this.project()?.status === 'active';
+  });
 
   // Inspector modal for admin to view a member's test result
   protected readonly inspectingAssessmentId = signal<number | null>(null);
@@ -222,6 +243,29 @@ export class ProjectTeamReadinessComponent {
       error: (err) => {
         this.startingProject.set(false);
         this.errorMessage.set(err?.error?.message || 'Failed to start project.');
+      }
+    });
+  }
+
+  // 1-Click Autonomous LLM Workflow Execution
+  runAutoWorkflow(): void {
+    const proj = this.project();
+    if (!proj?.id) return;
+
+    this.runningAutoWorkflow.set(true);
+    this.errorMessage.set(null);
+    this.feedbackMessage.set(null);
+
+    this.assessmentApi.runAutoWorkflow(proj.id).subscribe({
+      next: (res) => {
+        this.runningAutoWorkflow.set(false);
+        this.feedbackMessage.set(res.message);
+        this.loadProjectMembers();
+        this.projectUpdated.emit();
+      },
+      error: (err) => {
+        this.runningAutoWorkflow.set(false);
+        this.errorMessage.set(err?.error?.message || 'Auto-workflow execution failed.');
       }
     });
   }

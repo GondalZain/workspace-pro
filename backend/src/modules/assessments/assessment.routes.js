@@ -17,5 +17,6 @@ router.post('/project/:projectId/generate', controller.generateAssessments);
 router.get('/project/:projectId/smart-match', controller.smartMatchTasks);
 router.post('/project/:projectId/apply-assignments', controller.applyTaskAssignments);
 router.post('/project/:projectId/start-project', controller.startProject);
+router.post('/project/:projectId/auto-workflow', controller.runAutoWorkflow);
 
 module.exports = router;

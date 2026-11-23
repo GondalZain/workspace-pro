@@ -5,6 +5,8 @@ import { ProjectApiService } from '../../../core/api/project-api.service';
 import { AiSrsAnalysisResult, AiSrsModuleDraft, AiSrsTaskDraft } from '../../../models/task.model';
 import { TaskStoreService } from '../../../services/task-store.service';
 import { ProjectStoreService } from '../../../services/project-store.service';
+import { AdminApiService } from '../../../core/api/admin-api.service';
+import { User } from '../../../core/auth/auth.service';
 
 type StepMode = 'input' | 'analyzing' | 'review';
 
@@ -28,6 +30,10 @@ export class AiSrsTaskGeneratorModalComponent {
   private readonly projectApi = inject(ProjectApiService);
   private readonly taskStore = inject(TaskStoreService);
   private readonly projectStore = inject(ProjectStoreService);
+  private readonly adminApi = inject(AdminApiService);
+
+  protected readonly availableDevelopers = signal<User[]>([]);
+  protected readonly selectedDeveloperIds = signal<number[]>([]);
 
   protected readonly currentStep = signal<StepMode>('input');
   protected readonly inputTab = signal<'file' | 'text'>('file');
@@ -54,6 +60,24 @@ export class AiSrsTaskGeneratorModalComponent {
   protected readonly isSubmitting = signal<boolean>(false);
   protected readonly errorMessage = signal<string>('');
   protected readonly expandedModules = signal<Record<number, boolean>>({});
+
+  constructor() {
+    this.adminApi.listUsers().subscribe({
+      next: (users) => this.availableDevelopers.set(users),
+      error: () => {}
+    });
+  }
+
+  protected toggleDeveloperSelection(userId: number): void {
+    this.selectedDeveloperIds.update((ids) => {
+      const next = ids.includes(userId) ? ids.filter((id) => id !== userId) : [...ids, userId];
+      if (next.length > 0) {
+        this.teamSize.set(next.length);
+        this.recalculateSchedule();
+      }
+      return next;
+    });
+  }
 
   // Summary computed
   protected readonly selectedTasksCount = computed(() => {
@@ -340,7 +364,8 @@ export class AiSrsTaskGeneratorModalComponent {
         description: finalDesc,
         deadline: this.projectDeadline() || null,
         imagePath: this.projectCoverImage() || null,
-        modules: approvedModules
+        modules: approvedModules,
+        developerUserIds: this.selectedDeveloperIds()
       }).subscribe({
         next: (res) => {
           this.isSubmitting.set(false);

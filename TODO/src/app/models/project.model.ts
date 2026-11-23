@@ -7,6 +7,7 @@ export interface Project {
   title: string;
   description: string;
   deadline?: string | null;
+  status?: string | null;
   imagePath?: string | null;
   customFields?: Record<string, any>;
   createdAt: string;
@@ -16,6 +17,7 @@ export type NewProject = {
   title: string;
   description: string;
   deadline?: string | null;
+  status?: string | null;
   imagePath?: string | null;
   defaultAssigneeId?: number | null;
   formTemplateId?: number | null;

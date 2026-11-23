@@ -142,7 +142,17 @@ async function analyzeSrsDraft(request, response, next) {
 
 async function createProjectWithAiTasks(request, response, next) {
   try {
-    const { title, description, deadline, imagePath, defaultAssigneeId, formTemplateId, customFields, modules } = request.body;
+    const {
+      title,
+      description,
+      deadline,
+      imagePath,
+      defaultAssigneeId,
+      formTemplateId,
+      customFields,
+      modules,
+      developerUserIds
+    } = request.body;
 
     const result = await projectService.createProjectWithAiTasks(
       Number(request.user.sub),
@@ -154,7 +164,8 @@ async function createProjectWithAiTasks(request, response, next) {
         defaultAssigneeId,
         formTemplateId,
         customFields,
-        modules: modules || []
+        modules: modules || [],
+        developerUserIds: developerUserIds || []
       },
       request.user.companyId
     );

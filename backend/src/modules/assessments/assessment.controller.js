@@ -131,6 +131,21 @@ async function startProject(request, response, next) {
   }
 }
 
+async function runAutoWorkflow(request, response, next) {
+  try {
+    const projectId = Number(request.params.projectId);
+    const result = await assessmentService.runAutoWorkflow(
+      Number(request.user.sub),
+      projectId,
+      request.user.companyId,
+      request.user.isSuperAdmin
+    );
+    response.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getProjectMembers,
   setProjectMembers,
@@ -140,5 +155,6 @@ module.exports = {
   submitAssessment,
   smartMatchTasks,
   applyTaskAssignments,
-  startProject
+  startProject,
+  runAutoWorkflow
 };

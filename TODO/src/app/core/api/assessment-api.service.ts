@@ -81,4 +81,28 @@ export class AssessmentApiService {
       {}
     );
   }
+
+  runAutoWorkflow(projectId: number): Observable<{
+    success: boolean;
+    stage: string;
+    message: string;
+    projectStatus?: string;
+    allocatedCount?: number;
+    evaluatedCount?: number;
+    totalMembers?: number;
+    matchSummary?: string;
+    generatedAssessmentsCount?: number;
+  }> {
+    return this.http.post<{
+      success: boolean;
+      stage: string;
+      message: string;
+      projectStatus?: string;
+      allocatedCount?: number;
+      evaluatedCount?: number;
+      totalMembers?: number;
+      matchSummary?: string;
+      generatedAssessmentsCount?: number;
+    }>(`${this.baseUrl}/project/${projectId}/auto-workflow`, {});
+  }
 }

@@ -49,9 +49,92 @@
     </div>
   </div>
 
+  <!-- AI Autonomous Workflow Stepper -->
+  <div class="workflow-stepper-wrap">
+    <div class="stepper-head">
+      <span class="stepper-badge">⚡ END-TO-END LLM ORCHESTRATION PIPELINE</span>
+      <h4 class="stepper-title">Autonomous Project &amp; Skill Allocation Workflow</h4>
+    </div>
+    <div class="workflow-stepper">
+      <!-- Step 1: SRS Decomposition -->
+      <div class="wf-step done">
+        <div class="step-num">✓</div>
+        <div class="step-meta">
+          <span class="step-label">1. SRS Decomposed</span>
+          <span class="step-desc">Tasks &amp; Dependencies</span>
+        </div>
+      </div>
+      <div class="wf-arrow">→</div>
+
+      <!-- Step 2: Team Roster -->
+      <div class="wf-step" [class.done]="step2RosterDone()" [class.active]="!step2RosterDone()">
+        <div class="step-num">{{ step2RosterDone() ? '✓' : '2' }}</div>
+        <div class="step-meta">
+          <span class="step-label">2. Developer Team</span>
+          <span class="step-desc">{{ members().length }} Dev(s) Enrolled</span>
+        </div>
+      </div>
+      <div class="wf-arrow">→</div>
+
+      <!-- Step 3: AI Assessments -->
+      <div class="wf-step" [class.done]="step3AssessmentsDone()" [class.active]="step2RosterDone() && !step3AssessmentsDone()">
+        <div class="step-num">{{ step3AssessmentsDone() ? '✓' : '3' }}</div>
+        <div class="step-meta">
+          <span class="step-label">3. AI Assessments</span>
+          <span class="step-desc">{{ step3AssessmentsDone() ? 'All Generated' : 'Pending Gen' }}</span>
+        </div>
+      </div>
+      <div class="wf-arrow">→</div>
+
+      <!-- Step 4: Testing & Evaluation -->
+      <div class="wf-step" [class.done]="step4EvaluationsDone()" [class.active]="step3AssessmentsDone() && !step4EvaluationsDone()">
+        <div class="step-num">{{ step4EvaluationsDone() ? '✓' : '4' }}</div>
+        <div class="step-meta">
+          <span class="step-label">4. AI Skill Scoring</span>
+          <span class="step-desc">{{ step4EvaluationsCount() }}/{{ members().length }} Evaluated</span>
+        </div>
+      </div>
+      <div class="wf-arrow">→</div>
+
+      <!-- Step 5: Smart Task Allocation -->
+      <div class="wf-step" [class.done]="step5AllocationsDone()" [class.active]="step4EvaluationsDone() && !step6ProjectActive()">
+        <div class="step-num">{{ step5AllocationsDone() ? '✓' : '5' }}</div>
+        <div class="step-meta">
+          <span class="step-label">5. Smart Allocation</span>
+          <span class="step-desc">6.0 hrs/day Velocity</span>
+        </div>
+      </div>
+      <div class="wf-arrow">→</div>
+
+      <!-- Step 6: Project Launch -->
+      <div class="wf-step" [class.done]="step6ProjectActive()" [class.active]="step5AllocationsDone() && !step6ProjectActive()">
+        <div class="step-num">{{ step6ProjectActive() ? '✓' : '6' }}</div>
+        <div class="step-meta">
+          <span class="step-label">6. Project Active</span>
+          <span class="step-desc">{{ step6ProjectActive() ? 'Live in Progress' : 'Planning' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Actions Toolbar -->
   <div class="readiness-toolbar">
     <div class="toolbar-left">
+      @if (isAdmin()) {
+        <button
+          type="button"
+          class="btn-action btn-auto-workflow"
+          [disabled]="runningAutoWorkflow() || members().length === 0"
+          (click)="runAutoWorkflow()"
+        >
+          @if (runningAutoWorkflow()) {
+            <span class="btn-spinner"></span> Running Auto-Workflow...
+          } @else {
+            ⚡ Run Full Auto-Workflow
+          }
+        </button>
+      }
+
       @if (isAdmin()) {
         <button
           type="button"
