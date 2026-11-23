@@ -200,7 +200,16 @@ async function runMigrations() {
     try {
       await connection.beginTransaction();
       for (const statement of statements) {
-        await connection.query(statement);
+        try {
+          await connection.query(statement);
+        } catch (stmtErr) {
+          // Idempotency: safely ignore if column (1060), table (1050), or index (1061) already exists
+          if (stmtErr.errno === 1060 || stmtErr.errno === 1050 || stmtErr.errno === 1061 || stmtErr.code === 'ER_DUP_FIELDNAME') {
+            console.warn(`[Migrations] Notice in ${migrationFile}: ${stmtErr.message} (ignoring duplicate)`);
+          } else {
+            throw stmtErr;
+          }
+        }
       }
       await connection.execute(
         'INSERT INTO schema_migrations (name, applied_at) VALUES (?, ?)',
