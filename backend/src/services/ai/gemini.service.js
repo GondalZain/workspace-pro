@@ -116,7 +116,14 @@ async function analyzeSrsDocument({ fileBuffer, mimeType, fileName, rawText, pro
   }
 
   const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
-  const modelName = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+  const preferredModel = process.env.GEMINI_MODEL;
+  const candidateModels = [
+    ...(preferredModel && preferredModel !== 'gemini-2.0-flash' ? [preferredModel] : []),
+    'gemini-3.5-flash',
+    'gemini-3.8-flash',
+    'gemini-3.1-flash-lite',
+    'gemini-2.5-flash'
+  ].filter((v, i, a) => a.indexOf(v) === i);
 
   const contents = [];
   let userPrompt = `Please analyze this Software Requirements Specification (SRS) for the project "${projectTitle || 'Software Application'}" and generate the complete structured task breakdown with dependencies.`;
@@ -144,36 +151,46 @@ async function analyzeSrsDocument({ fileBuffer, mimeType, fileName, rawText, pro
     throw error;
   }
 
-  try {
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        responseMimeType: 'application/json',
-        responseSchema: srsTaskSchema,
-        temperature: 0.2
+  let lastError = null;
+  for (const model of candidateModels) {
+    try {
+      console.log(`[GeminiService] Analyzing SRS using model: ${model}...`);
+      const response = await ai.models.generateContent({
+        model,
+        contents,
+        config: {
+          systemInstruction: SYSTEM_INSTRUCTION,
+          responseMimeType: 'application/json',
+          responseSchema: srsTaskSchema,
+          temperature: 0.2
+        }
+      });
+
+      const responseText = response.text;
+      if (!responseText) {
+        throw new Error('Gemini API returned an empty response. Please verify the document content and try again.');
       }
-    });
 
-    const responseText = response.text;
-    if (!responseText) {
-      throw new Error('Gemini API returned an empty response. Please verify the document content and try again.');
+      const cleanJson = responseText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+      const parsedData = JSON.parse(cleanJson);
+      console.log(`[GeminiService] Successfully generated task breakdown using ${model}.`);
+      return parsedData;
+    } catch (apiError) {
+      console.warn(`[GeminiService] Model ${model} encountered error:`, apiError.message || apiError);
+      lastError = apiError;
+
+      // Unrecoverable authorization error: fail fast
+      if (apiError.status === 401 || apiError.status === 403 || apiError.message?.includes('API key') || apiError.message?.includes('UNAUTHENTICATED')) {
+        const error = new Error('Invalid or unauthorized GEMINI_API_KEY. Please verify your Google Gemini API key.');
+        error.statusCode = 401;
+        throw error;
+      }
+      // For 404 (model retired/not found) or 503 (high traffic spikes), continue to next candidate
     }
-
-    const cleanJson = responseText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
-    const parsedData = JSON.parse(cleanJson);
-
-    return parsedData;
-  } catch (apiError) {
-    console.error('[GeminiService] Error during SRS analysis:', apiError);
-    if (apiError.status === 403 || apiError.message?.includes('API key')) {
-      const error = new Error('Invalid or unauthorized GEMINI_API_KEY. Please verify your Google Gemini API key.');
-      error.statusCode = 401;
-      throw error;
-    }
-    throw apiError;
   }
+
+  console.error('[GeminiService] All candidate Gemini models failed.');
+  throw lastError || new Error('All candidate Gemini models failed to process the SRS document.');
 }
 
 module.exports = {
