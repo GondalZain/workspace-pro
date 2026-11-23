@@ -57,6 +57,7 @@ export interface AiSrsTaskDraft {
   priority: 'low' | 'medium' | 'high';
   estimatedMinutes: number;
   dependsOnTempIds: string[];
+  dueDate?: string;
   selected?: boolean;
 }
 
@@ -71,6 +72,7 @@ export interface AiSrsAnalysisResult {
   projectDescription?: string;
   summary: string;
   totalEstimatedMinutes: number;
+  suggestedDeadline?: string;
   modules: AiSrsModuleDraft[];
 }
 

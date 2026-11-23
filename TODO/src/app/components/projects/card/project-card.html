@@ -23,7 +23,14 @@
 
   <!-- Card Body -->
   <div class="proj-card-body">
-    <h3 class="proj-card-title">{{ project().title }}</h3>
+    <div class="proj-card-title-row">
+      <h3 class="proj-card-title">{{ project().title }}</h3>
+    </div>
+    @if (project().deadline) {
+      <div class="proj-card-deadline-row">
+        <span class="proj-card-deadline-badge">🎯 Due {{ project().deadline | date:'mediumDate' }}</span>
+      </div>
+    }
     @if (project().description) {
       <p class="proj-card-desc">{{ project().description }}</p>
     }

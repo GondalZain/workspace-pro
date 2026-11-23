@@ -146,6 +146,23 @@
   transition: color 0.18s ease;
 }
 
+.proj-card-deadline-row {
+  margin: 0.15rem 0 0.25rem 0;
+}
+
+.proj-card-deadline-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+}
+
 .proj-card:hover .proj-card-title {
   color: var(--accent, var(--brand-primary, #0f766e));
 }

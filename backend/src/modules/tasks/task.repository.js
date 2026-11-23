@@ -1101,9 +1101,11 @@ async function batchCreateTasksWithDependencies({ userId, companyId, projectId, 
         const attachmentsJson = JSON.stringify([]);
         const assigneeIdsJson = JSON.stringify(Array.isArray(t.assigneeIds) ? t.assigneeIds : []);
 
+        const dueDate = t.dueDate ? String(t.dueDate).slice(0, 10) : null;
+
         const [insertRes] = await conn.execute(
-          `INSERT INTO tasks (user_id, company_id, project_id, title, description, completed, status, status_id, priority, estimated_minutes, spent_minutes, category, tags, attachments, assignee_ids, created_at)
-           VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 0, ?, ?, ?, ?, NOW())`,
+          `INSERT INTO tasks (user_id, company_id, project_id, title, description, completed, status, status_id, priority, due_date, estimated_minutes, spent_minutes, category, tags, attachments, assignee_ids, created_at)
+           VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, NOW())`,
           [
             Number(userId),
             companyId ? Number(companyId) : null,
@@ -1113,6 +1115,7 @@ async function batchCreateTasksWithDependencies({ userId, companyId, projectId, 
             statusName,
             statusId,
             priority,
+            dueDate,
             estimatedMinutes,
             category,
             tagsJson,

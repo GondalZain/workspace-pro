@@ -40,6 +40,12 @@ export class AiSrsTaskGeneratorModalComponent {
   protected readonly pastedText = signal<string>('');
   protected readonly isDraggingOver = signal<boolean>(false);
 
+  // Schedule & Velocity Settings (Default: 6.0 productive hours/day for 9-to-5 job with breaks included)
+  protected readonly dailyHoursPerDev = signal<number>(6);
+  protected readonly teamSize = signal<number>(1);
+  protected readonly projectStartDate = signal<string>(new Date().toISOString().slice(0, 10));
+  protected readonly projectDeadline = signal<string>('');
+
   // Analysis result
   protected readonly analysisResult = signal<AiSrsAnalysisResult | null>(null);
   protected readonly reviewModules = signal<AiSrsModuleDraft[]>([]);
@@ -83,6 +89,56 @@ export class AiSrsTaskGeneratorModalComponent {
     }
     return count;
   });
+
+  protected readonly totalWorkingDays = computed(() => {
+    const hours = parseFloat(this.totalEstimatedHours()) || 0;
+    const dailyVelocity = Math.max(1, (this.dailyHoursPerDev() || 6) * (this.teamSize() || 1));
+    return Math.max(1, Math.ceil(hours / dailyVelocity));
+  });
+
+  protected recalculateSchedule(): void {
+    const days = this.totalWorkingDays();
+    const deadline = this.addBusinessDays(this.projectStartDate() || new Date().toISOString().slice(0, 10), days);
+    this.projectDeadline.set(deadline);
+    this.distributeTaskDueDates();
+  }
+
+  protected addBusinessDays(startDateStr: string, businessDaysCount: number): string {
+    const date = new Date(startDateStr);
+    let added = 0;
+    // If starting on a weekend, roll forward to Monday
+    while (date.getDay() === 0 || date.getDay() === 6) {
+      date.setDate(date.getDate() + 1);
+    }
+    while (added < businessDaysCount) {
+      date.setDate(date.getDate() + 1);
+      if (date.getDay() !== 0 && date.getDay() !== 6) {
+        added++;
+      }
+    }
+    return date.toISOString().slice(0, 10);
+  }
+
+  protected distributeTaskDueDates(): void {
+    const dailyVelocityMins = Math.max(60, (this.dailyHoursPerDev() || 6) * (this.teamSize() || 1) * 60);
+    let accumulatedMins = 0;
+    const start = this.projectStartDate() || new Date().toISOString().slice(0, 10);
+
+    this.reviewModules.update((modules) => {
+      return modules.map((mod) => ({
+        ...mod,
+        tasks: mod.tasks.map((task) => {
+          accumulatedMins += Number(task.estimatedMinutes) || 120;
+          const dayOffset = Math.max(1, Math.ceil(accumulatedMins / dailyVelocityMins));
+          const dueDate = this.addBusinessDays(start, dayOffset);
+          return {
+            ...task,
+            dueDate
+          };
+        })
+      }));
+    });
+  }
 
   protected closeModal(): void {
     if (this.isSubmitting()) return;
@@ -181,6 +237,7 @@ export class AiSrsTaskGeneratorModalComponent {
       });
       this.expandedModules.set(initialExpanded);
 
+      this.recalculateSchedule();
       this.currentStep.set('review');
     };
 
@@ -281,6 +338,7 @@ export class AiSrsTaskGeneratorModalComponent {
       this.projectApi.createWithAiTasks({
         title: finalTitle,
         description: finalDesc,
+        deadline: this.projectDeadline() || null,
         imagePath: this.projectCoverImage() || null,
         modules: approvedModules
       }).subscribe({

@@ -64,6 +64,12 @@
               <span class="proj-detail__meta-key">Created</span>
               <span class="proj-detail__meta-val">{{ currentProject.createdAt ? (currentProject.createdAt | date:'mediumDate') : '—' }}</span>
             </li>
+            @if (currentProject.deadline) {
+              <li>
+                <span class="proj-detail__meta-key">Target Deadline</span>
+                <span class="proj-detail__meta-val proj-detail__deadline-val">🎯 {{ currentProject.deadline | date:'mediumDate' }}</span>
+              </li>
+            }
             @if (currentProject.creatorUsername) {
               <li>
                 <span class="proj-detail__meta-key">Owner</span>

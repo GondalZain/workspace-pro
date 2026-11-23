@@ -74,6 +74,7 @@ function serializeProject(row) {
     creatorUsername: row.creator_username || null,
     title: row.title,
     description: row.description || '',
+    deadline: row.deadline ? (row.deadline instanceof Date ? row.deadline.toISOString().slice(0, 10) : String(row.deadline).slice(0, 10)) : null,
     imagePath: row.image_path || null,
     customFields: parseCustomFields(row.custom_fields),
     createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString()
@@ -123,6 +124,7 @@ async function findById(userId, id, companyId = null, isSuperAdmin = false) {
 async function create(userId, input = {}, companyId = null) {
   const title = String(input.title || '').trim();
   const description = String(input.description || '').trim();
+  const deadline = input.deadline ? String(input.deadline).slice(0, 10) : null;
 
   if (!title) {
     const error = new Error('Project title is required.');
@@ -135,8 +137,8 @@ async function create(userId, input = {}, companyId = null) {
   const imagePath = persistProjectImage(input.imagePath || input.image || null);
   const customFields = input.customFields ? (typeof input.customFields === 'string' ? input.customFields : JSON.stringify(input.customFields)) : null;
   const [result] = await pool.execute(
-    'INSERT INTO projects (user_id, company_id, title, description, image_path, default_assignee_id, form_template_id, custom_fields, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [userId, companyId, title, description, imagePath || null, defaultAssigneeId, formTemplateId, customFields, new Date()]
+    'INSERT INTO projects (user_id, company_id, title, description, deadline, image_path, default_assignee_id, form_template_id, custom_fields, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [userId, companyId, title, description, deadline, imagePath || null, defaultAssigneeId, formTemplateId, customFields, new Date()]
   );
 
   return findById(userId, result.insertId, companyId, true);
@@ -154,6 +156,9 @@ async function update(userId, id, input = {}, companyId = null, isSuperAdmin = f
   }
 
   const description = String(input.description ?? existing.description ?? '').trim();
+  const deadline = input.deadline !== undefined
+    ? (input.deadline ? String(input.deadline).slice(0, 10) : null)
+    : (existing.deadline || null);
   const imagePath = input.imagePath !== undefined || input.image !== undefined
     ? persistProjectImage(input.imagePath ?? input.image ?? null)
     : existing.imagePath;
@@ -171,8 +176,8 @@ async function update(userId, id, input = {}, companyId = null, isSuperAdmin = f
     : (existing.customFields ? JSON.stringify(existing.customFields) : null);
 
   await pool.execute(
-    'UPDATE projects SET title = ?, description = ?, image_path = ?, default_assignee_id = ?, form_template_id = ?, custom_fields = ? WHERE id = ?',
-    [title, description, imagePath || null, defaultAssigneeId, formTemplateId, customFields, id]
+    'UPDATE projects SET title = ?, description = ?, deadline = ?, image_path = ?, default_assignee_id = ?, form_template_id = ?, custom_fields = ? WHERE id = ?',
+    [title, description, deadline, imagePath || null, defaultAssigneeId, formTemplateId, customFields, id]
   );
 
   return findById(userId, id, companyId, isSuperAdmin);

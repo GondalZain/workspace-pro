@@ -42,6 +42,7 @@ export class ProjectApiService {
   createWithAiTasks(payload: {
     title: string;
     description?: string;
+    deadline?: string | null;
     imagePath?: string | null;
     defaultAssigneeId?: number | null;
     formTemplateId?: number | null;

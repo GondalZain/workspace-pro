@@ -186,6 +186,16 @@
   text-align: right;
 }
 
+.proj-detail__deadline-val {
+  color: #0f766e;
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
 /* Right column: tasks */
 .proj-detail__tasks {
   padding: 1.25rem 1.4rem 1.4rem;
