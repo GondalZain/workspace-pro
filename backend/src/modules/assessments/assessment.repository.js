@@ -312,12 +312,49 @@ async function findAllCompanyAssessments(companyId) {
   }));
 }
 
+async function findMyAllAssessments(userId) {
+  const query = `
+    SELECT 
+      da.id,
+      da.project_id,
+      da.status,
+      da.score,
+      da.evaluated_level,
+      da.max_complexity,
+      da.created_at,
+      da.completed_at,
+      p.title AS project_title,
+      p.description AS project_description,
+      p.deadline AS project_deadline
+    FROM developer_assessments da
+    INNER JOIN projects p ON p.id = da.project_id
+    WHERE da.user_id = ?
+    ORDER BY da.id DESC
+  `;
+
+  const [rows] = await pool.execute(query, [userId]);
+  return rows.map((r) => ({
+    id: Number(r.id),
+    projectId: Number(r.project_id),
+    projectTitle: r.project_title,
+    projectDescription: r.project_description || '',
+    projectDeadline: r.project_deadline ? String(r.project_deadline).slice(0, 10) : null,
+    status: r.status,
+    score: r.score !== null ? Number(r.score) : null,
+    evaluatedLevel: r.evaluated_level,
+    maxComplexity: r.max_complexity,
+    createdAt: new Date(r.created_at).toISOString(),
+    completedAt: r.completed_at ? new Date(r.completed_at).toISOString() : null
+  }));
+}
+
 module.exports = {
   getProjectMembers,
   setProjectMembers,
   createOrUpdateAssessment,
   findAssessmentById,
   findMyPendingAssessments,
+  findMyAllAssessments,
   saveAssessmentEvaluation,
   applyTaskAssignments,
   updateProjectStatus,

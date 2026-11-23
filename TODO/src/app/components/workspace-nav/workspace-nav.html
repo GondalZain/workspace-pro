@@ -17,26 +17,22 @@
   </a>
 
   <!-- Dynamic AI Assessment Tab when test comes for the user -->
-  @if (pendingAssessments().length > 0) {
-    <button
-      type="button"
+  @if (pendingAssessments().length > 0 || totalAssessmentsCount() > 0) {
+    <a
+      [routerLink]="url.dashboardAssessments"
+      routerLinkActive="active"
       class="nav-tab nav-tab--assessment"
-      (click)="openPendingAssessment(pendingAssessments()[0])"
-      title="You have a pending AI Technical Assessment to complete!"
+      [class.nav-tab--urgent]="pendingAssessments().length > 0"
+      title="Access your AI Technical Assessments and Readiness Portal"
     >
-      <span class="nav-tab-pulse-dot"></span>
+      @if (pendingAssessments().length > 0) {
+        <span class="nav-tab-pulse-dot"></span>
+      }
       <span class="nav-tab-sparkle">✨</span>
-      <span>Assessment</span>
-      <span class="nav-tab-badge">{{ pendingAssessments().length }}</span>
-    </button>
+      <span>AI Assessment</span>
+      @if (pendingAssessments().length > 0) {
+        <span class="nav-tab-badge">{{ pendingAssessments().length }}</span>
+      }
+    </a>
   }
 </nav>
-
-<!-- Test Runner Modal -->
-<app-developer-test-runner
-  [assessmentId]="activeAssessmentId()"
-  [initialAssessment]="activeAssessment()"
-  [isOpen]="showModal()"
-  (close)="closeModal()"
-  (completed)="onAssessmentCompleted($event)"
-/>

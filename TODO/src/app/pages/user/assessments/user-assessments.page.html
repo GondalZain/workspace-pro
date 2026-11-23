@@ -1,0 +1,586 @@
+<app-workspace-user-layout
+  sectionId="user-assessments-page"
+  [showHero]="true"
+  heroBadge="AI Technical Assessment"
+  heroBadgeMeta="Gemini Evaluator"
+  heroTitle="Developer Assessment & Readiness Portal"
+  heroSubtitle="Complete project-specific technical scenario assessments evaluated by Gemini AI to measure architectural depth, workload stamina, and complexity limits."
+>
+  <div class="assessment-portal-container">
+    <!-- Top Action / Error Alert -->
+    @if (errorMessage()) {
+      <div class="alert-banner alert-banner--error">
+        <span class="alert-icon">⚠️</span>
+        <div class="alert-content">
+          <strong>Action Required:</strong>
+          <span>{{ errorMessage() }}</span>
+        </div>
+        <button type="button" class="btn-banner-close" (click)="errorMessage.set(null)">✕</button>
+      </div>
+    }
+
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="loading-state-card">
+        <div class="spinner-ring"></div>
+        <h3>Loading Technical Assessments...</h3>
+        <p>Fetching your enrolled projects and evaluation profiles from the server.</p>
+      </div>
+    } @else {
+      <!-- Assessment Switcher / Tab Strip -->
+      <div class="assessment-nav-strip">
+        <div class="nav-strip-label">
+          <span class="strip-icon">📋</span>
+          <span class="strip-title">Your Technical Assessments</span>
+          <span class="strip-count">{{ allAssessments().length }} Total</span>
+        </div>
+
+        <div class="nav-strip-items">
+          @for (item of allAssessments(); track item.id) {
+            <button
+              type="button"
+              class="nav-strip-pill"
+              [class.active]="activeAssessment()?.id === item.id"
+              (click)="selectAssessment(item)"
+            >
+              <div class="pill-header">
+                <span class="pill-project">{{ item.projectTitle }}</span>
+                @if (item.status === 'pending' || item.status === 'in_progress') {
+                  <span class="badge-status badge-status--pending">Action Required</span>
+                } @else {
+                  <span class="badge-status badge-status--evaluated">
+                    ✓ Score: {{ item.score ?? 0 }}/100
+                  </span>
+                }
+              </div>
+              <div class="pill-meta">
+                <span>Created {{ item.createdAt | date: 'mediumDate' }}</span>
+                @if (item.evaluatedLevel) {
+                  <span>• {{ item.evaluatedLevel }}</span>
+                }
+              </div>
+            </button>
+          }
+
+          @if (allAssessments().length === 0) {
+            <div class="no-assessments-pill">
+              <span>No technical assessments assigned yet.</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Main Workspace -->
+      @if (activeAssessment(); as assessment) {
+        <!-- ======================================================== -->
+        <!-- VIEW 1: ACTIVE / PENDING TEST TAKING WORKSTATION        -->
+        <!-- ======================================================== -->
+        @if (assessment.status === 'pending' || assessment.status === 'in_progress') {
+          <div class="test-workstation-card">
+            <!-- Workstation Top Header -->
+            <div class="workstation-header">
+              <div class="header-left">
+                <div class="project-pill">
+                  <span class="project-icon">📂</span>
+                  <span class="project-name">{{ assessment.projectTitle }}</span>
+                </div>
+                <h2 class="assessment-title">
+                  {{ assessment.questions?.assessmentTitle || 'Technical Scenario Verification' }}
+                </h2>
+                <p class="assessment-overview">
+                  {{ assessment.questions?.assessmentOverview || assessment.projectDescription || 'Analyze the project scenarios and formulate resilient architectural solutions.' }}
+                </p>
+
+                @if (assessment.questions?.targetTechStack?.length) {
+                  <div class="tech-stack-row">
+                    <span class="stack-label">Target Tech:</span>
+                    @for (tech of assessment.questions?.targetTechStack; track tech) {
+                      <span class="stack-tag">{{ tech }}</span>
+                    }
+                  </div>
+                }
+              </div>
+
+              <div class="header-right">
+                <div class="progress-box">
+                  <div class="progress-label-row">
+                    <span>Progress: <strong>{{ answeredCount() }} of {{ questions().length }} Answered</strong></span>
+                    <span class="progress-percent">{{ progressPercentage() }}%</span>
+                  </div>
+                  <div class="progress-bar-track">
+                    <div class="progress-bar-fill" [style.width.%]="progressPercentage()"></div>
+                  </div>
+                </div>
+
+                <div class="save-status-indicator">
+                  @if (saveStatus() === 'saving') {
+                    <span class="status-saving">⟳ Saving draft...</span>
+                  } @else {
+                    <span class="status-saved">✓ Draft saved to local session</span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Stepper Navigation Pills -->
+            <div class="question-stepper-strip">
+              @for (q of questions(); track q.qId; let idx = $index) {
+                <button
+                  type="button"
+                  class="stepper-tab"
+                  [class.active]="activeQuestionIndex() === idx"
+                  [class.answered]="!!answers()[q.qId]?.trim()"
+                  (click)="setQuestionIndex(idx)"
+                >
+                  <span class="stepper-number">{{ idx + 1 }}</span>
+                  <div class="stepper-info">
+                    <span class="stepper-cat">{{ q.category }}</span>
+                    <span class="stepper-pts">{{ q.maxPoints }} pts</span>
+                  </div>
+                  @if (!!answers()[q.qId]?.trim()) {
+                    <span class="stepper-check">✓</span>
+                  }
+                </button>
+              }
+            </div>
+
+            <!-- Interactive Split Grid (Scenario Blueprint Left, Studio Right) -->
+            @if (currentQuestion(); as q) {
+              <div class="interactive-split-grid">
+                <!-- Left Panel: Scenario Blueprint -->
+                <div class="scenario-panel">
+                  <div class="panel-badge-row">
+                    <span class="badge-category">{{ q.category }}</span>
+                    <span class="badge-difficulty" [class]="'diff-' + (q.difficulty || 'medium')">
+                      {{ q.difficulty | uppercase }}
+                    </span>
+                    <span class="badge-points">{{ q.maxPoints }} Points</span>
+                  </div>
+
+                  <h3 class="scenario-title">{{ q.title }}</h3>
+
+                  <div class="scenario-body">
+                    <div class="scenario-blueprint-box">
+                      <div class="blueprint-header">
+                        <span class="blueprint-icon">📐</span>
+                        <span>Scenario & Problem Statement</span>
+                      </div>
+                      <p class="blueprint-text">{{ q.scenario }}</p>
+                    </div>
+
+                    <div class="scenario-challenge-box">
+                      <div class="challenge-header">
+                        <span class="challenge-icon">🎯</span>
+                        <span>Specific Task / Challenge</span>
+                      </div>
+                      <p class="challenge-text">{{ q.question }}</p>
+                    </div>
+
+                    <div class="eval-rubric-card">
+                      <div class="rubric-header">
+                        <span class="rubric-icon">🤖</span>
+                        <span>Gemini AI Evaluation Criteria</span>
+                      </div>
+                      <ul class="rubric-list">
+                        <li><strong>Architectural Soundness:</strong> Separation of concerns, resilience, modularity.</li>
+                        <li><strong>Edge Cases & Reliability:</strong> Race conditions, errors, memory leaks, security.</li>
+                        <li><strong>Workload Stamina:</strong> Logical clarity under multi-tier complex scenarios.</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right Panel: Solution Studio -->
+                <div class="solution-panel">
+                  <div class="studio-topbar">
+                    <div class="studio-topbar-left">
+                      <span class="studio-icon">💻</span>
+                      <span class="studio-title">Solution Studio (Markdown & Code)</span>
+                    </div>
+
+                    <div class="studio-quick-snippets">
+                      <button type="button" class="btn-snippet" (click)="insertSnippet('code')">
+                        + Code Block
+                      </button>
+                      <button type="button" class="btn-snippet" (click)="insertSnippet('architecture')">
+                        + Architecture
+                      </button>
+                      <button type="button" class="btn-snippet" (click)="insertSnippet('tradeoffs')">
+                        + Tradeoffs
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="editor-wrapper">
+                    <textarea
+                      class="code-solution-editor"
+                      [placeholder]="'Write your architectural strategy, code implementation, and design reasoning for ' + q.title + '...'"
+                      [ngModel]="answers()[q.qId] || ''"
+                      (ngModelChange)="updateAnswer(q.qId, $event)"
+                      rows="14"
+                    ></textarea>
+                  </div>
+
+                  <div class="editor-bottom-bar">
+                    <div class="char-count">
+                      <span>{{ (answers()[q.qId] || '').length }} characters</span>
+                      <span>•</span>
+                      <span>{{ ((answers()[q.qId] || '').trim().split(' ').length) || 0 }} words</span>
+                    </div>
+
+                    <div class="step-nav-actions">
+                      <button
+                        type="button"
+                        class="btn-nav btn-nav--prev"
+                        [disabled]="activeQuestionIndex() === 0"
+                        (click)="prevQuestion()"
+                      >
+                        ← Previous
+                      </button>
+
+                      @if (activeQuestionIndex() < questions().length - 1) {
+                        <button
+                          type="button"
+                          class="btn-nav btn-nav--next"
+                          (click)="nextQuestion()"
+                        >
+                          Next Question →
+                        </button>
+                      }
+
+                      <button
+                        type="button"
+                        class="btn-nav btn-nav--submit"
+                        [disabled]="isSubmitting()"
+                        (click)="submitAssessment()"
+                      >
+                        @if (isSubmitting()) {
+                          <span class="spinner-small"></span> Evaluating with AI...
+                        } @else {
+                          🚀 Submit for AI Evaluation
+                        }
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Submitting Modal Overlay -->
+            @if (isSubmitting()) {
+              <div class="evaluation-overlay">
+                <div class="eval-modal-card">
+                  <div class="ai-orbit-spinner">
+                    <div class="orbit-center">✨</div>
+                  </div>
+                  <h3>Gemini AI is Evaluating Your Assessment...</h3>
+                  <p class="eval-modal-sub">
+                    Analyzing technical scenario depth, cognitive stamina, architecture robustness, and calculating your seniority standing.
+                  </p>
+
+                  <div class="eval-steps-list">
+                    <div class="eval-step active">
+                      <span class="step-dot"></span>
+                      <span>1. Parsing solution blueprints & code responses</span>
+                    </div>
+                    <div class="eval-step active">
+                      <span class="step-dot"></span>
+                      <span>2. Evaluating scenario depth, clean code, and edge cases</span>
+                    </div>
+                    <div class="eval-step active">
+                      <span class="step-dot"></span>
+                      <span>3. Calculating workload stamina & complexity ceiling</span>
+                    </div>
+                    <div class="eval-step active">
+                      <span class="step-dot"></span>
+                      <span>4. Formulating domain expertise matrix & task assignments</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- ======================================================== -->
+        <!-- VIEW 2: COMPLETED / EVALUATED SCORECARD WORKSTATION     -->
+        <!-- ======================================================== -->
+        @if (assessment.status === 'completed' || assessment.status === 'evaluated') {
+          <div class="results-workstation-card">
+            <!-- Results Hero Header -->
+            <div class="results-hero">
+              <div class="results-hero-left">
+                <div class="evaluated-badge">
+                  <span class="badge-icon">🏆</span>
+                  <span>AI Evaluation Completed</span>
+                </div>
+                <h2 class="results-project-title">{{ assessment.projectTitle }}</h2>
+                <p class="results-subtitle">
+                  {{ assessment.feedback?.summaryFeedback || 'Assessment successfully graded. Your skill profile and stamina metrics are now registered for this project.' }}
+                </p>
+
+                <div class="meta-row">
+                  <span>Evaluated on {{ assessment.completedAt | date: 'medium' }}</span>
+                  <span>•</span>
+                  <span>Developer: <strong>{{ assessment.username }}</strong></span>
+                </div>
+              </div>
+
+              <!-- Radial Score Circle -->
+              <div class="results-hero-right">
+                <div class="score-radial-card" [class]="getScoreColorClass(assessment.score)">
+                  <div class="score-number">{{ assessment.score ?? 0 }}</div>
+                  <div class="score-scale">/ 100</div>
+                  <div class="score-label">Technical Score</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Key Metric Metrics Cards Row -->
+            <div class="metrics-cards-grid">
+              <!-- Card 1: Seniority Standing -->
+              <div class="metric-card">
+                <div class="card-icon-box card-icon-box--purple">🎖️</div>
+                <div class="card-content">
+                  <span class="card-label">Assessed Seniority Tier</span>
+                  <div class="card-value">{{ assessment.evaluatedLevel || 'Senior' }}</div>
+                  <p class="card-desc">Matches project architectural and delivery expectations.</p>
+                </div>
+              </div>
+
+              <!-- Card 2: Max Complexity Handling -->
+              <div class="metric-card">
+                <div class="card-icon-box card-icon-box--blue">⚡</div>
+                <div class="card-content">
+                  <span class="card-label">Complexity Ceiling</span>
+                  <div class="card-value">
+                    <span class="badge-complexity" [class]="getComplexityBadgeClass(assessment.maxComplexity)">
+                      {{ (assessment.maxComplexity || 'high') | uppercase }} COMPLEXITY
+                    </span>
+                  </div>
+                  <p class="card-desc">
+                    {{ assessment.maxComplexity === 'high' ? 'Handles distributed architecture and critical edge cases.' : 'Handles standard features and integration modules cleanly.' }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Card 3: Deep-Work Stamina -->
+              <div class="metric-card">
+                <div class="card-icon-box card-icon-box--green">⏱️</div>
+                <div class="card-content">
+                  <span class="card-label">Workload Stamina Capacity</span>
+                  <div class="card-value">
+                    {{ assessment.feedback?.staminaProfile?.sustainableDailyHours || 6.0 }} hrs / day
+                  </div>
+                  <p class="card-desc">
+                    {{ assessment.feedback?.staminaProfile?.staminaRating || 'High - Sustained deep work on complex logic.' }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Domain Expertise Matrix & Stamina Deep Dive -->
+            <div class="two-column-details-grid">
+              <!-- Left: Domain Expertise Breakdown -->
+              <div class="details-card">
+                <div class="details-card-header">
+                  <span class="header-icon">📊</span>
+                  <h3>Domain Expertise Matrix</h3>
+                </div>
+
+                <div class="expertise-list">
+                  @if (assessment.feedback?.expertiseList?.length) {
+                    @for (item of assessment.feedback?.expertiseList; track item.domain) {
+                      <div class="expertise-item">
+                        <div class="expertise-item-header">
+                          <span class="domain-name">{{ item.domain }}</span>
+                          <div class="expertise-item-badges">
+                            <span class="proficiency-tag">{{ item.proficiencyLevel }}</span>
+                            <span class="score-percent">{{ item.score }}%</span>
+                          </div>
+                        </div>
+                        <div class="expertise-bar-track">
+                          <div class="expertise-bar-fill" [style.width.%]="item.score"></div>
+                        </div>
+                        <p class="expertise-summary">{{ item.summary }}</p>
+                      </div>
+                    }
+                  } @else {
+                    <!-- Fallback to domainScores object -->
+                    <div class="expertise-item">
+                      <div class="expertise-item-header">
+                        <span class="domain-name">System Architecture & Design</span>
+                        <span class="score-percent">{{ assessment.feedback?.domainScores?.architecture || 85 }}%</span>
+                      </div>
+                      <div class="expertise-bar-track">
+                        <div class="expertise-bar-fill" [style.width.%]="assessment.feedback?.domainScores?.architecture || 85"></div>
+                      </div>
+                    </div>
+
+                    <div class="expertise-item">
+                      <div class="expertise-item-header">
+                        <span class="domain-name">Backend API & Business Logic</span>
+                        <span class="score-percent">{{ assessment.feedback?.domainScores?.backend || 88 }}%</span>
+                      </div>
+                      <div class="expertise-bar-track">
+                        <div class="expertise-bar-fill" [style.width.%]="assessment.feedback?.domainScores?.backend || 88"></div>
+                      </div>
+                    </div>
+
+                    <div class="expertise-item">
+                      <div class="expertise-item-header">
+                        <span class="domain-name">Database & Concurrency Handling</span>
+                        <span class="score-percent">{{ assessment.feedback?.domainScores?.database || 82 }}%</span>
+                      </div>
+                      <div class="expertise-bar-track">
+                        <div class="expertise-bar-fill" [style.width.%]="assessment.feedback?.domainScores?.database || 82"></div>
+                      </div>
+                    </div>
+
+                    <div class="expertise-item">
+                      <div class="expertise-item-header">
+                        <span class="domain-name">Security & Vulnerability Mitigation</span>
+                        <span class="score-percent">{{ assessment.feedback?.domainScores?.security || 90 }}%</span>
+                      </div>
+                      <div class="expertise-bar-track">
+                        <div class="expertise-bar-fill" [style.width.%]="assessment.feedback?.domainScores?.security || 90"></div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Right: Qualitative Strengths & Growth Areas -->
+              <div class="details-card">
+                <div class="details-card-header">
+                  <span class="header-icon">💡</span>
+                  <h3>AI Qualitative Evaluation</h3>
+                </div>
+
+                <div class="insights-container">
+                  <!-- Strengths -->
+                  <div class="insight-block">
+                    <h4 class="insight-title insight-title--strengths">
+                      <span>✓</span> Core Demonstrated Strengths
+                    </h4>
+                    <ul class="insight-bullets">
+                      @for (s of assessment.feedback?.strengths || []; track s) {
+                        <li>{{ s }}</li>
+                      }
+                      @if (!assessment.feedback?.strengths?.length) {
+                        <li>Strong architecture intuition and clean modular separation.</li>
+                        <li>Solid understanding of asynchronous concurrency and error boundaries.</li>
+                      }
+                    </ul>
+                  </div>
+
+                  <!-- Growth Areas -->
+                  <div class="insight-block">
+                    <h4 class="insight-title insight-title--gaps">
+                      <span>↗</span> Recommended Areas for Growth
+                    </h4>
+                    <ul class="insight-bullets">
+                      @for (g of assessment.feedback?.gaps || []; track g) {
+                        <li>{{ g }}</li>
+                      }
+                      @if (!assessment.feedback?.gaps?.length) {
+                        <li>Include additional telemetry and distributed tracing considerations in APIs.</li>
+                      }
+                    </ul>
+                  </div>
+
+                  <!-- Recommended Task Types -->
+                  @if (assessment.feedback?.staminaProfile?.recommendedTaskTypes?.length) {
+                    <div class="task-match-box">
+                      <span class="match-box-title">🎯 Ideal Task Matches:</span>
+                      <div class="task-tags-row">
+                        @for (t of assessment.feedback?.staminaProfile?.recommendedTaskTypes; track t) {
+                          <span class="match-task-tag">{{ t }}</span>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Accordion: Detailed Per-Question Critique -->
+            @if (assessment.questions?.questions?.length) {
+              <div class="critique-section-card">
+                <div class="critique-section-header">
+                  <span class="header-icon">🔍</span>
+                  <div>
+                    <h3>Per-Question Technical Critique & Rubric Review</h3>
+                    <p>Review the exact scenario prompt, your submitted answer, and Gemini's question-by-question analysis.</p>
+                  </div>
+                </div>
+
+                <div class="critique-questions-list">
+                  @for (q of assessment.questions?.questions; track q.qId; let i = $index) {
+                    <div class="critique-accordion-item" [class.expanded]="isCritiqueExpanded(q.qId)">
+                      <button
+                        type="button"
+                        class="accordion-trigger"
+                        (click)="toggleCritique(q.qId)"
+                      >
+                        <div class="trigger-left">
+                          <span class="q-badge">Q{{ i + 1 }}</span>
+                          <span class="q-title">{{ q.title }}</span>
+                          <span class="q-cat">{{ q.category }}</span>
+                        </div>
+                        <div class="trigger-right">
+                          <span class="q-pts">{{ q.maxPoints }} pts</span>
+                          <span class="accordion-arrow">{{ isCritiqueExpanded(q.qId) ? '▲' : '▼' }}</span>
+                        </div>
+                      </button>
+
+                      @if (isCritiqueExpanded(q.qId)) {
+                        <div class="accordion-content">
+                          <div class="critique-sub-box">
+                            <strong>Scenario & Challenge:</strong>
+                            <p>{{ q.scenario }}</p>
+                            <p class="challenge-sub">{{ q.question }}</p>
+                          </div>
+
+                          <div class="critique-answer-box">
+                            <strong>Your Submitted Solution:</strong>
+                            <pre class="submitted-code"><code>{{ assessment.answers?.[q.qId] || 'No answer submitted.' }}</code></pre>
+                          </div>
+
+                          <!-- If per-question critique exists -->
+                          @for (res of assessment.feedback?.questionResults; track res.qId) {
+                            @if (res.qId === q.qId) {
+                              <div class="ai-critique-box">
+                                <div class="ai-critique-head">
+                                  <span>🤖 Gemini AI Critique & Rubric Score:</span>
+                                  <span class="score-pill">{{ res.pointsEarned }} / {{ res.maxPoints }} pts</span>
+                                </div>
+                                <p class="ai-critique-text">{{ res.critique }}</p>
+                              </div>
+                            }
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      } @else {
+        <!-- Empty State -->
+        <div class="empty-state-card">
+          <div class="empty-icon-ring">✨</div>
+          <h2>No Assessments Found</h2>
+          <p>
+            You do not have any pending or completed technical assessments right now. When a project manager adds you to a project team, your scenario assessment will automatically appear here.
+          </p>
+          <a [routerLink]="['/dashboard/projects']" class="btn-return-projects">
+            ← View My Projects
+          </a>
+        </div>
+      }
+    }
+  </div>
+</app-workspace-user-layout>

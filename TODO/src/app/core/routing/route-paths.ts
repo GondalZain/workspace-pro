@@ -87,6 +87,7 @@ export const WORKSPACE_PATH = {
   kanbanLegacy: 'dashboard/kanban',
   calendar: 'dashboard/calendar',
   timesheet: 'dashboard/timesheet',
+  assessments: 'dashboard/assessments',
   projects: 'dashboard/projects',
   projectNew: 'dashboard/projects/new',
   projectDetail: 'dashboard/projects/:slug',
@@ -190,6 +191,7 @@ export const ROUTE_URL = {
   dashboardKanban: pathToUrl(WORKSPACE_PATH.tasksKanban),
   dashboardCalendar: pathToUrl(WORKSPACE_PATH.calendar),
   dashboardTimesheet: pathToUrl(WORKSPACE_PATH.timesheet),
+  dashboardAssessments: pathToUrl(WORKSPACE_PATH.assessments),
   dashboardProjects: pathToUrl(WORKSPACE_PATH.projects),
 
   projectNew: pathToUrl(WORKSPACE_PATH.projectNew),
@@ -239,6 +241,7 @@ export const ROUTES = {
   dashboardKanban: pathToSegments(WORKSPACE_PATH.tasksKanban),
   dashboardCalendar: pathToSegments(WORKSPACE_PATH.calendar),
   dashboardTimesheet: pathToSegments(WORKSPACE_PATH.timesheet),
+  dashboardAssessments: pathToSegments(WORKSPACE_PATH.assessments),
   dashboardProjects: pathToSegments(WORKSPACE_PATH.projects),
 
   projectNew: pathToSegments(WORKSPACE_PATH.projectNew),

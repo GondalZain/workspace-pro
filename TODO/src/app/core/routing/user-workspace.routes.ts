@@ -14,6 +14,7 @@ const loadDashboardPage = () => import('../../pages/user/dashboard/dashboard.pag
 const loadKanbanPage = () => import('../../pages/user/kanban/kanban.page').then((m) => m.UserKanbanPage);
 const loadCalendarPage = () => import('../../pages/user/calendar/calendar.page').then((m) => m.UserCalendarPage);
 const loadTimesheetPage = () => import('../../pages/user/timesheet/timesheet.page').then((m) => m.UserTimesheetPage);
+const loadUserAssessmentsPage = () => import('../../pages/user/assessments/user-assessments.page').then((m) => m.UserAssessmentsPage);
 const loadProjectsPage = () => import('../../pages/user/projects/projects.page').then((m) => m.UserProjectsPage);
 const loadNewProjectPage = () => import('../../pages/user/projects/new-project.page').then((m) => m.UserProjectCreatePage);
 const loadProjectEditPage = () => import('../../pages/user/projects/edit-project.page').then((m) => m.UserProjectEditPage);
@@ -42,6 +43,7 @@ export const userWorkspaceRoutes: Routes = [
   { path: WORKSPACE_PATH.kanbanLegacy, redirectTo: WORKSPACE_PATH.tasksKanban, pathMatch: 'full' },
   { path: WORKSPACE_PATH.calendar, loadComponent: loadCalendarPage, canActivate: workspaceCanActivate },
   { path: WORKSPACE_PATH.timesheet, loadComponent: loadTimesheetPage, canActivate: workspaceCanActivate },
+  { path: WORKSPACE_PATH.assessments, loadComponent: loadUserAssessmentsPage, canActivate: workspaceCanActivate },
 
   { path: WORKSPACE_PATH.projectNew, loadComponent: loadNewProjectPage, canActivate: workspaceCanActivate },
   { path: WORKSPACE_PATH.projectEdit, loadComponent: loadProjectEditPage, canActivate: workspaceCanActivate },

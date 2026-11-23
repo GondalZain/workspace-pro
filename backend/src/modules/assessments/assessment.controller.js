@@ -59,6 +59,15 @@ async function getMyPendingAssessments(request, response, next) {
   }
 }
 
+async function getMyAllAssessments(request, response, next) {
+  try {
+    const assessments = await assessmentService.getMyAllAssessments(Number(request.user.sub));
+    response.json(assessments);
+  } catch (error) {
+    next(error);
+  }
+}
+
 async function getAssessmentById(request, response, next) {
   try {
     const assessmentId = Number(request.params.id);
@@ -164,6 +173,7 @@ module.exports = {
   setProjectMembers,
   generateAssessments,
   getMyPendingAssessments,
+  getMyAllAssessments,
   getAssessmentById,
   submitAssessment,
   smartMatchTasks,

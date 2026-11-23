@@ -112,6 +112,10 @@ async function getMyPendingAssessments(userId) {
   return assessmentRepository.findMyPendingAssessments(userId);
 }
 
+async function getMyAllAssessments(userId) {
+  return assessmentRepository.findMyAllAssessments(userId);
+}
+
 async function submitAssessment(userId, assessmentId, answersPayload) {
   const assessment = await assessmentRepository.findAssessmentById(assessmentId);
   if (!assessment) {
@@ -325,6 +329,7 @@ module.exports = {
   generateAssessmentsForProject,
   getAssessment,
   getMyPendingAssessments,
+  getMyAllAssessments,
   submitAssessment,
   smartMatchTasks,
   applyTaskAssignments,
