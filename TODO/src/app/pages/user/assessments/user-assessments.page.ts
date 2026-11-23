@@ -32,8 +32,16 @@ export class UserAssessmentsPage implements OnInit {
   // Active test runner state
   readonly activeQuestionIndex = signal<number>(0);
   readonly answers = signal<Record<string, string>>({});
+  readonly flaggedQuestions = signal<Record<string, boolean>>({});
   readonly saveStatus = signal<'saved' | 'saving'>('saved');
+  readonly editorView = signal<'edit' | 'preview'>('edit');
+  readonly showReviewModal = signal<boolean>(false);
+  readonly guidelinesExpanded = signal<boolean>(false);
+  readonly critiqueCategoryFilter = signal<string>('all');
   readonly expandedQuestions = signal<Record<string, boolean>>({});
+
+  // Navigation tab for the page
+  readonly activePortalTab = signal<'runner' | 'history' | 'passport'>('runner');
 
   // Computed state
   readonly pendingAssessments = computed(() =>
@@ -67,6 +75,31 @@ export class UserAssessmentsPage implements OnInit {
 
   readonly activeFeedback = computed<AssessmentFeedback | null>(() => {
     return this.activeAssessment()?.feedback || null;
+  });
+
+  readonly flaggedCount = computed<number>(() => {
+    const flags = this.flaggedQuestions();
+    return this.questions().filter((q) => !!flags[q.qId]).length;
+  });
+
+  readonly averageScore = computed<number>(() => {
+    const completed = this.completedAssessments();
+    if (completed.length === 0) return 0;
+    const total = completed.reduce((acc, cur) => acc + (cur.score || 0), 0);
+    return Math.round(total / completed.length);
+  });
+
+  readonly categoriesList = computed<string[]>(() => {
+    const qs = this.activeAssessment()?.questions?.questions || [];
+    const cats = new Set(qs.map((q) => q.category).filter(Boolean));
+    return ['all', ...Array.from(cats)];
+  });
+
+  readonly filteredQuestions = computed<AssessmentQuestion[]>(() => {
+    const qs = this.activeAssessment()?.questions?.questions || [];
+    const cat = this.critiqueCategoryFilter();
+    if (!cat || cat === 'all') return qs;
+    return qs.filter((q) => q.category.toLowerCase() === cat.toLowerCase());
   });
 
   ngOnInit(): void {
@@ -241,5 +274,46 @@ export class UserAssessmentsPage implements OnInit {
     if (level === 'high') return 'badge-purple';
     if (level === 'medium') return 'badge-blue';
     return 'badge-teal';
+  }
+
+  toggleFlag(qId: string): void {
+    const current = this.flaggedQuestions();
+    this.flaggedQuestions.set({
+      ...current,
+      [qId]: !current[qId]
+    });
+  }
+
+  isFlagged(qId: string): boolean {
+    return !!this.flaggedQuestions()[qId];
+  }
+
+  setPortalTab(tab: 'runner' | 'history' | 'passport'): void {
+    this.activePortalTab.set(tab);
+  }
+
+  setEditorView(view: 'edit' | 'preview'): void {
+    this.editorView.set(view);
+  }
+
+  toggleGuidelines(): void {
+    this.guidelinesExpanded.set(!this.guidelinesExpanded());
+  }
+
+  openReviewModal(): void {
+    this.showReviewModal.set(true);
+  }
+
+  closeReviewModal(): void {
+    this.showReviewModal.set(false);
+  }
+
+  jumpToQuestion(idx: number): void {
+    this.setQuestionIndex(idx);
+    this.closeReviewModal();
+  }
+
+  printSummary(): void {
+    window.print();
   }
 }
