@@ -1,0 +1,267 @@
+<section class="readiness-panel">
+  <!-- Feedback / Alert headers -->
+  @if (feedbackMessage()) {
+    <div class="alert alert-success">
+      <span>{{ feedbackMessage() }}</span>
+      <button type="button" class="btn-dismiss" (click)="feedbackMessage.set(null)">×</button>
+    </div>
+  }
+  @if (errorMessage()) {
+    <div class="alert alert-error">
+      <span>⚠️ {{ errorMessage() }}</span>
+      <button type="button" class="btn-dismiss" (click)="errorMessage.set(null)">×</button>
+    </div>
+  }
+
+  <!-- Header strip -->
+  <div class="readiness-head">
+    <div class="head-left">
+      <div class="head-badge">
+        <span class="pulse-sparkle">✨</span>
+        AI-POWERED TEAM READINESS & EVALUATION
+      </div>
+      <h3 class="head-title">Developer Assessment & Task Matching</h3>
+      <p class="head-subtitle">
+        Assign project developers, generate Gemini technical scenario assessments, evaluate competency tiers, and smart-match tasks with 6.0 hrs/day capacity.
+      </p>
+    </div>
+
+    <!-- Overall status pill -->
+    <div class="head-right">
+      <div class="readiness-summary-card">
+        <div class="summary-stat">
+          <span class="stat-num">{{ members().length }}</span>
+          <span class="stat-lbl">Assigned Devs</span>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-stat">
+          <span class="stat-num">{{ avgTeamScore() > 0 ? avgTeamScore() + '%' : '—' }}</span>
+          <span class="stat-lbl">Avg Score</span>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-stat">
+          <span class="stat-num" [class.text-ready]="allAssessed()">
+            {{ allAssessed() ? 'READY' : 'IN REVIEW' }}
+          </span>
+          <span class="stat-lbl">Status</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions Toolbar -->
+  <div class="readiness-toolbar">
+    <div class="toolbar-left">
+      @if (isAdmin()) {
+        <button
+          type="button"
+          class="btn-action btn-sparkle"
+          [disabled]="generatingTests() || members().length === 0"
+          (click)="generateAssessments()"
+        >
+          @if (generatingTests()) {
+            <span class="btn-spinner"></span> Generating AI Tests...
+          } @else {
+            ✨ Generate Technical Assessment
+          }
+        </button>
+      }
+
+      <button
+        type="button"
+        class="btn-action btn-matching"
+        [disabled]="matchingTasks() || members().length === 0"
+        (click)="runSmartTaskMatching()"
+      >
+        @if (matchingTasks()) {
+          <span class="btn-spinner"></span> Allocating Tasks...
+        } @else {
+          🤖 AI Smart Task Allocation
+        }
+      </button>
+    </div>
+
+    <div class="toolbar-right">
+      @if (isAdmin()) {
+        <button
+          type="button"
+          class="btn-kickoff"
+          [disabled]="startingProject() || members().length === 0"
+          (click)="startProject()"
+        >
+          @if (startingProject()) {
+            <span class="btn-spinner"></span> Starting...
+          } @else {
+            🚀 Start Project
+          }
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Team Member Roster & Scorecards Grid -->
+  <div class="members-section">
+    <div class="section-title-row">
+      <h4 class="section-title">Assigned Developers ({{ members().length }})</h4>
+      @if (isAdmin()) {
+        <span class="section-hint">Select developers from your company to take technical assessments.</span>
+      }
+    </div>
+
+    <!-- Developer Selection Picker (Admin only) -->
+    @if (isAdmin() && availableUsers().length > 0) {
+      <div class="dev-picker-card">
+        <span class="picker-label">Manage Project Team Roster:</span>
+        <div class="dev-checkbox-list">
+          @for (u of availableUsers(); track u.id) {
+            <label class="dev-checkbox-pill" [class.selected]="selectedUserIds().includes(u.id)">
+              <input
+                type="checkbox"
+                [checked]="selectedUserIds().includes(u.id)"
+                (change)="toggleUserSelection(u.id)"
+              />
+              <span class="dev-name">{{ u.username }}</span>
+              <span class="dev-role-badge">{{ u.role || 'Developer' }}</span>
+            </label>
+          }
+        </div>
+        <div class="picker-actions">
+          <button type="button" class="btn-save-roster" [disabled]="loading()" (click)="saveMembersRoster()">
+            💾 Save Team Roster
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Team Cards Grid -->
+    @if (members().length === 0) {
+      <div class="empty-team">
+        <p>No developers assigned to this project yet.</p>
+        <span class="empty-sub">Select team members using the checklist above to generate assessments.</span>
+      </div>
+    } @else {
+      <div class="team-cards-grid">
+        @for (m of members(); track m.memberId) {
+          <div class="member-card" [class.evaluated]="m.readinessStatus === 'evaluated'">
+            <div class="card-head">
+              <div class="dev-avatar">
+                {{ m.username.slice(0, 2) | uppercase }}
+              </div>
+              <div class="dev-info">
+                <span class="dev-username">{{ m.username }}</span>
+                <span class="dev-email">{{ m.email || 'Developer' }}</span>
+              </div>
+              <div class="status-badge" [attr.data-status]="m.readinessStatus">
+                @if (m.readinessStatus === 'evaluated') {
+                  ✅ Evaluated
+                } @else if (m.readinessStatus === 'testing') {
+                  ✍️ In Progress
+                } @else {
+                  ⏳ Pending Test
+                }
+              </div>
+            </div>
+
+            <div class="card-body">
+              @if (m.readinessStatus === 'evaluated' && m.score !== null) {
+                <div class="score-row">
+                  <div class="mini-score">
+                    <span class="score-val">{{ m.score }}</span>
+                    <span class="score-denom">/100</span>
+                  </div>
+                  <div class="tier-info">
+                    <span class="tier-pill" [attr.data-tier]="m.evaluatedLevel">
+                      {{ m.evaluatedLevel || 'Mid-Level' }}
+                    </span>
+                    <span class="complexity-sub">
+                      Max Complexity: <strong>{{ m.maxComplexity | uppercase }}</strong>
+                    </span>
+                  </div>
+                </div>
+
+                @if (m.feedback?.summaryFeedback) {
+                  <p class="mini-feedback-quote">"{{ m.feedback?.summaryFeedback }}"</p>
+                }
+
+                @if (m.assessmentId) {
+                  <button
+                    type="button"
+                    class="btn-view-scorecard"
+                    (click)="inspectAssessment(m.assessmentId!)"
+                  >
+                    🔍 View Detailed Scorecard
+                  </button>
+                }
+              } @else {
+                <div class="awaiting-box">
+                  <span class="awaiting-icon">📝</span>
+                  <span class="awaiting-text">
+                    @if (m.assessmentId) {
+                      Test created. Waiting for {{ m.username }} to complete assessment.
+                    } @else {
+                      No assessment created yet. Click "Generate Technical Assessment" above.
+                    }
+                  </span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Smart Matching Allocation Preview -->
+  @if (smartMatchResult(); as match) {
+    <div class="smart-matching-section">
+      <div class="matching-header">
+        <div>
+          <h4 class="matching-title">🤖 AI Smart Task Allocations Preview</h4>
+          <p class="matching-summary">{{ match.allocationSummary }}</p>
+        </div>
+        <div class="matching-actions">
+          <button type="button" class="btn-cancel-alloc" (click)="smartMatchResult.set(null)">
+            Cancel
+          </button>
+          <button type="button" class="btn-apply-alloc" (click)="applySmartAssignments()">
+            Apply Allocations to Project Tasks
+          </button>
+        </div>
+      </div>
+
+      <div class="allocation-table-wrap">
+        <table class="allocation-table">
+          <thead>
+            <tr>
+              <th>Task ID</th>
+              <th>Assigned Developer</th>
+              <th>Confidence</th>
+              <th>AI Matching Rationale & Capacity Rule</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of match.assignments; track item.taskId) {
+              <tr>
+                <td class="task-cell">Task #{{ item.taskId }}</td>
+                <td class="dev-cell">
+                  <span class="dev-pill">👤 {{ item.developerUsername }}</span>
+                </td>
+                <td class="conf-cell">
+                  <span class="conf-badge">{{ item.confidenceScore || 90 }}%</span>
+                </td>
+                <td class="rationale-cell">{{ item.matchingRationale }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- Admin Detailed Assessment Inspection Modal -->
+  <app-developer-test-runner
+    [assessmentId]="inspectingAssessmentId()"
+    [isOpen]="showInspectionModal()"
+    (close)="closeInspectionModal()"
+  ></app-developer-test-runner>
+</section>

@@ -14,6 +14,9 @@ import { WorkspaceUserLayoutComponent } from '../../../components/workspace-user
 import { TasksWorkspaceSubnavComponent } from '../../../components/tasks-workspace-subnav/tasks-workspace-subnav';
 import { AdminPageHeaderComponent } from '../../../components/admin-page-header/admin-page-header';
 import { ROUTES, ROUTE_URL } from '../../../core/routing/route-paths';
+import { DeveloperTestRunnerComponent } from '../../../components/assessments/test-runner/developer-test-runner.component';
+import { AssessmentApiService } from '../../../core/api/assessment-api.service';
+import { DeveloperAssessment } from '../../../models/assessment.model';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -28,7 +31,8 @@ import { ROUTES, ROUTE_URL } from '../../../core/routing/route-paths';
     TaskListComponent,
     CalendarComponent,
     TasksWorkspaceSummaryComponent,
-    TaskBoardToolbarComponent
+    TaskBoardToolbarComponent,
+    DeveloperTestRunnerComponent
   ],
   templateUrl: './dashboard.page.html',
   styleUrl: './dashboard.page.css'
@@ -39,6 +43,12 @@ export class DashboardPage {
   private readonly taskStore = inject(TaskStoreService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly assessmentApi = inject(AssessmentApiService);
+
+  protected readonly pendingAssessments = signal<DeveloperAssessment[]>([]);
+  protected readonly showTestRunnerModal = signal<boolean>(false);
+  protected readonly activeAssessmentId = signal<number | null>(null);
+  protected readonly activeAssessment = signal<DeveloperAssessment | null>(null);
 
   protected readonly isAdminRoute = computed(() => this.router.url.startsWith('/admin'));
   protected readonly currentUser = signal(this.auth.getUser());
@@ -177,6 +187,32 @@ export class DashboardPage {
 
   constructor() {
     this.taskStore.setActiveTaskId(null);
+    this.taskStore.refresh();
+    this.loadPendingAssessments();
+  }
+
+  loadPendingAssessments(): void {
+    this.assessmentApi.getMyPendingAssessments().subscribe({
+      next: (data) => this.pendingAssessments.set(data),
+      error: () => {}
+    });
+  }
+
+  openPendingAssessment(assessment: DeveloperAssessment): void {
+    this.activeAssessment.set(assessment);
+    this.activeAssessmentId.set(assessment.id);
+    this.showTestRunnerModal.set(true);
+  }
+
+  closeTestRunnerModal(): void {
+    this.showTestRunnerModal.set(false);
+    this.activeAssessment.set(null);
+    this.activeAssessmentId.set(null);
+    this.loadPendingAssessments();
+  }
+
+  onAssessmentCompleted(_completed: DeveloperAssessment): void {
+    this.loadPendingAssessments();
     this.taskStore.refresh();
   }
 

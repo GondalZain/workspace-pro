@@ -1,0 +1,270 @@
+@if (isOpen()) {
+  <div class="test-backdrop" (click)="onClose()">
+    <div class="test-dialog" (click)="$event.stopPropagation()">
+      
+      <!-- Top header -->
+      <header class="test-header">
+        <div class="header-left">
+          <div class="ai-badge">
+            <span class="ai-pulse-dot"></span>
+            GEMINI AI TECHNICAL ASSESSMENT
+          </div>
+          <h2 class="test-project-title">
+            {{ assessment()?.projectTitle || 'Project Assessment' }}
+          </h2>
+          <p class="test-project-subtitle">
+            Role: <strong>{{ assessment()?.username }}</strong> · 
+            {{ assessment()?.questions?.targetTechStack?.join(', ') || 'Full-Stack Architecture' }}
+          </p>
+        </div>
+
+        <button type="button" class="btn-close-modal" (click)="onClose()" aria-label="Close assessment">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </header>
+
+      <!-- Error alert -->
+      @if (errorMessage()) {
+        <div class="test-alert error">
+          <span>⚠️ {{ errorMessage() }}</span>
+        </div>
+      }
+
+      <!-- Evaluating AI Loading Overlay -->
+      @if (evaluating()) {
+        <div class="evaluating-overlay">
+          <div class="evaluating-card">
+            <div class="ai-eval-spinner"></div>
+            <h3 class="eval-title">🤖 Gemini AI is evaluating your assessment...</h3>
+            <p class="eval-desc">
+              Analyzing architectural design, code robustness, security awareness, and problem-solving complexity.
+            </p>
+            <div class="eval-steps">
+              <div class="eval-step done">✓ Syntax & Architectural depth analyzed</div>
+              <div class="eval-step active">⏳ Benchmarking complexity capacity against project requirements...</div>
+              <div class="eval-step">○ Calculating domain score radar</div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Results View -->
+      @if (showResults() && evaluationResult(); as evalRes) {
+        <div class="results-container">
+          <div class="results-hero">
+            <div class="score-circle">
+              <span class="score-number">{{ evalRes.score }}</span>
+              <span class="score-label">/ 100</span>
+            </div>
+            <div class="results-hero-meta">
+              <div class="meta-pills">
+                <span class="level-pill" [attr.data-level]="evalRes.evaluatedLevel">
+                  ⭐ {{ evalRes.evaluatedLevel }}
+                </span>
+                <span class="complexity-pill" [attr.data-complexity]="evalRes.maxComplexity">
+                  ⚡ Max Complexity: {{ evalRes.maxComplexity | uppercase }}
+                </span>
+              </div>
+              <h3 class="results-title">Assessment Completed & Evaluated</h3>
+              <p class="results-summary">{{ evalRes.summaryFeedback }}</p>
+            </div>
+          </div>
+
+          <!-- Domain Radar / Progress Bars -->
+          @if (evalRes.domainScores) {
+            <div class="domain-grid">
+              <div class="domain-item" *ngIf="evalRes.domainScores.backend !== undefined">
+                <div class="domain-header">
+                  <span>Backend & APIs</span>
+                  <strong>{{ evalRes.domainScores.backend }}%</strong>
+                </div>
+                <div class="domain-bar">
+                  <div class="bar-fill" [style.width.%]="evalRes.domainScores.backend"></div>
+                </div>
+              </div>
+
+              <div class="domain-item" *ngIf="evalRes.domainScores.database !== undefined">
+                <div class="domain-header">
+                  <span>Database & Optimization</span>
+                  <strong>{{ evalRes.domainScores.database }}%</strong>
+                </div>
+                <div class="domain-bar">
+                  <div class="bar-fill" [style.width.%]="evalRes.domainScores.database"></div>
+                </div>
+              </div>
+
+              <div class="domain-item" *ngIf="evalRes.domainScores.frontend !== undefined">
+                <div class="domain-header">
+                  <span>Frontend / UX</span>
+                  <strong>{{ evalRes.domainScores.frontend }}%</strong>
+                </div>
+                <div class="domain-bar">
+                  <div class="bar-fill" [style.width.%]="evalRes.domainScores.frontend"></div>
+                </div>
+              </div>
+
+              <div class="domain-item" *ngIf="evalRes.domainScores.security !== undefined">
+                <div class="domain-header">
+                  <span>Security & Resilience</span>
+                  <strong>{{ evalRes.domainScores.security }}%</strong>
+                </div>
+                <div class="domain-bar">
+                  <div class="bar-fill" [style.width.%]="evalRes.domainScores.security"></div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Strengths & Growth Areas -->
+          <div class="insights-row">
+            <div class="insight-box strengths">
+              <h4>💪 Core Strengths</h4>
+              <ul>
+                @for (str of evalRes.strengths; track str) {
+                  <li>{{ str }}</li>
+                }
+              </ul>
+            </div>
+            <div class="insight-box gaps">
+              <h4>🎯 Recommended Focus Areas</h4>
+              <ul>
+                @for (gap of evalRes.gaps; track gap) {
+                  <li>{{ gap }}</li>
+                }
+              </ul>
+            </div>
+          </div>
+
+          <!-- Per-question breakdown -->
+          <div class="question-breakdown">
+            <h4>Question Breakdown & AI Feedback</h4>
+            <div class="critique-list">
+              @for (qr of evalRes.questionResults; track qr.qId) {
+                <div class="critique-item">
+                  <div class="critique-head">
+                    <span class="q-tag">{{ qr.qId }}</span>
+                    <span class="q-points">{{ qr.pointsEarned }} / {{ qr.maxPoints }} pts</span>
+                  </div>
+                  <p class="critique-text">{{ qr.critique }}</p>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="results-actions">
+            <button type="button" class="btn-primary" (click)="onClose()">
+              Close & Return to Dashboard
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Test Question Taking View -->
+      @if (!showResults() && !evaluating()) {
+        <div class="test-body">
+          <!-- Top Progress Tracker -->
+          <div class="test-progress-strip">
+            <div class="step-indicator">
+              Question <strong>{{ activeIndex() + 1 }}</strong> of {{ totalQuestions() }}
+              <span class="answered-badge">({{ answeredCount() }} answered)</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" [style.width.%]="progressPercent()"></div>
+            </div>
+            <div class="q-pills-row">
+              @for (q of questions(); track q.qId; let idx = $index) {
+                <button
+                  type="button"
+                  class="q-pill"
+                  [class.active]="idx === activeIndex()"
+                  [class.answered]="!!userAnswers()[q.qId]?.trim()"
+                  (click)="setQuestionIndex(idx)"
+                >
+                  {{ idx + 1 }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Question Content -->
+          @if (currentQuestion(); as q) {
+            <div class="question-pane">
+              <div class="q-meta-line">
+                <span class="badge-cat">{{ q.category }}</span>
+                <span class="badge-diff" [attr.data-diff]="q.difficulty">{{ q.difficulty | uppercase }}</span>
+                <span class="badge-pts">⭐ {{ q.maxPoints }} Points</span>
+              </div>
+
+              <h3 class="q-title">{{ q.title }}</h3>
+
+              <div class="scenario-box">
+                <div class="scenario-header">
+                  <span class="terminal-dots">
+                    <i></i><i></i><i></i>
+                  </span>
+                  <span>Scenario & Architectural Context</span>
+                </div>
+                <div class="scenario-body">{{ q.scenario }}</div>
+              </div>
+
+              <div class="q-prompt-box">
+                <label [for]="'answer_' + q.qId" class="q-prompt-label">
+                  <strong>Task & Question:</strong> {{ q.question }}
+                </label>
+                <div class="editor-wrap">
+                  <textarea
+                    [id]="'answer_' + q.qId"
+                    class="code-textarea"
+                    placeholder="Provide your technical approach, implementation details, schema/architecture notes, and code snippets here..."
+                    [ngModel]="userAnswers()[q.qId] || ''"
+                    (ngModelChange)="onAnswerChange(q.qId, $event)"
+                    rows="8"
+                  ></textarea>
+                  <div class="editor-hint">
+                    Markdown and code syntax are supported. Your answers are auto-saved in this session.
+                  </div>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="empty-state">
+              No questions found in this assessment.
+            </div>
+          }
+
+          <!-- Footer Actions -->
+          <footer class="test-footer">
+            <button
+              type="button"
+              class="btn-secondary"
+              (click)="prevQuestion()"
+              [disabled]="activeIndex() === 0"
+            >
+              ← Previous
+            </button>
+
+            <div class="footer-center">
+              <span>{{ answeredCount() }}/{{ totalQuestions() }} completed</span>
+            </div>
+
+            <div class="footer-right">
+              @if (activeIndex() < totalQuestions() - 1) {
+                <button type="button" class="btn-primary" (click)="nextQuestion()">
+                  Next Question →
+                </button>
+              } @else {
+                <button type="button" class="btn-submit-eval" (click)="submitForAiEvaluation()">
+                  🚀 Submit for AI Evaluation
+                </button>
+              }
+            </div>
+          </footer>
+        </div>
+      }
+
+    </div>
+  </div>
+}

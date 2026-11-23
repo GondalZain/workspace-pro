@@ -120,4 +120,9 @@ export class UserProjectDetailPage {
   protected deleteTask(id: number): void {
     this.taskStore.remove(id);
   }
+
+  protected refreshProject(): void {
+    this.projectStore.refresh();
+    this.taskStore.refresh();
+  }
 }

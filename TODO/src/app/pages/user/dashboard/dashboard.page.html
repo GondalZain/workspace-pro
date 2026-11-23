@@ -13,6 +13,28 @@
   }
 
   <div class="task-list-page">
+    @if (pendingAssessments().length > 0) {
+      <div class="pending-assessment-banner">
+        <div class="pab-left">
+          <div class="pab-icon">🤖</div>
+          <div class="pab-text">
+            <div class="pab-badge">TECHNICAL ASSESSMENT REQUIRED</div>
+            <h4 class="pab-title">
+              {{ pendingAssessments()[0].projectTitle }} · AI Skills Evaluation
+            </h4>
+            <p class="pab-desc">
+              Your project manager initiated an AI Technical Assessment. Complete this 5-question technical scenario test so tasks and complexity tiers can be matched to your strengths.
+            </p>
+          </div>
+        </div>
+        <div class="pab-right">
+          <button type="button" class="btn-take-assessment" (click)="openPendingAssessment(pendingAssessments()[0])">
+            🚀 Take Technical Assessment
+          </button>
+        </div>
+      </div>
+    }
+
     <app-tasks-workspace-summary (metricAction)="selectMetricAction($event)" />
 
     <div class="task-list-page__view-switch">
@@ -118,4 +140,12 @@
       </section>
     </div>
   </div>
+
+  <app-developer-test-runner
+    [assessmentId]="activeAssessmentId()"
+    [initialAssessment]="activeAssessment()"
+    [isOpen]="showTestRunnerModal()"
+    (close)="closeTestRunnerModal()"
+    (completed)="onAssessmentCompleted($event)"
+  />
 </app-workspace-user-layout>

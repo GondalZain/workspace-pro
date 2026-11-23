@@ -8,11 +8,12 @@ import { CustomFieldsApiService } from '../../../core/api/custom-fields-api.serv
 import { CustomFieldDefinition } from '../../../models/custom-field.model';
 import { FormTemplatesApiService } from '../../../core/api/form-templates-api.service';
 import { TaskFormTemplate } from '../../../models/task-form-template.model';
+import { ProjectTeamReadinessComponent } from '../team-readiness/project-team-readiness.component';
 
 @Component({
   selector: 'app-project-detail-view',
   standalone: true,
-  imports: [CommonModule, ProjectImagePipe, TaskListComponent],
+  imports: [CommonModule, ProjectImagePipe, TaskListComponent, ProjectTeamReadinessComponent],
   templateUrl: './project-detail-view.html',
   styleUrls: ['./project-detail-view.css', '../shared/projects-ui.css']
 })
@@ -29,6 +30,9 @@ export class ProjectDetailViewComponent {
   readonly taskDeleted = output<number>();
   readonly taskEdited = output<Task>();
   readonly taskStatusChanged = output<{ id: number; status: TaskStatus }>();
+  readonly projectRefreshed = output<void>();
+
+  protected readonly activeTab = signal<'tasks' | 'readiness'>('tasks');
 
   private readonly customFieldsApi = inject(CustomFieldsApiService);
   private readonly formTemplatesApi = inject(FormTemplatesApiService);

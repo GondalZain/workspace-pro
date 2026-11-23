@@ -10,6 +10,7 @@ const taskFormTemplateRoutes = require('./modules/tasks/task-form-template.route
 const notificationRoutes = require('./modules/notifications/notifications.routes');
 const companyRoutes = require('./modules/companies/company.routes');
 const subscriptionRoutes = require('./modules/subscriptions/subscription.routes');
+const assessmentRoutes = require('./modules/assessments/assessment.routes');
 const { requireAuth } = require('./middleware/auth.middleware');
 const { checkConnection } = require('./modules/tasks/task.repository');
 const { routes } = require('./config/routes');
@@ -69,6 +70,7 @@ app.use(routes.formTemplates, taskFormTemplateRoutes);
 app.use(routes.notifications, notificationRoutes);
 app.use(routes.subscriptions, subscriptionRoutes);
 app.use(routes.superAdminCompanies, companyRoutes);
+app.use('/api/assessments', requireAuth, assessmentRoutes);
 
 app.use((error, request, response, next) => {
   console.error(error);

@@ -107,6 +107,282 @@ Follow these strict rules:
    - Assign priorities based on the project critical path (core architecture is 'high', secondary polish is 'low').
    - Assign estimatedMinutes as integers (e.g., 60 = 1 hr, 120 = 2 hrs, 240 = 4 hrs, 480 = 8 hrs).`;
 
+const assessmentQuestionsSchema = {
+  type: Type.OBJECT,
+  properties: {
+    assessmentTitle: { type: Type.STRING },
+    assessmentOverview: { type: Type.STRING },
+    targetTechStack: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING }
+    },
+    questions: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          qId: { type: Type.STRING },
+          title: { type: Type.STRING },
+          category: { type: Type.STRING },
+          difficulty: { type: Type.STRING, enum: ['easy', 'medium', 'hard'] },
+          scenario: { type: Type.STRING },
+          question: { type: Type.STRING },
+          maxPoints: { type: Type.INTEGER }
+        },
+        required: ['qId', 'title', 'category', 'difficulty', 'scenario', 'question', 'maxPoints']
+      }
+    }
+  },
+  required: ['assessmentTitle', 'assessmentOverview', 'targetTechStack', 'questions']
+};
+
+const assessmentEvaluationSchema = {
+  type: Type.OBJECT,
+  properties: {
+    score: { type: Type.INTEGER, description: 'Overall score from 0 to 100' },
+    evaluatedLevel: {
+      type: Type.STRING,
+      enum: ['Junior', 'Mid-Level', 'Senior', 'Lead/Architect']
+    },
+    maxComplexity: {
+      type: Type.STRING,
+      enum: ['low', 'medium', 'high']
+    },
+    domainScores: {
+      type: Type.OBJECT,
+      properties: {
+        backend: { type: Type.INTEGER },
+        database: { type: Type.INTEGER },
+        frontend: { type: Type.INTEGER },
+        security: { type: Type.INTEGER },
+        architecture: { type: Type.INTEGER }
+      },
+      required: ['backend', 'database', 'frontend', 'security', 'architecture']
+    },
+    summaryFeedback: { type: Type.STRING },
+    strengths: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING }
+    },
+    gaps: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING }
+    },
+    questionResults: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          qId: { type: Type.STRING },
+          pointsEarned: { type: Type.INTEGER },
+          maxPoints: { type: Type.INTEGER },
+          critique: { type: Type.STRING }
+        },
+        required: ['qId', 'pointsEarned', 'maxPoints', 'critique']
+      }
+    }
+  },
+  required: ['score', 'evaluatedLevel', 'maxComplexity', 'domainScores', 'summaryFeedback', 'strengths', 'gaps', 'questionResults']
+};
+
+const taskMatchingSchema = {
+  type: Type.OBJECT,
+  properties: {
+    allocationSummary: { type: Type.STRING },
+    assignments: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          taskId: { type: Type.INTEGER },
+          assignedUserId: { type: Type.INTEGER },
+          developerUsername: { type: Type.STRING },
+          confidenceScore: { type: Type.INTEGER },
+          matchingRationale: { type: Type.STRING }
+        },
+        required: ['taskId', 'assignedUserId', 'developerUsername', 'matchingRationale']
+      }
+    }
+  },
+  required: ['allocationSummary', 'assignments']
+};
+
+/**
+ * Executes a Gemini request with automatic multi-model fallback.
+ */
+async function callGeminiWithFallback({ systemInstruction, contents, responseSchema, temperature = 0.2 }) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey || apiKey.trim() === '' || apiKey.startsWith('TODO_')) {
+    const error = new Error('GEMINI_API_KEY is not configured. Please add your Google Gemini API Key in backend/.env.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
+  const preferredModel = process.env.GEMINI_MODEL;
+  const candidateModels = [
+    ...(preferredModel && preferredModel !== 'gemini-2.0-flash' ? [preferredModel] : []),
+    'gemini-3.5-flash',
+    'gemini-3.8-flash',
+    'gemini-3.1-flash-lite',
+    'gemini-2.5-flash'
+  ].filter((v, i, a) => a.indexOf(v) === i);
+
+  let lastError = null;
+  for (const model of candidateModels) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents,
+        config: {
+          systemInstruction,
+          responseMimeType: 'application/json',
+          responseSchema,
+          temperature
+        }
+      });
+
+      const responseText = response.text;
+      if (!responseText) {
+        throw new Error('Gemini API returned an empty response.');
+      }
+
+      const cleanJson = responseText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+      return JSON.parse(cleanJson);
+    } catch (apiError) {
+      console.warn(`[GeminiService] Model ${model} encountered error:`, apiError.message || apiError);
+      lastError = apiError;
+
+      if (apiError.status === 401 || apiError.status === 403 || apiError.message?.includes('API key') || apiError.message?.includes('UNAUTHENTICATED')) {
+        const error = new Error('Invalid or unauthorized GEMINI_API_KEY. Please verify your Google Gemini API key.');
+        error.statusCode = 401;
+        throw error;
+      }
+    }
+  }
+
+  throw lastError || new Error('All candidate Gemini models failed to process request.');
+}
+
+/**
+ * Generates 5 project-tailored technical assessment questions based on project tasks & architecture.
+ */
+async function generateAssessmentQuestions({ projectTitle, projectDescription, tasks = [] }) {
+  const taskSample = tasks.slice(0, 30).map((t) => ({
+    title: t.title,
+    category: t.category,
+    priority: t.priority,
+    description: t.description?.slice(0, 150)
+  }));
+
+  const userPrompt = `Project Title: "${projectTitle || 'Software Project'}"
+Project Description: "${projectDescription || 'Technical application'}"
+
+Project Tasks Sample (${taskSample.length} tasks):
+${JSON.stringify(taskSample, null, 2)}
+
+Generate a focused, practical technical assessment with exactly 5 questions (worth 20 points each, 100 points total).
+Questions must directly test the real engineering problems, database queries, API logic, frontend state, and security considerations required to build this specific project.`;
+
+  const systemInstruction = `You are a Principal Engineering Director and Technical Hiring Architect.
+Analyze the project requirements and generate 5 rigorous, practical scenario-based questions:
+1. Question 1 (Database / Data Modeling): Schema design, indexing, transactions, or query optimization.
+2. Question 2 (Backend Core Logic): API controller/service, algorithm, edge-case validation, concurrency.
+3. Question 3 (Frontend / Client State): Reactive components, API integration, caching, UX resilience.
+4. Question 4 (Security / Authentication): JWT/OAuth, role-based authorization, rate-limiting, data isolation.
+5. Question 5 (Architecture / Problem Solving): Fault tolerance, asynchronous jobs, third-party webhook handling.`;
+
+  return callGeminiWithFallback({
+    systemInstruction,
+    contents: [userPrompt],
+    responseSchema: assessmentQuestionsSchema,
+    temperature: 0.3
+  });
+}
+
+/**
+ * Evaluates developer's submitted test answers and computes an objective score, level, and domain radar.
+ */
+async function evaluateAssessmentAnswers({ projectTitle, questions = [], answers = {} }) {
+  const qaPairs = questions.map((q) => ({
+    qId: q.qId,
+    title: q.title,
+    category: q.category,
+    maxPoints: q.maxPoints,
+    scenario: q.scenario,
+    question: q.question,
+    developerAnswer: answers[q.qId] || 'No answer submitted.'
+  }));
+
+  const userPrompt = `Project: "${projectTitle}"
+
+Assessment Questions & Developer Submissions:
+${JSON.stringify(qaPairs, null, 2)}
+
+Grade each answer rigorously. Calculate points earned per question, total score (0 to 100), technical level (Junior: 0-59, Mid-Level: 60-79, Senior: 80-91, Lead/Architect: 92-100), max task complexity (low, medium, high), domain scores, strengths, and critique.`;
+
+  const systemInstruction = `You are an expert Technical Assessment Evaluator and Code Reviewer.
+Grade developer answers objectively:
+- Reward deep understanding of clean code, security best practices, proper error handling, and scalable architecture.
+- Penalize superficial, vague, or insecure answers.
+- Assign appropriate domain scores (0-100) for backend, database, frontend, security, and architecture.
+- Set maxComplexity to 'high' only if score >= 80 and technical architecture is sound; 'medium' if 60-79; 'low' if < 60.`;
+
+  return callGeminiWithFallback({
+    systemInstruction,
+    contents: [userPrompt],
+    responseSchema: assessmentEvaluationSchema,
+    temperature: 0.2
+  });
+}
+
+/**
+ * Smart matches project tasks to evaluated developers based on competency, domain score, and max complexity.
+ */
+async function smartMatchTasksToDevelopers({ projectTitle, tasks = [], developers = [] }) {
+  const taskData = tasks.map((t) => ({
+    taskId: t.id,
+    title: t.title,
+    category: t.category,
+    priority: t.priority,
+    estimatedMinutes: t.estimatedMinutes || 120
+  }));
+
+  const devData = developers.map((d) => ({
+    userId: d.userId || d.id,
+    username: d.username,
+    score: d.score,
+    evaluatedLevel: d.evaluatedLevel,
+    maxComplexity: d.maxComplexity,
+    domainScores: d.domainScores
+  }));
+
+  const userPrompt = `Project: "${projectTitle}"
+
+Tasks to Assign (${taskData.length} tasks):
+${JSON.stringify(taskData, null, 2)}
+
+Evaluated Developer Team (${devData.length} developers):
+${JSON.stringify(devData, null, 2)}
+
+Match each task to the most suitable developer.
+Rules:
+1. Tasks with priority "high" or critical architecture MUST be assigned to developers with maxComplexity "high" (Senior/Lead).
+2. Match task category to the developer with the highest domain score (e.g. Database tasks to highest database score).
+3. Distribute workload evenly so total minutes are balanced across the developers.
+4. Provide a clear matching rationale for each assignment.`;
+
+  const systemInstruction = `You are an AI Agile Project Manager & Sprint Planner.
+Your goal is to optimize team allocation by matching task demands with proven developer competencies while keeping sprint workload balanced across the roster.`;
+
+  return callGeminiWithFallback({
+    systemInstruction,
+    contents: [userPrompt],
+    responseSchema: taskMatchingSchema,
+    temperature: 0.2
+  });
+}
+
 /**
  * Analyzes an SRS document (PDF buffer or raw text) using Google Gemini
  * and returns a structured task breakdown with dependencies.
@@ -207,5 +483,9 @@ async function analyzeSrsDocument({ fileBuffer, mimeType, fileName, rawText, pro
 
 module.exports = {
   analyzeSrsDocument,
-  srsTaskSchema
+  srsTaskSchema,
+  generateAssessmentQuestions,
+  evaluateAssessmentAnswers,
+  smartMatchTasksToDevelopers,
+  callGeminiWithFallback
 };

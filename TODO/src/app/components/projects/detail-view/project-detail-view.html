@@ -85,40 +85,70 @@
       </aside>
 
       <div class="proj-detail__tasks">
-        <header class="proj-detail__tasks-head">
-          <div>
-            <p class="proj-detail__heading">Project tasks</p>
-            <p class="proj-detail__tasks-meta">
-              {{ tasks().length }} linked to this project
-            </p>
-          </div>
-          <div class="proj-detail__tasks-actions">
-            <button type="button" class="btn-primary" (click)="newTask.emit()">New task</button>
-          </div>
-        </header>
+        <!-- Navigation Tabs -->
+        <div class="proj-detail__tabs-bar">
+          <button
+            type="button"
+            class="proj-tab-button"
+            [class.active]="activeTab() === 'tasks'"
+            (click)="activeTab.set('tasks')"
+          >
+            📋 Tasks ({{ tasks().length }})
+          </button>
+          <button
+            type="button"
+            class="proj-tab-button proj-tab-button--sparkle"
+            [class.active]="activeTab() === 'readiness'"
+            (click)="activeTab.set('readiness')"
+          >
+            ✨ Team & AI Readiness
+          </button>
+        </div>
 
-        @if (tasks().length > 0) {
-          <div class="proj-detail__tasks-table">
-          <app-task-list
-            layout="table"
-            tableVariant="compact"
-            [tasks]="tasks()"
-            [allTasksCount]="tasks().length"
-            [selectedFilter]="'all'"
-            [currentUserId]="currentUserId()"
-            [currentUsername]="currentUsername()"
-            [isAdmin]="isAdmin()"
-            (taskSelected)="taskSelected.emit($event)"
-            (taskToggled)="taskToggled.emit($event)"
-            (taskStatusChanged)="taskStatusChanged.emit($event)"
-            (taskDeleted)="taskDeleted.emit($event)"
-            (taskEdited)="taskEdited.emit($event)"
-          />
-          </div>
+        @if (activeTab() === 'tasks') {
+          <header class="proj-detail__tasks-head">
+            <div>
+              <p class="proj-detail__heading">Project tasks</p>
+              <p class="proj-detail__tasks-meta">
+                {{ tasks().length }} linked to this project
+              </p>
+            </div>
+            <div class="proj-detail__tasks-actions">
+              <button type="button" class="btn-primary" (click)="newTask.emit()">New task</button>
+            </div>
+          </header>
+
+          @if (tasks().length > 0) {
+            <div class="proj-detail__tasks-table">
+            <app-task-list
+              layout="table"
+              tableVariant="compact"
+              [tasks]="tasks()"
+              [allTasksCount]="tasks().length"
+              [selectedFilter]="'all'"
+              [currentUserId]="currentUserId()"
+              [currentUsername]="currentUsername()"
+              [isAdmin]="isAdmin()"
+              (taskSelected)="taskSelected.emit($event)"
+              (taskToggled)="taskToggled.emit($event)"
+              (taskStatusChanged)="taskStatusChanged.emit($event)"
+              (taskDeleted)="taskDeleted.emit($event)"
+              (taskEdited)="taskEdited.emit($event)"
+            />
+            </div>
+          } @else {
+            <div class="proj-detail__empty">
+              <p>No tasks on this project yet.</p>
+              <button type="button" class="btn-secondary" (click)="newTask.emit()">Create first task</button>
+            </div>
+          }
         } @else {
-          <div class="proj-detail__empty">
-            <p>No tasks on this project yet.</p>
-            <button type="button" class="btn-secondary" (click)="newTask.emit()">Create first task</button>
+          <div class="proj-detail__readiness-wrap">
+            <app-project-team-readiness
+              [project]="currentProject"
+              [isAdmin]="isAdmin()"
+              (projectUpdated)="projectRefreshed.emit()"
+            />
           </div>
         }
       </div>
