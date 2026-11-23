@@ -34,7 +34,7 @@ async function notifyAssignedUsers({ task, assigneesToNotify, actorUserId, compa
         ? `${actorRow.username} (${actorRow.role_name})`
         : actorRow.username;
     }
-  } catch {}
+  } catch { }
 
   // Retrieve project name if associated
   let projectName = null;
@@ -47,7 +47,7 @@ async function notifyAssignedUsers({ task, assigneesToNotify, actorUserId, compa
       if (projectRow?.title) {
         projectName = projectRow.title;
       }
-    } catch {}
+    } catch { }
   }
 
   const taskTitle = task.title ? `"${task.title}"` : 'a task';
@@ -144,7 +144,7 @@ async function notifyTaskCreator({ task, actorUserId, companyId }) {
               [Number(task.projectId)]
             );
             if (projectRow?.title) projectName = projectRow.title;
-          } catch {}
+          } catch { }
         }
 
         const companyIdentifier = creatorUser.company_domain || creatorUser.company_name || '';
@@ -191,7 +191,7 @@ async function createTask(userId, input, companyId = null) {
       if (firstProject?.id) {
         input.projectId = firstProject.id;
       }
-    } catch {}
+    } catch { }
   }
 
   validate(input);
@@ -292,7 +292,7 @@ async function notifyTaskUpdate({ task, existingTask, actorUserId, companyId, cu
         ? `${actorRow.username} (${actorRow.role_name})`
         : actorRow.username;
     }
-  } catch {}
+  } catch { }
 
   // Retrieve project name if associated
   let projectName = null;
@@ -303,7 +303,7 @@ async function notifyTaskUpdate({ task, existingTask, actorUserId, companyId, cu
         [Number(task.projectId)]
       );
       if (projectRow?.title) projectName = projectRow.title;
-    } catch {}
+    } catch { }
   }
 
   const recipients = new Set();

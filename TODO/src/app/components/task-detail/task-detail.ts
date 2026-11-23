@@ -435,6 +435,11 @@ export class TaskDetailComponent {
     this.selectedImage.set(null);
   }
 
+  protected openRelatedTask(targetTaskId: number): void {
+    if (!targetTaskId) return;
+    this.taskStore.setActiveTaskId(targetTaskId);
+  }
+
   getCustomFieldEntries(customFields?: Record<string, any>): { key: string; value: any }[] {
     if (!customFields || typeof customFields !== 'object') return [];
     return Object.entries(customFields)

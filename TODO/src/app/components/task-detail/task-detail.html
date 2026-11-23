@@ -193,6 +193,43 @@
         </footer>
       }
 
+      <!-- TASK DEPENDENCIES & PREREQUISITES -->
+      @if (task().dependencies && ((task().dependencies?.blockedBy?.length ?? 0) > 0 || (task().dependencies?.blocking?.length ?? 0) > 0)) {
+        <section class="task-ticket__section task-ticket__section--border" aria-label="Task Dependencies">
+          <h2 class="ws-subheading">Dependencies &amp; Prerequisites</h2>
+          
+          @if ((task().dependencies?.blockedBy?.length ?? 0) > 0) {
+            <div class="dep-detail-block">
+              <span class="dep-detail-label">🔒 Prerequisite Tasks (Must finish first):</span>
+              <div class="dep-detail-chips">
+                @for (dep of task().dependencies!.blockedBy; track dep.taskId) {
+                  <button type="button" class="dep-detail-chip" (click)="openRelatedTask(dep.taskId)" title="View prerequisite task">
+                    <span class="dep-status-dot" [class.done]="dep.completed"></span>
+                    <span class="dep-id">#{{ dep.taskId }}</span>
+                    <span class="dep-title">{{ dep.title }}</span>
+                    <span class="dep-status-pill" [class.completed]="dep.completed">{{ dep.completed ? 'Done' : (dep.status || 'To Do') }}</span>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+
+          @if ((task().dependencies?.blocking?.length ?? 0) > 0) {
+            <div class="dep-detail-block">
+              <span class="dep-detail-label">⛓️ Dependent Tasks (Waiting on this task):</span>
+              <div class="dep-detail-chips">
+                @for (dep of task().dependencies!.blocking; track dep.taskId) {
+                  <button type="button" class="dep-detail-chip dep-blocking" (click)="openRelatedTask(dep.taskId)" title="View dependent task">
+                    <span class="dep-id">#{{ dep.taskId }}</span>
+                    <span class="dep-title">{{ dep.title }}</span>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </section>
+      }
+
       @if (standardFields().attachments.enabled !== false && task().attachments.length) {
         <section class="task-ticket__section task-ticket__section--border" aria-label="Attachments">
           <h2 class="ws-subheading">Attachments ({{ task().attachments.length }})</h2>

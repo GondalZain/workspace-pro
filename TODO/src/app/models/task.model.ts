@@ -35,6 +35,43 @@ export interface TaskAttachment {
   dataUrl: string;
 }
 
+export interface TaskDependencyRef {
+  id: number;
+  taskId: number;
+  title: string;
+  status?: string;
+  completed?: boolean;
+  priority?: string;
+}
+
+export interface TaskDependenciesInfo {
+  blockedBy: TaskDependencyRef[];
+  blocking: TaskDependencyRef[];
+}
+
+export interface AiSrsTaskDraft {
+  tempId: string;
+  title: string;
+  description: string;
+  category: string;
+  priority: 'low' | 'medium' | 'high';
+  estimatedMinutes: number;
+  dependsOnTempIds: string[];
+  selected?: boolean;
+}
+
+export interface AiSrsModuleDraft {
+  name: string;
+  description?: string;
+  tasks: AiSrsTaskDraft[];
+}
+
+export interface AiSrsAnalysisResult {
+  summary: string;
+  totalEstimatedMinutes: number;
+  modules: AiSrsModuleDraft[];
+}
+
 export interface Task {
   id: number;
   userId?: number | null;
@@ -61,6 +98,7 @@ export interface Task {
   attachments: TaskAttachment[];
   customFields?: Record<string, any>;
   formTemplateId?: number | null;
+  dependencies?: TaskDependenciesInfo;
   createdAt: string;
 }
 

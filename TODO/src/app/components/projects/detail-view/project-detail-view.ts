@@ -8,11 +8,12 @@ import { CustomFieldsApiService } from '../../../core/api/custom-fields-api.serv
 import { CustomFieldDefinition } from '../../../models/custom-field.model';
 import { FormTemplatesApiService } from '../../../core/api/form-templates-api.service';
 import { TaskFormTemplate } from '../../../models/task-form-template.model';
+import { AiSrsTaskGeneratorModalComponent } from '../ai-srs-generator/ai-srs-generator';
 
 @Component({
   selector: 'app-project-detail-view',
   standalone: true,
-  imports: [CommonModule, ProjectImagePipe, TaskListComponent],
+  imports: [CommonModule, ProjectImagePipe, TaskListComponent, AiSrsTaskGeneratorModalComponent],
   templateUrl: './project-detail-view.html',
   styleUrls: ['./project-detail-view.css', '../shared/projects-ui.css']
 })
@@ -22,6 +23,8 @@ export class ProjectDetailViewComponent {
   readonly currentUserId = input<number | null | undefined>(null);
   readonly currentUsername = input<string | null | undefined>(null);
   readonly isAdmin = input(false);
+
+  protected readonly isAiSrsModalOpen = signal(false);
 
   readonly newTask = output<void>();
   readonly taskSelected = output<Task>();

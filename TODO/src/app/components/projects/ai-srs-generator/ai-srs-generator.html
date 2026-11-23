@@ -1,0 +1,288 @@
+@if (isOpen()) {
+  <div class="ai-modal-backdrop" (click)="closeModal()">
+    <div class="ai-modal-container" (click)="$event.stopPropagation()">
+      
+      <!-- MODAL HEADER -->
+      <header class="ai-modal-header">
+        <div class="ai-header-title-row">
+          <div class="ai-badge">
+            <span class="sparkle">✨</span>
+            <span>Gemini AI Engine</span>
+          </div>
+          <h2 class="ai-modal-heading">Generate Tasks &amp; Dependencies from SRS</h2>
+          <p class="ai-modal-sub">
+            Target Project: <strong>{{ projectTitle() }}</strong>
+          </p>
+        </div>
+        <button type="button" class="btn-close-modal" (click)="closeModal()" [disabled]="isSubmitting()" title="Close">&times;</button>
+      </header>
+
+      <!-- ERROR BANNER -->
+      @if (errorMessage()) {
+        <div class="ai-alert-banner ai-alert-danger">
+          <span class="alert-icon">⚠️</span>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <!-- STEP 1: INPUT MODE -->
+      @if (currentStep() === 'input') {
+        <div class="ai-modal-body">
+          <div class="ai-tab-switcher">
+            <button
+              type="button"
+              class="tab-btn"
+              [class.active]="inputTab() === 'file'"
+              (click)="inputTab.set('file')"
+            >
+              📄 Upload SRS Document
+            </button>
+            <button
+              type="button"
+              class="tab-btn"
+              [class.active]="inputTab() === 'text'"
+              (click)="inputTab.set('text')"
+            >
+              ✍️ Paste Requirements Text
+            </button>
+          </div>
+
+          <!-- TAB 1: File Drop Zone -->
+          @if (inputTab() === 'file') {
+            <div
+              class="drop-zone"
+              [class.dragging]="isDraggingOver()"
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave()"
+              (drop)="onFileDrop($event)"
+              (click)="fileInput.click()"
+            >
+              <input
+                #fileInput
+                type="file"
+                class="hidden-file-input"
+                accept=".pdf,.txt,.md,.docx,.json,.csv"
+                (change)="onFileSelected($event)"
+              />
+              @if (selectedFile(); as file) {
+                <div class="selected-file-card" (click)="$event.stopPropagation()">
+                  <div class="file-icon-box">📄</div>
+                  <div class="file-info-col">
+                    <span class="file-name">{{ file.name }}</span>
+                    <span class="file-size">{{ (file.size / (1024 * 1024)).toFixed(2) }} MB</span>
+                  </div>
+                  <button type="button" class="btn-remove-file" (click)="selectedFile.set(null); $event.stopPropagation()">Change</button>
+                </div>
+              } @else {
+                <div class="drop-zone-prompt">
+                  <div class="upload-icon-circle">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="17 8 12 3 7 8"></polyline>
+                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                  </div>
+                  <p class="drop-text-primary">Click to upload or drag &amp; drop your SRS document</p>
+                  <p class="drop-text-secondary">Supports PDF, DOCX, TXT, Markdown (up to 25 MB)</p>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- TAB 2: Raw Text Input -->
+          @if (inputTab() === 'text') {
+            <div class="text-input-wrap">
+              <label class="input-label" for="srs-raw-text">Paste software requirements or user stories:</label>
+              <textarea
+                id="srs-raw-text"
+                class="srs-textarea"
+                rows="9"
+                placeholder="Example:
+1. System Overview: Build a smart parking management system...
+2. User Authentication: System must support admin and guard roles...
+3. Slot Allocation: Real-time slot availability, RFID card scanning, automatic barrier gate integration...
+4. Payment Gateway: Generate hourly invoice and support credit card / cash settlement..."
+                [(ngModel)]="pastedText"
+              ></textarea>
+            </div>
+          }
+
+          <div class="ai-info-callout">
+            <span class="info-icon">💡</span>
+            <div>
+              <strong>Gemini 2.0 AI Decomposition</strong>
+              <p>The AI will extract functional modules, concrete developer tasks, effort estimates, and construct a logical prerequisite dependency tree (e.g. Database Schema &rarr; APIs &rarr; Frontend &rarr; Testing).</p>
+            </div>
+          </div>
+        </div>
+
+        <footer class="ai-modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeModal()">Cancel</button>
+          <button
+            type="button"
+            class="btn-generate-ai"
+            [disabled]="inputTab() === 'file' ? !selectedFile() : !pastedText().trim()"
+            (click)="startAnalysis()"
+          >
+            <span>✨ Analyze &amp; Decompose SRS</span>
+          </button>
+        </footer>
+      }
+
+      <!-- STEP 2: ANALYZING STATE -->
+      @if (currentStep() === 'analyzing') {
+        <div class="ai-modal-body ai-loading-body">
+          <div class="ai-pulse-ring">
+            <div class="ai-pulse-core">✨</div>
+          </div>
+          <h3 class="loading-title">Gemini AI is analyzing your SRS...</h3>
+          <p class="loading-sub">Reading specification requirements, breaking down modules, and calculating task dependency chains.</p>
+
+          <div class="loading-steps-list">
+            <div class="step-item step-done">
+              <span class="step-check">✓</span>
+              <span>Document ingested and tokenized</span>
+            </div>
+            <div class="step-item step-active">
+              <span class="step-spinner"></span>
+              <span>Decomposing functional requirements into Work Breakdown Structure</span>
+            </div>
+            <div class="step-item step-pending">
+              <span class="step-bullet">•</span>
+              <span>Resolving Finish-to-Start task prerequisite dependencies</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- STEP 3: REVIEW & EDIT MODE -->
+      @if (currentStep() === 'review') {
+        <div class="ai-modal-body ai-review-body">
+          
+          <!-- SUMMARY STATS BANNER -->
+          <div class="review-stats-banner">
+            <div class="stat-pill">
+              <span class="stat-label">Modules</span>
+              <span class="stat-val">{{ reviewModules().length }}</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-label">Selected Tasks</span>
+              <span class="stat-val highlight">{{ selectedTasksCount() }}</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-label">Est. Effort</span>
+              <span class="stat-val">{{ totalEstimatedHours() }} hrs</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-label">Dependencies</span>
+              <span class="stat-val">{{ totalDependenciesCount() }}</span>
+            </div>
+          </div>
+
+          <!-- SUMMARY TEXT -->
+          @if (analysisResult()?.summary; as summary) {
+            <div class="ai-summary-box">
+              <span class="summary-tag">SRS Executive Scope</span>
+              <p class="summary-text">{{ summary }}</p>
+            </div>
+          }
+
+          <!-- MODULES ACCORDION -->
+          <div class="modules-accordion">
+            @for (mod of reviewModules(); track mod.name; let modIdx = $index) {
+              <div class="module-group-card">
+                <header class="module-group-header" (click)="toggleModuleAccordion(modIdx)">
+                  <div class="mod-title-left">
+                    <span class="mod-chevron">{{ expandedModules()[modIdx] ? '▼' : '▶' }}</span>
+                    <h3 class="mod-name">{{ mod.name }}</h3>
+                    <span class="mod-tasks-count">({{ mod.tasks.length }} tasks)</span>
+                  </div>
+                  <div class="mod-actions-right" (click)="$event.stopPropagation()">
+                    <button type="button" class="btn-tiny" (click)="toggleModuleSelectAll(modIdx, true)">Select All</button>
+                    <button type="button" class="btn-tiny" (click)="toggleModuleSelectAll(modIdx, false)">Clear</button>
+                  </div>
+                </header>
+
+                @if (expandedModules()[modIdx]) {
+                  <div class="module-tasks-list">
+                    @for (task of mod.tasks; track task.tempId; let taskIdx = $index) {
+                      <div class="task-draft-card" [class.deselected]="task.selected === false">
+                        <div class="task-card-header">
+                          <label class="task-checkbox-label">
+                            <input type="checkbox" [(ngModel)]="task.selected" class="ai-checkbox" />
+                            <span class="task-temp-id">{{ task.tempId }}</span>
+                          </label>
+
+                          <div class="task-card-inputs-row">
+                            <input
+                              type="text"
+                              class="task-title-input"
+                              [(ngModel)]="task.title"
+                              placeholder="Task title..."
+                            />
+                            
+                            <select [(ngModel)]="task.priority" class="task-meta-select priority-select">
+                              <option value="high">🔴 High</option>
+                              <option value="medium">🟡 Medium</option>
+                              <option value="low">🟢 Low</option>
+                            </select>
+
+                            <input
+                              type="number"
+                              [(ngModel)]="task.estimatedMinutes"
+                              class="task-time-input"
+                              title="Minutes"
+                              placeholder="Mins"
+                            />
+                            <span class="unit-min">m</span>
+
+                            <span class="task-category-pill">{{ task.category }}</span>
+                          </div>
+                        </div>
+
+                        <p class="task-desc-preview">{{ task.description }}</p>
+
+                        <!-- DEPENDENCIES TAGS -->
+                        @if (task.dependsOnTempIds && task.dependsOnTempIds.length > 0) {
+                          <div class="task-dependencies-row">
+                            <span class="dep-prefix">Blocked by prerequisite:</span>
+                            @for (depId of task.dependsOnTempIds; track depId) {
+                              <span class="dep-chip" title="{{ getTaskTitleByTempId(depId) }}">
+                                🔒 {{ depId }}: {{ getTaskTitleByTempId(depId) }}
+                              </span>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <footer class="ai-modal-footer">
+          <button type="button" class="btn-cancel" (click)="resetState()" [disabled]="isSubmitting()">Back / Re-analyze</button>
+          <div class="footer-right-actions">
+            <button type="button" class="btn-secondary" (click)="closeModal()" [disabled]="isSubmitting()">Cancel</button>
+            <button
+              type="button"
+              class="btn-primary btn-commit"
+              [disabled]="isSubmitting() || selectedTasksCount() === 0"
+              (click)="commitApprovedTasks()"
+            >
+              @if (isSubmitting()) {
+                <span class="btn-spinner"></span>
+                <span>Creating {{ selectedTasksCount() }} Tasks &amp; Dependencies...</span>
+              } @else {
+                <span>✓ Create {{ selectedTasksCount() }} Tasks with Dependencies</span>
+              }
+            </button>
+          </div>
+        </footer>
+      }
+
+    </div>
+  </div>
+}

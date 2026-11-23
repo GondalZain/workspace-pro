@@ -86,7 +86,18 @@
               {{ tasks().length }} linked to this project
             </p>
           </div>
-          <button type="button" class="btn-primary" (click)="newTask.emit()">New task</button>
+          <div class="proj-detail__tasks-actions">
+            <button
+              type="button"
+              class="btn-ai-magic"
+              (click)="isAiSrsModalOpen.set(true)"
+              title="Decompose SRS Document into Tasks & Dependencies with Gemini AI"
+            >
+              <span>✨</span>
+              <span>Generate from SRS (AI)</span>
+            </button>
+            <button type="button" class="btn-primary" (click)="newTask.emit()">New task</button>
+          </div>
         </header>
 
         @if (tasks().length > 0) {
@@ -110,12 +121,29 @@
         } @else {
           <div class="proj-detail__empty">
             <p>No tasks on this project yet.</p>
-            <button type="button" class="btn-secondary" (click)="newTask.emit()">Create first task</button>
+            <div class="empty-actions-row">
+              <button type="button" class="btn-secondary" (click)="newTask.emit()">Create first task</button>
+              <button
+                type="button"
+                class="btn-ai-magic"
+                (click)="isAiSrsModalOpen.set(true)"
+              >
+                <span>✨</span>
+                <span>Auto-Generate from SRS (AI)</span>
+              </button>
+            </div>
           </div>
         }
       </div>
     </div>
   </section>
+
+  <!-- AI SRS TASK & DEPENDENCY GENERATOR MODAL -->
+  <app-ai-srs-generator-modal
+    [projectId]="currentProject.id"
+    [projectTitle]="currentProject.title"
+    [(isOpen)]="isAiSrsModalOpen"
+  />
 } @else {
   <section class="ws-panel proj-detail proj-detail--missing">
     <p class="proj-detail__heading">Project</p>

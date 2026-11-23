@@ -426,7 +426,9 @@ async function findAll(userId, filters, isAdmin = false, companyId = null, isSup
   `;
   const [rows] = await pool.query(query, values);
   const tasks = rows.map(serializeTask);
-  return attachUsersToTasks(tasks);
+  await attachUsersToTasks(tasks);
+  await attachDependenciesToTasks(tasks);
+  return tasks;
 }
 
 /**
@@ -458,6 +460,7 @@ async function findById(userId, id, isAdmin = false, companyId = null, isSuperAd
   const [rows] = await pool.query(query, values);
   if (!rows[0]) return null;
   const tasks = await attachUsersToTasks([serializeTask(rows[0])]);
+  await attachDependenciesToTasks(tasks);
   return tasks[0] || null;
 }
 
@@ -979,6 +982,208 @@ async function deleteStatusTemplate(id, companyId = 0) {
 
 /**
  * ============================================================================
+ * HELPER: attachDependenciesToTasks
+ * ============================================================================
+ * Efficiently loads prerequisite ("blockedBy") and successor ("blocking") dependencies
+ * for an array of tasks and attaches them to each task object.
+ */
+async function attachDependenciesToTasks(tasks) {
+  if (!Array.isArray(tasks) || tasks.length === 0) return tasks;
+  const taskIds = tasks.map((t) => Number(t.id)).filter(Boolean);
+  if (taskIds.length === 0) return tasks;
+
+  try {
+    const [depRows] = await pool.query(
+      `SELECT d.id, d.task_id, d.depends_on_task_id, d.dependency_type,
+              t_prereq.title AS depends_on_title, t_prereq.status AS depends_on_status, t_prereq.completed AS depends_on_completed,
+              t_child.title AS task_title
+       FROM task_dependencies d
+       JOIN tasks t_prereq ON t_prereq.id = d.depends_on_task_id
+       JOIN tasks t_child ON t_child.id = d.task_id
+       WHERE d.task_id IN (?) OR d.depends_on_task_id IN (?)`,
+      [taskIds, taskIds]
+    );
+
+    const blockedByMap = new Map();
+    const blockingMap = new Map();
+
+    for (const row of depRows) {
+      const childId = Number(row.task_id);
+      const prereqId = Number(row.depends_on_task_id);
+
+      if (!blockedByMap.has(childId)) blockedByMap.set(childId, []);
+      blockedByMap.get(childId).push({
+        id: Number(row.id),
+        taskId: prereqId,
+        title: row.depends_on_title,
+        status: row.depends_on_status,
+        completed: Boolean(row.depends_on_completed)
+      });
+
+      if (!blockingMap.has(prereqId)) blockingMap.set(prereqId, []);
+      blockingMap.get(prereqId).push({
+        id: Number(row.id),
+        taskId: childId,
+        title: row.task_title
+      });
+    }
+
+    for (const t of tasks) {
+      const id = Number(t.id);
+      t.dependencies = {
+        blockedBy: blockedByMap.get(id) || [],
+        blocking: blockingMap.get(id) || []
+      };
+    }
+  } catch (err) {
+    for (const t of tasks) {
+      t.dependencies = { blockedBy: [], blocking: [] };
+    }
+  }
+  return tasks;
+}
+
+/**
+ * Retrieves dependencies for a specific project.
+ */
+async function getProjectDependencies(projectId) {
+  if (!projectId) return [];
+  try {
+    const [rows] = await pool.query(
+      `SELECT d.id, d.task_id, d.depends_on_task_id, d.dependency_type,
+              t_prereq.title AS depends_on_title, t_prereq.status AS depends_on_status, t_prereq.completed AS depends_on_completed,
+              t_child.title AS task_title, t_child.status AS task_status, t_child.completed AS task_completed
+       FROM task_dependencies d
+       JOIN tasks t_prereq ON t_prereq.id = d.depends_on_task_id
+       JOIN tasks t_child ON t_child.id = d.task_id
+       WHERE d.project_id = ?`,
+      [Number(projectId)]
+    );
+    return rows;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Batch creates tasks and establishes dependencies from structured AI modules.
+ */
+async function batchCreateTasksWithDependencies({ userId, companyId, projectId, modules = [] }) {
+  if (!Array.isArray(modules) || modules.length === 0) {
+    throw new Error('No modules or tasks provided to commit.');
+  }
+
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const tempIdToDbId = new Map();
+    const createdTasks = [];
+    const pendingDependencies = [];
+
+    const resolvedStage = await resolveStatusStage(companyId, 'To Do');
+    const statusName = resolvedStage ? resolvedStage.name : 'To Do';
+    const statusId = resolvedStage ? resolvedStage.id : null;
+
+    for (const mod of modules) {
+      const moduleName = (mod.name || '').trim();
+      const tasks = Array.isArray(mod.tasks) ? mod.tasks : [];
+
+      for (const t of tasks) {
+        const title = (t.title || '').trim();
+        if (!title) continue;
+
+        const description = t.description ? String(t.description).trim() : '';
+        const priority = ['high', 'medium', 'low'].includes(t.priority) ? t.priority : 'medium';
+        const estimatedMinutes = Number(t.estimatedMinutes) > 0 ? Math.round(Number(t.estimatedMinutes)) : null;
+        const category = (t.category || moduleName || 'General').trim();
+        const tagsJson = JSON.stringify(moduleName ? [moduleName] : []);
+        const attachmentsJson = JSON.stringify([]);
+        const assigneeIdsJson = JSON.stringify(Array.isArray(t.assigneeIds) ? t.assigneeIds : []);
+
+        const [insertRes] = await conn.execute(
+          `INSERT INTO tasks (user_id, company_id, project_id, title, description, completed, status, status_id, priority, estimated_minutes, spent_minutes, category, tags, attachments, assignee_ids, created_at)
+           VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 0, ?, ?, ?, ?, NOW())`,
+          [
+            Number(userId),
+            companyId ? Number(companyId) : null,
+            projectId ? Number(projectId) : null,
+            title,
+            description,
+            statusName,
+            statusId,
+            priority,
+            estimatedMinutes,
+            category,
+            tagsJson,
+            attachmentsJson,
+            assigneeIdsJson
+          ]
+        );
+
+        const newDbId = insertRes.insertId;
+        if (t.tempId) {
+          tempIdToDbId.set(String(t.tempId), newDbId);
+        }
+
+        createdTasks.push({
+          id: newDbId,
+          tempId: t.tempId,
+          title,
+          description,
+          category,
+          priority,
+          estimatedMinutes
+        });
+
+        if (Array.isArray(t.dependsOnTempIds) && t.dependsOnTempIds.length > 0) {
+          for (const depTempId of t.dependsOnTempIds) {
+            if (depTempId && depTempId !== t.tempId) {
+              pendingDependencies.push({
+                childTempId: t.tempId,
+                childDbId: newDbId,
+                prereqTempId: String(depTempId)
+              });
+            }
+          }
+        }
+      }
+    }
+
+    let insertedDependenciesCount = 0;
+    for (const dep of pendingDependencies) {
+      const prereqDbId = tempIdToDbId.get(dep.prereqTempId);
+      if (prereqDbId && prereqDbId !== dep.childDbId) {
+        await conn.execute(
+          `INSERT IGNORE INTO task_dependencies (company_id, project_id, task_id, depends_on_task_id, dependency_type)
+           VALUES (?, ?, ?, ?, 'finish_to_start')`,
+          [
+            companyId ? Number(companyId) : null,
+            projectId ? Number(projectId) : null,
+            dep.childDbId,
+            prereqDbId
+          ]
+        );
+        insertedDependenciesCount++;
+      }
+    }
+
+    await conn.commit();
+    return {
+      createdTasksCount: createdTasks.length,
+      insertedDependenciesCount,
+      tasks: createdTasks
+    };
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+}
+
+/**
+ * ============================================================================
  * FUNCTION: checkConnection
  * ============================================================================
  * Pings database connection pool on startup to verify connectivity.
@@ -1004,7 +1209,10 @@ module.exports = {
   getStatusTemplates,
   saveStatusTemplate,
   deleteStatusTemplate,
-  ensureDefaultCompanyStatuses
+  ensureDefaultCompanyStatuses,
+  attachDependenciesToTasks,
+  getProjectDependencies,
+  batchCreateTasksWithDependencies
 };
 
 

@@ -1,34 +1,35 @@
 {
-    "name":  "todo-backend",
-    "version":  "1.0.0",
-    "private":  true,
-    "description":  "Node.js API for the TODO Angular application",
-    "main":  "server.js",
+    "name": "todo-backend",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Node.js API for the TODO Angular application",
+    "main": "server.js",
     "scripts": {
         "build": "echo 'Backend ready'",
         "env:encrypt": "node scripts/env-crypto.js encrypt",
-                    "env:decrypt":  "node scripts/env-crypto.js decrypt",
-                    "mail:test":  "node scripts/test-mailtrap.js",
-                    "start":  "node server.js",
-                    "dev":  "node --watch server.js",
-                    "tunnel":  "cloudflared tunnel --url http://localhost:5000",
-                    "migrate":  "node -e \"require(\u0027./src/config/database\u0027).initializeDatabase().then(() =\u003e process.exit(0)).catch((error) =\u003e { console.error(error); process.exit(1); })\"",
-                    "stripe:listen":  "stripe listen --forward-to localhost:5000/api/subscriptions/webhook --events payment_intent.succeeded,invoice.paid,invoice.payment_failed,customer.subscription.created,customer.subscription.updated,customer.subscription.deleted",
-                    "dev:stripe":  "concurrently -n \"API,STRIPE\" -c \"blue,green\" \"npm run dev\" \"npm run stripe:listen\"",
-                    "dev:all":  "concurrently -n \"API,STRIPE,TUNNEL\" -c \"blue,green,magenta\" \"npm run dev\" \"npm run stripe:listen\" \"npm run tunnel\""
-                },
-    "dependencies":  {
-                         "bcryptjs":  "^3.0.3",
-                         "cors":  "^2.8.5",
-                         "dotenv":  "^16.4.7",
-                         "express":  "^5.1.0",
-                         "jsonwebtoken":  "^9.0.3",
-                         "multer":  "^2.4.0",
-                         "mysql2":  "^3.14.0",
-                         "nodemailer":  "^10.2.0",
-                         "stripe":  "^23.0.1"
-                     },
-    "devDependencies":  {
-                            "concurrently":  "^10.0.6"
-                        }
+        "env:decrypt": "node scripts/env-crypto.js decrypt",
+        "mail:test": "node scripts/test-mailtrap.js",
+        "start": "node server.js",
+        "dev": "node --watch server.js",
+        "tunnel": "cloudflared tunnel --url http://localhost:5000",
+        "migrate": "node -e \"require('./src/config/database').initializeDatabase().then(() => process.exit(0)).catch((error) => { console.error(error); process.exit(1); })\"",
+        "stripe:listen": "stripe listen --forward-to localhost:5000/api/subscriptions/webhook --events payment_intent.succeeded,invoice.paid,invoice.payment_failed,customer.subscription.created,customer.subscription.updated,customer.subscription.deleted",
+        "dev:stripe": "concurrently -n \"API,STRIPE\" -c \"blue,green\" \"npm run dev\" \"npm run stripe:listen\"",
+        "dev:all": "concurrently -n \"API,STRIPE,TUNNEL\" -c \"blue,green,magenta\" \"npm run dev\" \"npm run stripe:listen\" \"npm run tunnel\""
+    },
+    "dependencies": {
+        "@google/genai": "^3.6.1",
+        "bcryptjs": "^3.0.3",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.7",
+        "express": "^5.1.0",
+        "jsonwebtoken": "^9.0.3",
+        "multer": "^2.4.0",
+        "mysql2": "^3.14.0",
+        "nodemailer": "^10.2.0",
+        "stripe": "^23.0.1"
+    },
+    "devDependencies": {
+        "concurrently": "^10.0.6"
+    }
 }
