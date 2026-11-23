@@ -5,59 +5,55 @@
 .user-nav {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.28rem;
+  gap: 0.2rem;
+  padding: 0.24rem 0.35rem;
   margin: 0;
   background: var(--bg-subtle, #f1f5f9);
   border: 1px solid var(--border-base, #e2e8f0);
   border-radius: 12px;
   box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
   max-width: 100%;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.user-nav::-webkit-scrollbar {
-  display: none;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .nav-tab {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.42rem 0.9rem;
+  gap: 0.4rem;
+  padding: 0.38rem 0.72rem;
   border-radius: 9px;
   color: var(--text-muted, #64748b);
-  font-size: 0.81rem;
+  font-size: 0.8rem;
   font-weight: 700;
   text-decoration: none;
   border: 1px solid transparent;
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.16s ease;
   white-space: nowrap;
   position: relative;
+  flex-shrink: 0;
 }
 
 .nav-tab svg {
   flex-shrink: 0;
   opacity: 0.8;
-  transition: transform 0.18s ease, opacity 0.18s ease;
+  transition: transform 0.16s ease, opacity 0.16s ease;
 }
 
 .nav-tab:hover {
   color: var(--text-primary, #0f172a);
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.65);
 }
 
 .nav-tab:hover svg {
   opacity: 1;
-  transform: translateY(-1px);
 }
 
 .nav-tab.active {
   color: var(--brand-primary, #0f766e);
   background: #ffffff;
   border-color: color-mix(in srgb, var(--brand-primary, #0f766e) 22%, #e2e8f0);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px color-mix(in srgb, var(--brand-primary, #0f766e) 10%, transparent);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
 .nav-tab.active svg {
@@ -68,23 +64,23 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.35rem;
-  height: 1.25rem;
-  background: var(--bg-subtle, #f1f5f9);
-  color: var(--text-secondary, #475569);
-  border: 1px solid var(--border-base, #e2e8f0);
+  min-width: 1.25rem;
+  height: 1.15rem;
+  background: #e2e8f0;
+  color: #334155;
+  border: 1px solid #cbd5e1;
   font-size: 0.68rem;
   font-weight: 800;
-  padding: 0 0.42rem;
+  padding: 0 0.35rem;
   border-radius: 999px;
-  transition: all 0.18s ease;
+  line-height: 1;
+  transition: all 0.16s ease;
 }
 
 .nav-tab.active .tab-count {
   background: var(--brand-primary, #0f766e);
   border-color: var(--brand-primary, #0f766e);
   color: #ffffff;
-  box-shadow: 0 1px 4px color-mix(in srgb, var(--brand-primary, #0f766e) 35%, transparent);
 }
 
 /* Button reset for nav-tab button */

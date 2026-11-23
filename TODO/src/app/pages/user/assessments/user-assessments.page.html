@@ -1,1199 +1,774 @@
 <app-workspace-user-layout
   sectionId="user-assessments-page"
   [showHero]="true"
-  heroBadge="Skills Assessment"
-  heroBadgeMeta="Technical Readiness"
-  heroTitle="Developer Assessment & Readiness Portal"
-  heroSubtitle="Complete project scenario evaluations to calibrate your architectural approach, skills profile, and delivery readiness."
+  heroBadge="Technical Assessment"
+  heroBadgeMeta="Skills Verification"
+  heroTitle="Developer Technical Assessment"
+  heroSubtitle="Complete your project technical scenario assessment. Write clear code, define system architecture, and demonstrate error resilience."
 >
-  <div class="assessment-portal-container">
+  <div class="exam-page-container">
     
-    <!-- Top Action / Error Alert -->
+    <!-- Error / Notice Alert -->
     @if (errorMessage()) {
-      <div class="alert-banner alert-banner--error">
+      <div class="alert-box error">
         <span class="alert-icon">⚠️</span>
-        <div class="alert-content">
-          <strong>Notice:</strong>
-          <span>{{ errorMessage() }}</span>
-        </div>
-        <button type="button" class="btn-banner-close" (click)="errorMessage.set(null)">✕</button>
+        <div class="alert-text">{{ errorMessage() }}</div>
+        <button type="button" class="btn-alert-dismiss" (click)="errorMessage.set(null)">✕</button>
       </div>
     }
-
-    <!-- Portal Master Navigation Toolbar -->
-    <div class="portal-toolbar-card">
-      <div class="toolbar-nav-tabs">
-        <button
-          type="button"
-          class="toolbar-tab"
-          [class.active]="activePortalTab() === 'runner'"
-          (click)="setPortalTab('runner')"
-        >
-          <span class="tab-icon">⚡</span>
-          <span>Active Workstation</span>
-          @if (pendingAssessments().length > 0) {
-            <span class="tab-pill-badge tab-pill-badge--urgent">{{ pendingAssessments().length }} Action Required</span>
-          }
-        </button>
-
-        <button
-          type="button"
-          class="toolbar-tab"
-          [class.active]="activePortalTab() === 'history'"
-          (click)="setPortalTab('history')"
-        >
-          <span class="tab-icon">📋</span>
-          <span>Assessment History</span>
-          <span class="tab-pill-badge">{{ completedAssessments().length }} Completed</span>
-        </button>
-
-        <button
-          type="button"
-          class="toolbar-tab"
-          [class.active]="activePortalTab() === 'passport'"
-          (click)="setPortalTab('passport')"
-        >
-          <span class="tab-icon">🎖️</span>
-          <span>Competency Profile</span>
-          @if (averageScore() > 0) {
-            <span class="tab-pill-badge tab-pill-badge--score">Avg: {{ averageScore() }}/100</span>
-          }
-        </button>
-      </div>
-
-      <div class="toolbar-actions">
-        <button type="button" class="btn-toolbar-ghost" (click)="printSummary()" title="Print / Export Report">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="6 9 6 2 18 2 18 9"></polyline>
-            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-            <rect x="6" y="14" width="12" height="8"></rect>
-          </svg>
-          <span>Export Summary</span>
-        </button>
-      </div>
-    </div>
 
     <!-- Loading State -->
     @if (isLoading()) {
       <div class="loading-state-card">
         <div class="spinner-ring"></div>
-        <h3>Loading Technical Assessments...</h3>
-        <p>Fetching your enrolled projects and evaluation profiles from the server.</p>
+        <h3>Loading Assessment...</h3>
+        <p>Fetching your project scenarios and test session.</p>
       </div>
     } @else {
 
-      <!-- ======================================================== -->
-      <!-- TAB 1: ACTIVE WORKSTATION (RUNNER & CURRENT SCORECARD)  -->
-      <!-- ======================================================== -->
-      @if (activePortalTab() === 'runner') {
-        
-        <!-- Project Switcher Strip (If multiple projects) -->
-        @if (allAssessments().length > 1) {
-          <div class="project-switcher-strip">
-            <span class="switcher-label">Projects:</span>
-            <div class="switcher-pills">
-              @for (item of allAssessments(); track item.id) {
-                <button
-                  type="button"
-                  class="switcher-pill"
-                  [class.active]="activeAssessment()?.id === item.id"
-                  (click)="selectAssessment(item)"
-                >
-                  <span class="pill-dot" [class.done]="item.status === 'evaluated'"></span>
-                  <span class="pill-title">{{ item.projectTitle }}</span>
-                  @if (item.status === 'pending' || item.status === 'in_progress') {
-                    <span class="pill-badge pill-badge--action">Action Required</span>
-                  } @else {
-                    <span class="pill-badge pill-badge--score">{{ item.score ?? 0 }}/100</span>
-                  }
-                </button>
-              }
-            </div>
+      <!-- Multi-Project Selector (only if user has more than 1 project assessment) -->
+      @if (allAssessments().length > 1) {
+        <div class="project-selector-bar">
+          <span class="selector-lbl">Active Projects:</span>
+          <div class="selector-pills">
+            @for (item of allAssessments(); track item.id) {
+              <button
+                type="button"
+                class="selector-pill"
+                [class.active]="activeAssessment()?.id === item.id"
+                (click)="selectAssessment(item)"
+              >
+                <span class="pill-status-dot" [class.done]="item.status === 'evaluated'"></span>
+                <span class="pill-name">{{ item.projectTitle }}</span>
+                @if (item.status === 'pending' || item.status === 'in_progress') {
+                  <span class="badge-pending">Pending Test</span>
+                } @else {
+                  <span class="badge-done">{{ item.score ?? 0 }}/100</span>
+                }
+              </button>
+            }
           </div>
-        }
-
-        @if (activeAssessment(); as assessment) {
-          <!-- ---------------------------------------------------- -->
-          <!-- 1A: PENDING / IN-PROGRESS TEST WORKSTATION           -->
-          <!-- ---------------------------------------------------- -->
-          @if (assessment.status === 'pending' || assessment.status === 'in_progress') {
-            <div class="workstation-box">
-              
-              <!-- Workstation Top Header Banner -->
-              <div class="workstation-header-bar">
-                <div class="bar-left">
-                  <div class="project-indicator">
-                    <span class="indicator-icon">📂</span>
-                    <span class="indicator-project">{{ assessment.projectTitle }}</span>
-                    <span class="indicator-tag">Assessment In Progress</span>
-                  </div>
-                  <h2 class="workstation-title">
-                    {{ assessment.questions?.assessmentTitle || 'Technical Scenario Verification' }}
-                  </h2>
-                  <p class="workstation-subtitle">
-                    {{ assessment.questions?.assessmentOverview || assessment.projectDescription || 'Analyze the technical architecture scenario, address edge cases, and submit your solution.' }}
-                  </p>
-
-                  @if (assessment.questions?.targetTechStack?.length) {
-                    <div class="tech-chip-row">
-                      <span class="chip-label">Target Architecture:</span>
-                      @for (t of assessment.questions?.targetTechStack; track t) {
-                        <span class="tech-chip">{{ t }}</span>
-                      }
-                    </div>
-                  }
-                </div>
-
-                <div class="bar-right">
-                  <div class="progress-kpi">
-                    <div class="kpi-header">
-                      <span>Completion Progress</span>
-                      <strong class="kpi-val">{{ progressPercentage() }}%</strong>
-                    </div>
-                    <div class="kpi-bar-track">
-                      <div class="kpi-bar-fill" [style.width.%]="progressPercentage()"></div>
-                    </div>
-                    <div class="kpi-counts">
-                      <span><strong>{{ answeredCount() }}</strong> of {{ questions().length }} answered</span>
-                      @if (flaggedCount() > 0) {
-                        <span class="flagged-count">🚩 {{ flaggedCount() }} flagged</span>
-                      }
-                    </div>
-                  </div>
-
-                  <div class="header-action-row">
-                    <button
-                      type="button"
-                      class="btn-instructions-trigger"
-                      (click)="openInstructions()"
-                      title="Open test instructions, format guide, and answer expectations"
-                    >
-                      <span class="btn-icon">📖</span>
-                      <span>Instructions & Format</span>
-                    </button>
-
-                    <div class="save-status-badge">
-                      @if (saveStatus() === 'saving') {
-                        <span class="saving">⟳ Saving draft...</span>
-                      } @else {
-                        <span class="saved">✓ Auto-saved locally</span>
-                      }
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Collapsible Guidelines Drawer -->
-              @if (guidelinesExpanded()) {
-                <div class="guidelines-drawer">
-                  <div class="guidelines-grid">
-                    <div class="guide-item">
-                      <div class="guide-item-head">
-                        <span class="guide-num">1</span>
-                        <strong>State Technical Assumptions</strong>
-                      </div>
-                      <p>Clearly outline database constraints, anticipated throughput, and service contracts before writing solution logic.</p>
-                    </div>
-
-                    <div class="guide-item">
-                      <div class="guide-item-head">
-                        <span class="guide-num">2</span>
-                        <strong>Account for Concurrency & Failures</strong>
-                      </div>
-                      <p>Address race conditions, idempotency, distributed transactions, retries, and network partition recovery.</p>
-                    </div>
-
-                    <div class="guide-item">
-                      <div class="guide-item-head">
-                        <span class="guide-num">3</span>
-                        <strong>Code Modularity & Clean Contracts</strong>
-                      </div>
-                      <p>Use clean separation of concerns, explicit interfaces, and idiomatic error handling in your code blocks.</p>
-                    </div>
-                  </div>
-                </div>
-              }
-
-              <!-- Stepper Navigation Strip -->
-              <div class="stepper-nav-bar">
-                <div class="stepper-tabs-row">
-                  @for (q of questions(); track q.qId; let idx = $index) {
-                    <button
-                      type="button"
-                      class="stepper-card"
-                      [class.active]="activeQuestionIndex() === idx"
-                      [class.answered]="!!answers()[q.qId]?.trim()"
-                      [class.flagged]="isFlagged(q.qId)"
-                      (click)="setQuestionIndex(idx)"
-                    >
-                      <div class="card-step-num">Q{{ idx + 1 }}</div>
-                      <div class="card-step-body">
-                        <span class="card-step-category">{{ q.category }}</span>
-                        <span class="card-step-pts">{{ q.maxPoints }} pts • {{ q.difficulty }}</span>
-                      </div>
-                      <div class="card-step-icons">
-                        @if (isFlagged(q.qId)) {
-                          <span class="icon-flag" title="Flagged for review">🚩</span>
-                        }
-                        @if (!!answers()[q.qId]?.trim()) {
-                          <span class="icon-check" title="Answer recorded">✓</span>
-                        }
-                      </div>
-                    </button>
-                  }
-                </div>
-              </div>
-
-              <!-- Active Question Split Studio -->
-              @if (currentQuestion(); as q) {
-                <div class="split-studio-grid">
-                  
-                  <!-- Left Column: Scenario Blueprint -->
-                  <div class="scenario-column">
-                    <div class="scenario-meta-bar">
-                      <div class="meta-tags">
-                        <span class="meta-tag meta-tag--cat">{{ q.category }}</span>
-                        <span class="meta-tag meta-tag--diff" [class]="'diff-' + (q.difficulty || 'medium')">
-                          {{ q.difficulty | uppercase }}
-                        </span>
-                        <span class="meta-tag meta-tag--pts">{{ q.maxPoints }} Points</span>
-                      </div>
-
-                      <div class="meta-actions-group">
-                        <button
-                          type="button"
-                          class="btn-format-help-link"
-                          (click)="openInstructions()"
-                          title="Open Instructions to see what type of answer is expected"
-                        >
-                          <span>📖 Format Guide</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          class="btn-flag-toggle"
-                          [class.active]="isFlagged(q.qId)"
-                          (click)="toggleFlag(q.qId)"
-                        >
-                          <span>{{ isFlagged(q.qId) ? '🚩 Flagged' : '🏳️ Flag for Review' }}</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- Expected Deliverable Banner -->
-                    <div class="deliverable-format-box">
-                      <div class="deliverable-head">
-                        <span class="deliverable-icon">{{ getExpectedFormat(q).icon }}</span>
-                        <div class="deliverable-meta">
-                          <span class="deliverable-lbl">Test Deliverable Format</span>
-                          <strong class="deliverable-name">{{ getExpectedFormat(q).type }}</strong>
-                        </div>
-                      </div>
-                      <p class="deliverable-summary">{{ getExpectedFormat(q).description }}</p>
-                      <div class="deliverable-hint">
-                        <strong>💡 What to write:</strong> {{ getExpectedFormat(q).advice }}
-                      </div>
-                    </div>
-
-                    <h3 class="scenario-heading">{{ q.title }}</h3>
-
-                    <div class="scenario-sections-stack">
-                      <!-- Scenario Box -->
-                      <div class="context-card blueprint-card">
-                        <div class="card-header-line">
-                          <span class="card-icon">📐</span>
-                          <span class="card-title">Architecture Scenario & Context</span>
-                        </div>
-                        <p class="card-content-text">{{ q.scenario }}</p>
-                      </div>
-
-                      <!-- Challenge Box -->
-                      <div class="context-card challenge-card">
-                        <div class="card-header-line">
-                          <span class="card-icon">🎯</span>
-                          <span class="card-title">Core Challenge & Deliverable</span>
-                        </div>
-                        <p class="card-content-text highlight">{{ q.question }}</p>
-                      </div>
-
-                      <!-- Rubric Box -->
-                      <div class="context-card rubric-card">
-                        <div class="card-header-line">
-                          <span class="card-icon">📋</span>
-                          <span class="card-title">Evaluation Focus & Rubric</span>
-                        </div>
-                        <ul class="rubric-points">
-                          <li><strong>Architectural Soundness:</strong> Cohesion, modularity, and data integrity.</li>
-                          <li><strong>Resilience & Edge Cases:</strong> Race conditions, resource bounds, error paths.</li>
-                          <li><strong>Maintainability:</strong> Clean interfaces, clear reasoning, and typing.</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Right Column: Solution Studio -->
-                  <div class="studio-column">
-                    <!-- Studio Top Toolbar -->
-                    <div class="studio-controls-bar">
-                      <div class="view-switch-tabs">
-                        <button
-                          type="button"
-                          class="view-switch-tab"
-                          [class.active]="editorView() === 'edit'"
-                          (click)="setEditorView('edit')"
-                        >
-                          <span>✏️ Solution Editor</span>
-                        </button>
-                        <button
-                          type="button"
-                          class="view-switch-tab"
-                          [class.active]="editorView() === 'preview'"
-                          (click)="setEditorView('preview')"
-                        >
-                          <span>👁️ Formatted Preview</span>
-                        </button>
-                      </div>
-
-                      <div class="snippet-buttons-group">
-                        <button type="button" class="btn-snippet" (click)="insertSnippet('code')">
-                          + Code Block
-                        </button>
-                        <button type="button" class="btn-snippet" (click)="insertSnippet('architecture')">
-                          + Architecture
-                        </button>
-                        <button type="button" class="btn-snippet" (click)="insertSnippet('tradeoffs')">
-                          + Tradeoffs
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- Editor / Preview Area -->
-                    <div class="studio-content-area">
-                      @if (editorView() === 'edit') {
-                        <div class="editor-pane">
-                          <textarea
-                            class="code-editor-textarea"
-                            [placeholder]="'Detail your technical approach, architecture schema, code implementation, and trade-off considerations for ' + q.title + '...'"
-                            [ngModel]="answers()[q.qId] || ''"
-                            (ngModelChange)="updateAnswer(q.qId, $event)"
-                            rows="16"
-                          ></textarea>
-                        </div>
-                      } @else {
-                        <div class="preview-pane">
-                          @if ((answers()[q.qId] || '').trim()) {
-                            <pre class="preview-formatted"><code>{{ answers()[q.qId] }}</code></pre>
-                          } @else {
-                            <div class="preview-empty">
-                              <span class="empty-icon">📝</span>
-                              <p>No solution written yet. Switch to the Solution Editor to formulate your architecture response.</p>
-                            </div>
-                          }
-                        </div>
-                      }
-                    </div>
-
-                    <!-- Bottom Navigation & Submission Footer -->
-                    <div class="studio-footer-bar">
-                      <div class="footer-meta">
-                        <span>{{ (answers()[q.qId] || '').length }} characters</span>
-                        <span>•</span>
-                        <span>{{ ((answers()[q.qId] || '').trim().split(' ').length) || 0 }} words</span>
-                      </div>
-
-                      <div class="footer-buttons">
-                        <button
-                          type="button"
-                          class="btn-step btn-step--prev"
-                          [disabled]="activeQuestionIndex() === 0"
-                          (click)="prevQuestion()"
-                        >
-                          ← Previous Question
-                        </button>
-
-                        @if (activeQuestionIndex() < questions().length - 1) {
-                          <button
-                            type="button"
-                            class="btn-step btn-step--next"
-                            (click)="nextQuestion()"
-                          >
-                            Next Question →
-                          </button>
-                        }
-
-                        <button
-                          type="button"
-                          class="btn-step btn-step--review"
-                          (click)="openReviewModal()"
-                        >
-                          📋 Review & Submit ({{ answeredCount() }}/{{ questions().length }})
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              }
-
-              <!-- Pre-Submission Review Modal -->
-              @if (showReviewModal()) {
-                <div class="modal-backdrop" (click)="closeReviewModal()">
-                  <div class="review-modal-box" (click)="$event.stopPropagation()">
-                    <div class="modal-header">
-                      <div class="modal-header-left">
-                        <span class="modal-icon">📋</span>
-                        <div>
-                          <h3>Assessment Review & Verification</h3>
-                          <p>Review the completion status of all questions before submitting for evaluation.</p>
-                        </div>
-                      </div>
-                      <button type="button" class="btn-modal-close" (click)="closeReviewModal()">✕</button>
-                    </div>
-
-                    <div class="modal-body">
-                      <div class="review-summary-strip">
-                        <div class="summary-stat">
-                          <span class="stat-num">{{ answeredCount() }} / {{ questions().length }}</span>
-                          <span class="stat-lbl">Questions Completed</span>
-                        </div>
-                        <div class="summary-stat">
-                          <span class="stat-num">{{ flaggedCount() }}</span>
-                          <span class="stat-lbl">Flagged for Review</span>
-                        </div>
-                        <div class="summary-stat">
-                          <span class="stat-num">{{ progressPercentage() }}%</span>
-                          <span class="stat-lbl">Overall Readiness</span>
-                        </div>
-                      </div>
-
-                      <div class="review-questions-table">
-                        @for (q of questions(); track q.qId; let i = $index) {
-                          <div class="review-table-row">
-                            <div class="col-num">Q{{ i + 1 }}</div>
-                            <div class="col-details">
-                              <strong>{{ q.title }}</strong>
-                              <span class="col-cat">{{ q.category }} • {{ q.maxPoints }} pts</span>
-                            </div>
-                            <div class="col-status">
-                              @if (!!answers()[q.qId]?.trim()) {
-                                <span class="badge-status-pill done">
-                                  ✓ Answered ({{ (answers()[q.qId] || '').trim().split(' ').length }} words)
-                                </span>
-                              } @else {
-                                <span class="badge-status-pill empty">
-                                  ○ Not Answered
-                                </span>
-                              }
-                              @if (isFlagged(q.qId)) {
-                                <span class="badge-status-pill flag">🚩 Flagged</span>
-                              }
-                            </div>
-                            <div class="col-action">
-                              <button
-                                type="button"
-                                class="btn-jump-edit"
-                                (click)="jumpToQuestion(i)"
-                              >
-                                Edit
-                              </button>
-                            </div>
-                          </div>
-                        }
-                      </div>
-
-                      <div class="submission-disclaimer">
-                        <span>ℹ️</span>
-                        <p>
-                          Once submitted, your solutions are sealed and evaluated against standard system rubrics to formulate your task allocation profile.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div class="modal-footer">
-                      <button type="button" class="btn-modal-cancel" (click)="closeReviewModal()">
-                        Return to Workstation
-                      </button>
-                      <button
-                        type="button"
-                        class="btn-modal-submit"
-                        [disabled]="isSubmitting()"
-                        (click)="closeReviewModal(); submitAssessment()"
-                      >
-                        Confirm & Submit Assessment
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              }
-
-              <!-- Test Instructions & Format Guide Modal -->
-              @if (showInstructionsModal()) {
-                <div class="modal-backdrop" (click)="closeInstructions()">
-                  <div class="instructions-modal-box" (click)="$event.stopPropagation()">
-                    <div class="modal-header">
-                      <div class="modal-header-left">
-                        <span class="modal-icon">📖</span>
-                        <div>
-                          <h3>Assessment Instructions & Test Format</h3>
-                          <p>Understand the evaluation type, what to write (coding vs written strategy), and how your submission is graded.</p>
-                        </div>
-                      </div>
-                      <button type="button" class="btn-modal-close" (click)="closeInstructions()">✕</button>
-                    </div>
-
-                    <div class="instructions-tabs-bar">
-                      <button
-                        type="button"
-                        class="instr-tab"
-                        [class.active]="instructionsTab() === 'format'"
-                        (click)="setInstructionsTab('format')"
-                      >
-                        <span>1. What Type of Test Is This?</span>
-                      </button>
-                      <button
-                        type="button"
-                        class="instr-tab"
-                        [class.active]="instructionsTab() === 'guide'"
-                        (click)="setInstructionsTab('guide')"
-                      >
-                        <span>2. What & How to Write</span>
-                      </button>
-                      <button
-                        type="button"
-                        class="instr-tab"
-                        [class.active]="instructionsTab() === 'rubric'"
-                        (click)="setInstructionsTab('rubric')"
-                      >
-                        <span>3. Evaluation Rubric & Scoring</span>
-                      </button>
-                    </div>
-
-                    <div class="modal-body instructions-body">
-                      <!-- TAB 1: Test Type -->
-                      @if (instructionsTab() === 'format') {
-                        <div class="instr-section">
-                          <div class="instr-highlight-banner">
-                            <span class="banner-icon">💡</span>
-                            <div>
-                              <strong>Hybrid Engineering Scenario Assessment:</strong>
-                              <p>This assessment evaluates your real-world technical capabilities across both <strong>executable code implementation</strong> and <strong>architectural design reasoning</strong>.</p>
-                            </div>
-                          </div>
-
-                          <div class="format-cards-grid">
-                            <div class="format-card">
-                              <div class="format-card-icon">💻</div>
-                              <h4>1. Code Implementation</h4>
-                              <p>When asked for an algorithm, service handler, or API logic, write actual working code (TypeScript, JavaScript, SQL, or Python). Include input validation and error containment.</p>
-                            </div>
-
-                            <div class="format-card">
-                              <div class="format-card-icon">📐</div>
-                              <h4>2. Architecture & Systems</h4>
-                              <p>Explain component breakdown, data flow, caching layers, and database schemas. State your reasoning for technology and pattern choices.</p>
-                            </div>
-
-                            <div class="format-card">
-                              <div class="format-card-icon">⚡</div>
-                              <h4>3. Concurrency & Edge Cases</h4>
-                              <p>Identify race conditions, high-throughput bottlenecks, data consistency risks, and how your solution guarantees reliability.</p>
-                            </div>
-
-                            <div class="format-card">
-                              <div class="format-card-icon">⚖️</div>
-                              <h4>4. Trade-offs & Limitations</h4>
-                              <p>Demonstrate architectural maturity by articulating pros, cons, and when an alternative pattern or database engine might be preferred.</p>
-                            </div>
-                          </div>
-                        </div>
-                      }
-
-                      <!-- TAB 2: How to Write -->
-                      @if (instructionsTab() === 'guide') {
-                        <div class="instr-section">
-                          <h4>Structuring Your Solution</h4>
-                          <p class="section-subtext">Follow this structured template for maximum score and clarity:</p>
-
-                          <div class="code-template-preview">
-                            <div class="preview-header">
-                              <span>Recommended Solution Blueprint</span>
-                            </div>
-                            <pre class="template-pre"><code>### 1. Architectural Strategy &amp; Assumptions
-- State throughput, latency assumptions, and chosen data store.
-- High-level design pattern (e.g. Repository pattern, Saga, Idempotent Worker).
-
-### 2. Code Implementation
-```typescript
-// Clear function signature with strict typing
-export async function processOrder(req: OrderRequest): Promise&lt;OrderResult&gt; &#123;
-  // 1. Validate payload &amp; check idempotency key
-  // 2. Begin transaction / database locks
-  // 3. Handle errors and guarantee cleanup
-&#125;
-```
-
-### 3. Edge Cases &amp; Concurrency Guardrails
-- How race conditions are prevented (e.g., SELECT ... FOR UPDATE or Redis locks).
-- Network retry policies and dead-letter queues.</code></pre>
-                          </div>
-
-                          <div class="formatting-tips-row">
-                            <div class="tip-pill">
-                              <span class="tip-icon">✓</span>
-                              <span>Use the <strong>+ Code Block</strong> snippet button in the editor toolbar.</span>
-                            </div>
-                            <div class="tip-pill">
-                              <span class="tip-icon">✓</span>
-                              <span>Switch to <strong>👁️ Formatted Preview</strong> to inspect your markdown.</span>
-                            </div>
-                            <div class="tip-pill">
-                              <span class="tip-icon">✓</span>
-                              <span>Your drafts are <strong>auto-saved</strong> locally in real time.</span>
-                            </div>
-                          </div>
-                        </div>
-                      }
-
-                      <!-- TAB 3: Scoring & Rubric -->
-                      @if (instructionsTab() === 'rubric') {
-                        <div class="instr-section">
-                          <h4>How Your Answers Are Graded</h4>
-                          <p class="section-subtext">The system evaluates your answers across four equal dimensions (0 to 100 points total):</p>
-
-                          <div class="rubric-breakdown-list">
-                            <div class="rubric-dim-card">
-                              <div class="dim-badge">25%</div>
-                              <div class="dim-content">
-                                <strong>Technical Correctness & Code Quality</strong>
-                                <p>Working code logic, clean syntax, type safety, modular functions, and adherence to language idioms.</p>
-                              </div>
-                            </div>
-
-                            <div class="rubric-dim-card">
-                              <div class="dim-badge">25%</div>
-                              <div class="dim-content">
-                                <strong>System Resilience & Edge Case Handling</strong>
-                                <p>Anticipation of errors, race conditions, memory leaks, invalid payloads, and distributed failure modes.</p>
-                              </div>
-                            </div>
-
-                            <div class="rubric-dim-card">
-                              <div class="dim-badge">25%</div>
-                              <div class="dim-content">
-                                <strong>Architectural Depth & Scalability</strong>
-                                <p>Separation of concerns, clean interfaces, schema normalization/indexing, and horizontal scaling strategy.</p>
-                              </div>
-                            </div>
-
-                            <div class="rubric-dim-card">
-                              <div class="dim-badge">25%</div>
-                              <div class="dim-content">
-                                <strong>Clarity of Reasoning & Cognitive Stamina</strong>
-                                <p>Thoroughness of explanation, structured problem solving, and ability to handle multi-tier complexity.</p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      }
-                    </div>
-
-                    <div class="modal-footer">
-                      <button type="button" class="btn-modal-submit" (click)="closeInstructions()">
-                        Got It, Return to Assessment →
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              }
-
-              <!-- Submitting Progress Overlay -->
-              @if (isSubmitting()) {
-                <div class="evaluation-overlay">
-                  <div class="eval-modal-card">
-                    <div class="radar-eval-spinner"></div>
-                    <h3>Evaluating Your Assessment...</h3>
-                    <p class="eval-modal-sub">
-                      Analyzing technical scenario responses, code structure, architecture robustness, and compiling your profile.
-                    </p>
-
-                    <div class="eval-steps-list">
-                      <div class="eval-step active">
-                        <span class="step-dot"></span>
-                        <span>1. Parsing solution blueprints & code responses</span>
-                      </div>
-                      <div class="eval-step active">
-                        <span class="step-dot"></span>
-                        <span>2. Evaluating scenario depth, clean code, and edge cases</span>
-                      </div>
-                      <div class="eval-step active">
-                        <span class="step-dot"></span>
-                        <span>3. Calculating workload capacity & complexity ceiling</span>
-                      </div>
-                      <div class="eval-step active">
-                        <span class="step-dot"></span>
-                        <span>4. Compiling domain expertise matrix & profile summary</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              }
-
-            </div>
-          }
-
-          <!-- ---------------------------------------------------- -->
-          <!-- 1B: EVALUATED SCORECARD WORKSTATION                  -->
-          <!-- ---------------------------------------------------- -->
-          @if (assessment.status === 'completed' || assessment.status === 'evaluated') {
-            <div class="scorecard-container">
-              
-              <!-- Hero Scorecard Card -->
-              <div class="scorecard-hero-card">
-                <div class="hero-left">
-                  <div class="status-chip">
-                    <span class="chip-icon">✓</span>
-                    <span>Evaluation Completed</span>
-                  </div>
-                  <h2 class="hero-project-name">{{ assessment.projectTitle }}</h2>
-                  <p class="hero-summary-text">
-                    {{ assessment.feedback?.summaryFeedback || 'Technical assessment evaluation complete. Your skill profile and stamina metrics are registered.' }}
-                  </p>
-
-                  <div class="hero-meta-line">
-                    <span>Evaluated on <strong>{{ assessment.completedAt | date: 'medium' }}</strong></span>
-                    <span>•</span>
-                    <span>Developer: <strong>{{ assessment.username }}</strong></span>
-                  </div>
-                </div>
-
-                <div class="hero-right">
-                  <div class="score-radial-box" [class]="getScoreColorClass(assessment.score)">
-                    <div class="radial-number">{{ assessment.score ?? 0 }}</div>
-                    <div class="radial-scale">/ 100</div>
-                    <div class="radial-label">Technical Score</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Tri-Metric Cards Row -->
-              <div class="tri-metrics-grid">
-                <!-- Card 1: Seniority Tier -->
-                <div class="kpi-card">
-                  <div class="kpi-icon-box kpi-icon-box--purple">🎖️</div>
-                  <div class="kpi-content">
-                    <span class="kpi-label">Assessed Seniority Standing</span>
-                    <div class="kpi-title">{{ assessment.evaluatedLevel || 'Senior' }}</div>
-                    <p class="kpi-desc">Meets architecture standards and task autonomy requirements.</p>
-                  </div>
-                </div>
-
-                <!-- Card 2: Complexity Ceiling -->
-                <div class="kpi-card">
-                  <div class="kpi-icon-box kpi-icon-box--blue">⚡</div>
-                  <div class="kpi-content">
-                    <span class="kpi-label">Complexity Ceiling</span>
-                    <div class="kpi-title">
-                      <span class="badge-complexity" [class]="getComplexityBadgeClass(assessment.maxComplexity)">
-                        {{ (assessment.maxComplexity || 'high') | uppercase }} COMPLEXITY
-                      </span>
-                    </div>
-                    <p class="kpi-desc">
-                      {{ assessment.maxComplexity === 'high' ? 'Handles distributed architecture and critical edge cases.' : 'Handles core features and modular integrations reliably.' }}
-                    </p>
-                  </div>
-                </div>
-
-                <!-- Card 3: Deep-Work Capacity -->
-                <div class="kpi-card">
-                  <div class="kpi-icon-box kpi-icon-box--green">⏱️</div>
-                  <div class="kpi-content">
-                    <span class="kpi-label">Workload Stamina Capacity</span>
-                    <div class="kpi-title">
-                      {{ assessment.feedback?.staminaProfile?.sustainableDailyHours || 6.0 }} hrs / day
-                    </div>
-                    <p class="kpi-desc">
-                      {{ assessment.feedback?.staminaProfile?.staminaRating || 'High - Sustained deep work on complex logic.' }}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Two Column Detailed Insights -->
-              <div class="details-two-columns">
-                <!-- Left Column: Domain Expertise Breakdown -->
-                <div class="card-sheet">
-                  <div class="sheet-header">
-                    <div class="sheet-header-left">
-                      <span class="sheet-icon">📊</span>
-                      <h3>Domain Expertise Breakdown</h3>
-                    </div>
-                  </div>
-
-                  <div class="domain-bars-stack">
-                    @if (assessment.feedback?.expertiseList?.length) {
-                      @for (item of assessment.feedback?.expertiseList; track item.domain) {
-                        <div class="domain-meter-item">
-                          <div class="meter-head">
-                            <span class="meter-name">{{ item.domain }}</span>
-                            <div class="meter-badges">
-                              <span class="proficiency-chip">{{ item.proficiencyLevel }}</span>
-                              <span class="meter-score">{{ item.score }}%</span>
-                            </div>
-                          </div>
-                          <div class="meter-track">
-                            <div class="meter-fill" [style.width.%]="item.score"></div>
-                          </div>
-                          <p class="meter-notes">{{ item.summary }}</p>
-                        </div>
-                      }
-                    } @else {
-                      <div class="domain-meter-item">
-                        <div class="meter-head">
-                          <span class="meter-name">System Architecture & Design</span>
-                          <span class="meter-score">{{ assessment.feedback?.domainScores?.architecture || 85 }}%</span>
-                        </div>
-                        <div class="meter-track">
-                          <div class="meter-fill" [style.width.%]="assessment.feedback?.domainScores?.architecture || 85"></div>
-                        </div>
-                      </div>
-
-                      <div class="domain-meter-item">
-                        <div class="meter-head">
-                          <span class="meter-name">Backend API & Business Logic</span>
-                          <span class="meter-score">{{ assessment.feedback?.domainScores?.backend || 88 }}%</span>
-                        </div>
-                        <div class="meter-track">
-                          <div class="meter-fill" [style.width.%]="assessment.feedback?.domainScores?.backend || 88"></div>
-                        </div>
-                      </div>
-
-                      <div class="domain-meter-item">
-                        <div class="meter-head">
-                          <span class="meter-name">Database & Concurrency Handling</span>
-                          <span class="meter-score">{{ assessment.feedback?.domainScores?.database || 82 }}%</span>
-                        </div>
-                        <div class="meter-track">
-                          <div class="meter-fill" [style.width.%]="assessment.feedback?.domainScores?.database || 82"></div>
-                        </div>
-                      </div>
-
-                      <div class="domain-meter-item">
-                        <div class="meter-head">
-                          <span class="meter-name">Security & Vulnerability Mitigation</span>
-                          <span class="meter-score">{{ assessment.feedback?.domainScores?.security || 90 }}%</span>
-                        </div>
-                        <div class="meter-track">
-                          <div class="meter-fill" [style.width.%]="assessment.feedback?.domainScores?.security || 90"></div>
-                        </div>
-                      </div>
-                    }
-                  </div>
-                </div>
-
-                <!-- Right Column: Qualitative Review -->
-                <div class="card-sheet">
-                  <div class="sheet-header">
-                    <div class="sheet-header-left">
-                      <span class="sheet-icon">💡</span>
-                      <h3>Qualitative Feedback & Profile</h3>
-                    </div>
-                  </div>
-
-                  <div class="qualitative-content-box">
-                    <div class="feedback-group">
-                      <h4 class="group-title group-title--strengths">
-                        <span>✓</span> Core Demonstrated Strengths
-                      </h4>
-                      <ul class="feedback-list">
-                        @for (s of assessment.feedback?.strengths || []; track s) {
-                          <li>{{ s }}</li>
-                        }
-                        @if (!assessment.feedback?.strengths?.length) {
-                          <li>Strong architecture intuition and clean modular separation.</li>
-                          <li>Solid understanding of asynchronous concurrency and error boundaries.</li>
-                        }
-                      </ul>
-                    </div>
-
-                    <div class="feedback-group">
-                      <h4 class="group-title group-title--growth">
-                        <span>↗</span> Recommended Areas for Growth
-                      </h4>
-                      <ul class="feedback-list">
-                        @for (g of assessment.feedback?.gaps || []; track g) {
-                          <li>{{ g }}</li>
-                        }
-                        @if (!assessment.feedback?.gaps?.length) {
-                          <li>Include additional telemetry and distributed tracing considerations in APIs.</li>
-                        }
-                      </ul>
-                    </div>
-
-                    @if (assessment.feedback?.staminaProfile?.recommendedTaskTypes?.length) {
-                      <div class="recommended-tasks-box">
-                        <span class="box-label">🎯 Optimal Task Matches:</span>
-                        <div class="task-chip-list">
-                          @for (t of assessment.feedback?.staminaProfile?.recommendedTaskTypes; track t) {
-                            <span class="task-match-chip">{{ t }}</span>
-                          }
-                        </div>
-                      </div>
-                    }
-                  </div>
-                </div>
-              </div>
-
-              <!-- Question Rubric Review & Critique Accordion -->
-              @if (assessment.questions?.questions?.length) {
-                <div class="critique-card-sheet">
-                  <div class="critique-header-row">
-                    <div>
-                      <h3>Per-Question Technical Review & Rubric Breakdown</h3>
-                      <p>Inspect the scenario prompt, your submitted solution, and the question-by-question rubric analysis.</p>
-                    </div>
-
-                    <!-- Category Filter Tabs -->
-                    @if (categoriesList().length > 1) {
-                      <div class="filter-pills-row">
-                        @for (cat of categoriesList(); track cat) {
-                          <button
-                            type="button"
-                            class="filter-pill"
-                            [class.active]="critiqueCategoryFilter() === cat"
-                            (click)="critiqueCategoryFilter.set(cat)"
-                          >
-                            {{ cat | uppercase }}
-                          </button>
-                        }
-                      </div>
-                    }
-                  </div>
-
-                  <div class="critique-accordions-stack">
-                    @for (q of filteredQuestions(); track q.qId; let i = $index) {
-                      <div class="accordion-item" [class.expanded]="isCritiqueExpanded(q.qId)">
-                        <button
-                          type="button"
-                          class="accordion-header-btn"
-                          (click)="toggleCritique(q.qId)"
-                        >
-                          <div class="btn-left">
-                            <span class="q-tag">Q{{ i + 1 }}</span>
-                            <span class="q-name">{{ q.title }}</span>
-                            <span class="q-domain">{{ q.category }}</span>
-                          </div>
-
-                          <div class="btn-right">
-                            <span class="q-points">{{ q.maxPoints }} pts</span>
-                            <span class="q-arrow">{{ isCritiqueExpanded(q.qId) ? '▲' : '▼' }}</span>
-                          </div>
-                        </button>
-
-                        @if (isCritiqueExpanded(q.qId)) {
-                          <div class="accordion-panel-body">
-                            <div class="context-subcard">
-                              <strong>Scenario Prompt:</strong>
-                              <p>{{ q.scenario }}</p>
-                              <p class="challenge-line"><strong>Challenge:</strong> {{ q.question }}</p>
-                            </div>
-
-                            <div class="submitted-solution-box">
-                              <strong>Your Submitted Solution:</strong>
-                              <pre class="solution-code-block"><code>{{ assessment.answers?.[q.qId] || 'No answer submitted.' }}</code></pre>
-                            </div>
-
-                            @for (res of assessment.feedback?.questionResults; track res.qId) {
-                              @if (res.qId === q.qId) {
-                                <div class="rubric-critique-box">
-                                  <div class="critique-head-row">
-                                    <span>Automated Review & Rubric Score:</span>
-                                    <span class="points-pill">{{ res.pointsEarned }} / {{ res.maxPoints }} pts</span>
-                                  </div>
-                                  <p class="critique-body-text">{{ res.critique }}</p>
-                                </div>
-                              }
-                            }
-                          </div>
-                        }
-                      </div>
-                    }
-                  </div>
-                </div>
-              }
-
-            </div>
-          }
-        } @else {
-          <!-- Empty State -->
-          <div class="empty-state-box">
-            <div class="empty-icon-circle">📂</div>
-            <h3>No Technical Assessments Found</h3>
-            <p>You do not have any pending or completed technical assessments right now. When a project manager adds you to a project team, your assessment will appear here.</p>
-            <a [routerLink]="['/dashboard/projects']" class="btn-primary-action">
-              ← View My Projects
-            </a>
-          </div>
-        }
-      }
-
-      <!-- ======================================================== -->
-      <!-- TAB 2: ASSESSMENT HISTORY                                -->
-      <!-- ======================================================== -->
-      @if (activePortalTab() === 'history') {
-        <div class="history-table-card">
-          <div class="history-header">
-            <div>
-              <h3>Completed Technical Assessments</h3>
-              <p>Historical record of evaluated scenario assessments and performance standing across projects.</p>
-            </div>
-            <span class="history-total-count">{{ completedAssessments().length }} Total Records</span>
-          </div>
-
-          @if (completedAssessments().length > 0) {
-            <div class="history-cards-grid">
-              @for (item of completedAssessments(); track item.id) {
-                <div class="history-item-card">
-                  <div class="item-card-top">
-                    <span class="item-project-name">{{ item.projectTitle }}</span>
-                    <span class="item-score-pill" [class]="getScoreColorClass(item.score)">
-                      {{ item.score ?? 0 }} / 100
-                    </span>
-                  </div>
-
-                  <p class="item-card-desc">
-                    {{ item.feedback?.summaryFeedback || item.projectDescription || 'Technical readiness scenario assessment completed.' }}
-                  </p>
-
-                  <div class="item-card-metrics">
-                    <div class="metric-pill">
-                      <span>Seniority:</span>
-                      <strong>{{ item.evaluatedLevel || 'Senior' }}</strong>
-                    </div>
-                    <div class="metric-pill">
-                      <span>Complexity:</span>
-                      <strong>{{ (item.maxComplexity || 'high') | uppercase }}</strong>
-                    </div>
-                    <div class="metric-pill">
-                      <span>Capacity:</span>
-                      <strong>{{ item.feedback?.staminaProfile?.sustainableDailyHours || 6.0 }} hrs/day</strong>
-                    </div>
-                  </div>
-
-                  <div class="item-card-footer">
-                    <span class="completed-date">Completed {{ item.completedAt | date: 'mediumDate' }}</span>
-                    <button
-                      type="button"
-                      class="btn-view-scorecard"
-                      (click)="selectAssessment(item); setPortalTab('runner')"
-                    >
-                      View Full Scorecard →
-                    </button>
-                  </div>
-                </div>
-              }
-            </div>
-          } @else {
-            <div class="empty-history-box">
-              <span class="empty-icon">📋</span>
-              <h4>No Completed Assessments Yet</h4>
-              <p>When you complete a project technical assessment, the evaluated results and scorecards will be preserved here.</p>
-              @if (pendingAssessments().length > 0) {
-                <button
-                  type="button"
-                  class="btn-primary-action"
-                  (click)="setPortalTab('runner')"
-                >
-                  Go to Pending Assessment ({{ pendingAssessments().length }})
-                </button>
-              }
-            </div>
-          }
         </div>
       }
 
-      <!-- ======================================================== -->
-      <!-- TAB 3: COMPETENCY PROFILE / PASSPORT                     -->
-      <!-- ======================================================== -->
-      @if (activePortalTab() === 'passport') {
-        <div class="passport-container">
-          <!-- Passport Top Hero -->
-          <div class="passport-hero-box">
-            <div class="passport-hero-content">
-              <div class="passport-badge">
-                <span>🎖️</span> Technical Competency Passport
+      @if (activeAssessment(); as assessment) {
+        
+        <!-- ======================================================== -->
+        <!-- VIEW 1: ACTIVE TECHNICAL EXAM WORKSTATION                -->
+        <!-- ======================================================== -->
+        @if (assessment.status === 'pending' || assessment.status === 'in_progress') {
+          <div class="exam-card">
+            
+            <!-- Exam Header Bar -->
+            <header class="exam-header">
+              <div class="header-main">
+                <div class="project-tag">
+                  <span class="tag-icon">📂</span>
+                  <span class="tag-title">{{ assessment.projectTitle }}</span>
+                  <span class="tag-badge">5 Technical Scenarios</span>
+                </div>
+                <h2 class="exam-title">
+                  {{ assessment.questions?.assessmentTitle || 'Technical Architecture & Implementation Test' }}
+                </h2>
+                <p class="exam-overview">
+                  {{ assessment.questions?.assessmentOverview || assessment.projectDescription || 'Review the technical scenarios, formulate code solutions, and account for edge cases.' }}
+                </p>
               </div>
-              <h2>Engineering Profile & Skills Standing</h2>
-              <p>Aggregated technical capacity, domain proficiency matrix, and task allocation readiness based on completed scenario evaluations.</p>
-            </div>
 
-            <div class="passport-stats-row">
-              <div class="stat-bubble">
-                <span class="stat-value">{{ averageScore() || '--' }}</span>
-                <span class="stat-name">Avg Technical Score</span>
+              <div class="header-controls">
+                <button
+                  type="button"
+                  class="btn-instructions"
+                  (click)="openInstructions()"
+                  title="View test instructions, format guide, and scoring criteria"
+                >
+                  <span class="btn-icon">📖</span>
+                  <span>Test Instructions</span>
+                </button>
+
+                <div class="autosave-tag">
+                  @if (saveStatus() === 'saving') {
+                    <span class="saving">⟳ Saving...</span>
+                  } @else {
+                    <span class="saved">✓ Auto-saved</span>
+                  }
+                </div>
               </div>
-              <div class="stat-bubble">
-                <span class="stat-value">{{ completedAssessments().length }}</span>
-                <span class="stat-name">Completed Projects</span>
+            </header>
+
+            <!-- Question Stepper Bar -->
+            <nav class="stepper-bar" aria-label="Questions Navigator">
+              <div class="stepper-list">
+                @for (q of questions(); track q.qId; let idx = $index) {
+                  <button
+                    type="button"
+                    class="stepper-item"
+                    [class.active]="activeQuestionIndex() === idx"
+                    [class.completed]="!!answers()[q.qId]?.trim()"
+                    [class.flagged]="isFlagged(q.qId)"
+                    (click)="setQuestionIndex(idx)"
+                  >
+                    <span class="step-num">{{ idx + 1 }}</span>
+                    <div class="step-meta">
+                      <span class="step-cat">{{ q.category }}</span>
+                      <span class="step-points">{{ q.maxPoints }} pts</span>
+                    </div>
+                    @if (isFlagged(q.qId)) {
+                      <span class="step-flag" title="Flagged for review">🚩</span>
+                    } @else if (!!answers()[q.qId]?.trim()) {
+                      <span class="step-check" title="Answer recorded">✓</span>
+                    }
+                  </button>
+                }
               </div>
-              <div class="stat-bubble">
-                <span class="stat-value">6.0h</span>
-                <span class="stat-name">Daily Deep Capacity</span>
+
+              <div class="stepper-summary">
+                <strong>{{ answeredCount() }} of {{ questions().length }}</strong> Answered
               </div>
-            </div>
+            </nav>
+
+            <!-- Question Body (Split 2-Column Exam Interface) -->
+            @if (currentQuestion(); as q) {
+              <div class="exam-split-grid">
+                
+                <!-- Left Column: Scenario & Task -->
+                <div class="problem-pane">
+                  <!-- Problem Top Badges -->
+                  <div class="problem-top-bar">
+                    <div class="tags-group">
+                      <span class="badge-cat">{{ q.category }}</span>
+                      <span class="badge-diff" [class]="'diff-' + (q.difficulty || 'medium')">
+                        {{ q.difficulty | uppercase }}
+                      </span>
+                      <span class="badge-pts">{{ q.maxPoints }} Points</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="btn-flag"
+                      [class.active]="isFlagged(q.qId)"
+                      (click)="toggleFlag(q.qId)"
+                    >
+                      {{ isFlagged(q.qId) ? '🚩 Flagged' : '🏳️ Flag for Review' }}
+                    </button>
+                  </div>
+
+                  <!-- Format Indicator -->
+                  <div class="format-callout">
+                    <span class="callout-icon">{{ getExpectedFormat(q).icon }}</span>
+                    <div class="callout-text">
+                      <strong>Deliverable: {{ getExpectedFormat(q).type }}</strong>
+                      <span>{{ getExpectedFormat(q).advice }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Question Title -->
+                  <h3 class="problem-title">{{ q.title }}</h3>
+
+                  <!-- Scenario Context -->
+                  <div class="scenario-box">
+                    <div class="box-label">
+                      <span>📐 Scenario Context</span>
+                    </div>
+                    <p class="scenario-text">{{ q.scenario }}</p>
+                  </div>
+
+                  <!-- Specific Challenge -->
+                  <div class="task-box">
+                    <div class="box-label">
+                      <span>🎯 Your Task</span>
+                    </div>
+                    <p class="task-text">{{ q.question }}</p>
+                  </div>
+
+                  <!-- Key Evaluation Points -->
+                  <div class="criteria-box">
+                    <div class="box-label">
+                      <span>📋 Evaluation Focus</span>
+                    </div>
+                    <ul class="criteria-list">
+                      <li><strong>Code Quality & Logic:</strong> Working implementation with proper typing and error bounds.</li>
+                      <li><strong>Edge Cases & Concurrency:</strong> Race conditions, data validation, and failure recovery.</li>
+                      <li><strong>Architecture:</strong> Modular design and clear separation of concerns.</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- Right Column: Code & Solution Studio -->
+                <div class="solution-pane">
+                  <!-- Studio Toolbar -->
+                  <div class="solution-toolbar">
+                    <div class="mode-toggles">
+                      <button
+                        type="button"
+                        class="btn-mode"
+                        [class.active]="editorView() === 'edit'"
+                        (click)="setEditorView('edit')"
+                      >
+                        ✏️ Solution Editor
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-mode"
+                        [class.active]="editorView() === 'preview'"
+                        (click)="setEditorView('preview')"
+                      >
+                        👁️ Preview
+                      </button>
+                    </div>
+
+                    <div class="snippet-tools">
+                      <button type="button" class="btn-tool" (click)="insertSnippet('code')">
+                        + Code
+                      </button>
+                      <button type="button" class="btn-tool" (click)="insertSnippet('architecture')">
+                        + Architecture
+                      </button>
+                      <button type="button" class="btn-tool" (click)="insertSnippet('tradeoffs')">
+                        + Tradeoffs
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Editor Workspace -->
+                  <div class="editor-workspace">
+                    @if (editorView() === 'edit') {
+                      <textarea
+                        class="solution-editor"
+                        [placeholder]="'Write your solution code, implementation logic, architecture schema, and trade-off considerations for ' + q.title + '...'"
+                        [ngModel]="answers()[q.qId] || ''"
+                        (ngModelChange)="updateAnswer(q.qId, $event)"
+                        rows="18"
+                      ></textarea>
+                    } @else {
+                      <div class="preview-container">
+                        @if ((answers()[q.qId] || '').trim()) {
+                          <pre class="preview-text"><code>{{ answers()[q.qId] }}</code></pre>
+                        } @else {
+                          <div class="empty-preview">
+                            <span>No solution written yet. Switch to Editor to start writing.</span>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Footer Navigation -->
+                  <footer class="solution-footer">
+                    <div class="word-counter">
+                      <span>{{ (answers()[q.qId] || '').length }} chars</span>
+                      <span>•</span>
+                      <span>{{ ((answers()[q.qId] || '').trim().split(' ').length) || 0 }} words</span>
+                    </div>
+
+                    <div class="nav-buttons">
+                      <button
+                        type="button"
+                        class="btn-prev"
+                        [disabled]="activeQuestionIndex() === 0"
+                        (click)="prevQuestion()"
+                      >
+                        ← Previous
+                      </button>
+
+                      @if (activeQuestionIndex() < questions().length - 1) {
+                        <button
+                          type="button"
+                          class="btn-next"
+                          (click)="nextQuestion()"
+                        >
+                          Next Question →
+                        </button>
+                      }
+
+                      <button
+                        type="button"
+                        class="btn-review"
+                        (click)="openReviewModal()"
+                      >
+                        Review & Submit Test
+                      </button>
+                    </div>
+                  </footer>
+                </div>
+
+              </div>
+            }
+
+            <!-- Pre-Submission Review Modal -->
+            @if (showReviewModal()) {
+              <div class="modal-overlay" (click)="closeReviewModal()">
+                <div class="review-dialog" (click)="$event.stopPropagation()">
+                  <div class="dialog-header">
+                    <div>
+                      <h3>Review Your Assessment</h3>
+                      <p>Check your answer status for all 5 questions before final submission.</p>
+                    </div>
+                    <button type="button" class="btn-dialog-close" (click)="closeReviewModal()">✕</button>
+                  </div>
+
+                  <div class="dialog-body">
+                    <div class="review-kpis">
+                      <div class="kpi-item">
+                        <strong>{{ answeredCount() }} / {{ questions().length }}</strong>
+                        <span>Answered</span>
+                      </div>
+                      <div class="kpi-item">
+                        <strong>{{ flaggedCount() }}</strong>
+                        <span>Flagged</span>
+                      </div>
+                      <div class="kpi-item">
+                        <strong>{{ progressPercentage() }}%</strong>
+                        <span>Complete</span>
+                      </div>
+                    </div>
+
+                    <div class="questions-status-list">
+                      @for (q of questions(); track q.qId; let i = $index) {
+                        <div class="q-status-row">
+                          <span class="q-num">Q{{ i + 1 }}</span>
+                          <div class="q-info">
+                            <strong>{{ q.title }}</strong>
+                            <span class="q-sub">{{ q.category }} • {{ q.maxPoints }} pts</span>
+                          </div>
+                          <div class="q-badges">
+                            @if (!!answers()[q.qId]?.trim()) {
+                              <span class="badge-ans done">
+                                ✓ Answered ({{ (answers()[q.qId] || '').trim().split(' ').length }} words)
+                              </span>
+                            } @else {
+                              <span class="badge-ans empty">○ Not Answered</span>
+                            }
+                            @if (isFlagged(q.qId)) {
+                              <span class="badge-ans flag">🚩 Flagged</span>
+                            }
+                          </div>
+                          <button
+                            type="button"
+                            class="btn-jump"
+                            (click)="jumpToQuestion(i)"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      }
+                    </div>
+
+                    <div class="notice-bar">
+                      <span>ℹ️</span>
+                      <span>Once submitted, your test is sealed and graded against the technical rubric.</span>
+                    </div>
+                  </div>
+
+                  <div class="dialog-footer">
+                    <button type="button" class="btn-secondary" (click)="closeReviewModal()">
+                      Back to Editor
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-primary"
+                      [disabled]="isSubmitting()"
+                      (click)="closeReviewModal(); submitAssessment()"
+                    >
+                      Confirm & Submit Test
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Submitting Progress Overlay -->
+            @if (isSubmitting()) {
+              <div class="evaluating-screen">
+                <div class="evaluating-box">
+                  <div class="spinner-ring"></div>
+                  <h3>Evaluating Your Assessment...</h3>
+                  <p>Analyzing technical code responses, architecture robustness, and compiling your scorecard.</p>
+
+                  <div class="eval-steps">
+                    <div class="step-line active">1. Parsing solution blueprints & code responses</div>
+                    <div class="step-line active">2. Checking syntax, modularity, and error handling</div>
+                    <div class="step-line active">3. Calibrating complexity ceiling & stamina capacity</div>
+                    <div class="step-line active">4. Formulating technical scores and role suitability</div>
+                  </div>
+                </div>
+              </div>
+            }
+
           </div>
+        }
 
-          <!-- Overall Skills Overview Cards -->
-          <div class="passport-cards-grid">
-            <div class="passport-card">
-              <div class="passport-card-head">
-                <span class="card-icon">⚡</span>
-                <h4>Complexity Ceiling & Architecture Autonomy</h4>
+        <!-- ======================================================== -->
+        <!-- VIEW 2: COMPLETED SCORECARD & REVIEW                    -->
+        <!-- ======================================================== -->
+        @if (assessment.status === 'completed' || assessment.status === 'evaluated') {
+          <div class="scorecard-wrapper">
+            
+            <!-- Hero Result Card -->
+            <div class="hero-score-card">
+              <div class="hero-score-left">
+                <span class="eval-done-tag">✓ Assessment Evaluated</span>
+                <h2 class="score-project-title">{{ assessment.projectTitle }}</h2>
+                <p class="score-summary">
+                  {{ assessment.feedback?.summaryFeedback || 'Technical assessment complete. Your skill metrics and complexity ceiling are now registered.' }}
+                </p>
+                <div class="eval-meta">
+                  <span>Completed on {{ assessment.completedAt | date: 'mediumDate' }}</span>
+                  <span>•</span>
+                  <span>Developer: <strong>{{ assessment.username }}</strong></span>
+                </div>
               </div>
-              <p class="passport-card-desc">
-                Your technical scenario submissions demonstrate autonomy in designing resilient services, handling asynchronous event boundaries, and preventing data corruption.
-              </p>
-              <div class="passport-checklist">
-                <div class="check-item">
-                  <span class="check-icon">✓</span>
-                  <span>Autonomous system design and modular data boundary separation.</span>
-                </div>
-                <div class="check-item">
-                  <span class="check-icon">✓</span>
-                  <span>Solid race condition mitigation and database concurrency resilience.</span>
-                </div>
-                <div class="check-item">
-                  <span class="check-icon">✓</span>
-                  <span>Clear API design contracts and structured error containment.</span>
+
+              <div class="hero-score-right">
+                <div class="score-radial" [class]="getScoreColorClass(assessment.score)">
+                  <span class="score-val">{{ assessment.score ?? 0 }}</span>
+                  <span class="score-max">/ 100</span>
+                  <span class="score-lbl">Technical Score</span>
                 </div>
               </div>
             </div>
 
-            <div class="passport-card">
-              <div class="passport-card-head">
-                <span class="card-icon">⏱️</span>
-                <h4>Cognitive Stamina & Workload Cadence</h4>
+            <!-- Key Metrics 3-Col Grid -->
+            <div class="kpi-grid">
+              <div class="kpi-box">
+                <span class="kpi-icon">🎖️</span>
+                <div class="kpi-details">
+                  <span class="kpi-sub">Seniority Standing</span>
+                  <strong class="kpi-main">{{ assessment.evaluatedLevel || 'Senior' }}</strong>
+                  <p>Assessed technical leadership and delivery autonomy.</p>
+                </div>
               </div>
-              <p class="passport-card-desc">
-                Evaluated sustained focus capacity of <strong>6.0 hours per work day</strong> (aligned with enterprise 5-day sprints, skipping weekends).
-              </p>
-              <div class="cadence-box">
-                <div class="cadence-line">
-                  <span>Sprint Allocation:</span>
-                  <strong>30.0 hrs / week maximum focused capacity</strong>
+
+              <div class="kpi-box">
+                <span class="kpi-icon">⚡</span>
+                <div class="kpi-details">
+                  <span class="kpi-sub">Complexity Ceiling</span>
+                  <strong class="kpi-main">{{ (assessment.maxComplexity || 'high') | uppercase }}</strong>
+                  <p>{{ assessment.maxComplexity === 'high' ? 'Handles distributed architecture and edge cases.' : 'Handles core application modules cleanly.' }}</p>
                 </div>
-                <div class="cadence-line">
-                  <span>Supervision Recommendation:</span>
-                  <strong>Autonomous (Standard Peer PR Review)</strong>
-                </div>
-                <div class="cadence-line">
-                  <span>Optimal Task Profiles:</span>
-                  <strong>High-complexity business logic, API orchestration, database schemas</strong>
+              </div>
+
+              <div class="kpi-box">
+                <span class="kpi-icon">⏱️</span>
+                <div class="kpi-details">
+                  <span class="kpi-sub">Workload Capacity</span>
+                  <strong class="kpi-main">{{ assessment.feedback?.staminaProfile?.sustainableDailyHours || 6.0 }} hrs/day</strong>
+                  <p>{{ assessment.feedback?.staminaProfile?.staminaRating || 'High - Sustained deep work on complex logic.' }}</p>
                 </div>
               </div>
             </div>
+
+            <!-- Domain Matrix & Qualitative Feedback -->
+            <div class="insights-grid">
+              <!-- Domain Skills Breakdown -->
+              <div class="insight-card">
+                <h3 class="card-heading">📊 Domain Proficiency Breakdown</h3>
+                <div class="skills-meters">
+                  @if (assessment.feedback?.expertiseList?.length) {
+                    @for (item of assessment.feedback?.expertiseList; track item.domain) {
+                      <div class="skill-meter">
+                        <div class="meter-info">
+                          <span class="skill-name">{{ item.domain }}</span>
+                          <span class="skill-score">{{ item.score }}%</span>
+                        </div>
+                        <div class="meter-bar">
+                          <div class="meter-fill" [style.width.%]="item.score"></div>
+                        </div>
+                        <span class="skill-desc">{{ item.summary }}</span>
+                      </div>
+                    }
+                  } @else {
+                    <div class="skill-meter">
+                      <div class="meter-info">
+                        <span class="skill-name">System Architecture</span>
+                        <span class="skill-score">{{ assessment.feedback?.domainScores?.architecture || 85 }}%</span>
+                      </div>
+                      <div class="meter-bar">
+                        <div class="meter-fill" [style.width.%]="assessment.feedback?.domainScores?.architecture || 85"></div>
+                      </div>
+                    </div>
+                    <div class="skill-meter">
+                      <div class="meter-info">
+                        <span class="skill-name">Backend API & Logic</span>
+                        <span class="skill-score">{{ assessment.feedback?.domainScores?.backend || 88 }}%</span>
+                      </div>
+                      <div class="meter-bar">
+                        <div class="meter-fill" [style.width.%]="assessment.feedback?.domainScores?.backend || 88"></div>
+                      </div>
+                    </div>
+                    <div class="skill-meter">
+                      <div class="meter-info">
+                        <span class="skill-name">Database & Optimization</span>
+                        <span class="skill-score">{{ assessment.feedback?.domainScores?.database || 82 }}%</span>
+                      </div>
+                      <div class="meter-bar">
+                        <div class="meter-fill" [style.width.%]="assessment.feedback?.domainScores?.database || 82"></div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Strengths & Recommendations -->
+              <div class="insight-card">
+                <h3 class="card-heading">💡 Technical Strengths & Recommendations</h3>
+                
+                <div class="feedback-block">
+                  <h4 class="feedback-title strengths">✓ Core Demonstrated Strengths</h4>
+                  <ul class="feedback-bullets">
+                    @for (s of assessment.feedback?.strengths || []; track s) {
+                      <li>{{ s }}</li>
+                    }
+                    @if (!assessment.feedback?.strengths?.length) {
+                      <li>Strong architecture intuition and clean modular separation.</li>
+                      <li>Solid understanding of asynchronous concurrency and error handling.</li>
+                    }
+                  </ul>
+                </div>
+
+                <div class="feedback-block">
+                  <h4 class="feedback-title growth">↗ Recommended Focus Areas</h4>
+                  <ul class="feedback-bullets">
+                    @for (g of assessment.feedback?.gaps || []; track g) {
+                      <li>{{ g }}</li>
+                    }
+                    @if (!assessment.feedback?.gaps?.length) {
+                      <li>Add structured observability and distributed tracing in service handlers.</li>
+                    }
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Per-Question Review Accordion -->
+            @if (assessment.questions?.questions?.length) {
+              <div class="questions-review-card">
+                <h3 class="card-heading">🔍 Question Review & Rubric Breakdown</h3>
+                <p class="review-sub">Review each scenario prompt, your submitted solution, and the automated critique.</p>
+
+                <div class="review-accordions">
+                  @for (q of questions(); track q.qId; let i = $index) {
+                    <div class="accordion" [class.open]="isCritiqueExpanded(q.qId)">
+                      <button
+                        type="button"
+                        class="accordion-trigger"
+                        (click)="toggleCritique(q.qId)"
+                      >
+                        <div class="trigger-left">
+                          <span class="q-badge">Q{{ i + 1 }}</span>
+                          <span class="q-title">{{ q.title }}</span>
+                          <span class="q-cat">{{ q.category }}</span>
+                        </div>
+                        <div class="trigger-right">
+                          <span class="q-pts">{{ q.maxPoints }} pts</span>
+                          <span class="arrow">{{ isCritiqueExpanded(q.qId) ? '▲' : '▼' }}</span>
+                        </div>
+                      </button>
+
+                      @if (isCritiqueExpanded(q.qId)) {
+                        <div class="accordion-body">
+                          <div class="prompt-box">
+                            <strong>Scenario & Challenge:</strong>
+                            <p>{{ q.scenario }}</p>
+                            <p class="challenge-line">{{ q.question }}</p>
+                          </div>
+
+                          <div class="answer-box">
+                            <strong>Your Submitted Solution:</strong>
+                            <pre><code>{{ assessment.answers?.[q.qId] || 'No answer submitted.' }}</code></pre>
+                          </div>
+
+                          @for (res of assessment.feedback?.questionResults; track res.qId) {
+                            @if (res.qId === q.qId) {
+                              <div class="rubric-box">
+                                <div class="rubric-head">
+                                  <span>Automated Review & Rubric Score:</span>
+                                  <span class="points">{{ res.pointsEarned }} / {{ res.maxPoints }} pts</span>
+                                </div>
+                                <p class="rubric-text">{{ res.critique }}</p>
+                              </div>
+                            }
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
           </div>
+        }
+
+      } @else {
+        <!-- Empty State -->
+        <div class="empty-card">
+          <span class="empty-icon">📝</span>
+          <h3>No Technical Assessments Found</h3>
+          <p>You do not have any pending technical scenario assessments right now. When you are assigned to a project team, your assessment will appear here.</p>
+          <a [routerLink]="['/dashboard/projects']" class="btn-return">
+            ← Return to Projects
+          </a>
         </div>
       }
 
     }
+
+    <!-- ======================================================== -->
+    <!-- DEDICATED INSTRUCTIONS MODAL                             -->
+    <!-- ======================================================== -->
+    @if (showInstructionsModal()) {
+      <div class="modal-overlay" (click)="closeInstructions()">
+        <div class="instructions-dialog" (click)="$event.stopPropagation()">
+          <div class="dialog-header">
+            <div class="dialog-header-left">
+              <span class="dialog-icon">📖</span>
+              <div>
+                <h3>Technical Assessment Instructions</h3>
+                <p>Read the guidelines, answer formats, and scoring expectations before writing.</p>
+              </div>
+            </div>
+            <button type="button" class="btn-dialog-close" (click)="closeInstructions()">✕</button>
+          </div>
+
+          <div class="instructions-tabs">
+            <button
+              type="button"
+              class="tab-btn"
+              [class.active]="instructionsTab() === 'format'"
+              (click)="setInstructionsTab('format')"
+            >
+              1. Test Format (Code vs Written)
+            </button>
+            <button
+              type="button"
+              class="tab-btn"
+              [class.active]="instructionsTab() === 'guide'"
+              (click)="setInstructionsTab('guide')"
+            >
+              2. How to Structure Answers
+            </button>
+            <button
+              type="button"
+              class="tab-btn"
+              [class.active]="instructionsTab() === 'rubric'"
+              (click)="setInstructionsTab('rubric')"
+            >
+              3. Scoring Rubric
+            </button>
+          </div>
+
+          <div class="dialog-content">
+            @if (instructionsTab() === 'format') {
+              <div class="instr-pane">
+                <div class="highlight-callout">
+                  <strong>Practical Engineering Scenarios:</strong>
+                  <p>This assessment is not multiple-choice. You are evaluated on real engineering problems: writing working code, designing database schemas, and explaining system architecture.</p>
+                </div>
+
+                <div class="format-grid">
+                  <div class="format-card">
+                    <span class="icon">💻</span>
+                    <h4>Coding Questions</h4>
+                    <p>Write executable functions, service methods, or SQL queries. Include parameter validation, error handling, and clean typing.</p>
+                  </div>
+                  <div class="format-card">
+                    <span class="icon">📐</span>
+                    <h4>Architecture Questions</h4>
+                    <p>Explain component breakdown, data flow, caching layers, and database schemas. Outline why you chose specific designs.</p>
+                  </div>
+                  <div class="format-card">
+                    <span class="icon">⚡</span>
+                    <h4>Concurrency & Resilience</h4>
+                    <p>Address race conditions, transaction locks, rate limiting, and failure recovery policies.</p>
+                  </div>
+                  <div class="format-card">
+                    <span class="icon">⚖️</span>
+                    <h4>Trade-offs & Edge Cases</h4>
+                    <p>State assumptions clearly and explain any trade-offs (e.g. read latency vs write throughput, eventual consistency).</p>
+                  </div>
+                </div>
+              </div>
+            }
+
+            @if (instructionsTab() === 'guide') {
+              <div class="instr-pane">
+                <h4>Recommended Answer Template</h4>
+                <p class="sub">Structure your answer clearly with markdown sections for the highest evaluation score:</p>
+
+                <div class="code-example-box">
+                  <pre><code>### 1. Architectural Strategy &amp; Assumptions
+- Core assumptions (e.g. data volumes, request rate, storage engine).
+- High-level design pattern (e.g. Repository, Saga, Event-Driven).
+
+### 2. Code Implementation
+```typescript
+// Clear function signature with strict typing
+export async function handleRequest(payload: RequestData): Promise&lt;ResponseResult&gt; &#123;
+  // 1. Validate payload
+  // 2. Perform database transaction / locks
+  // 3. Return structured response
+&#125;
+```
+
+### 3. Edge Cases &amp; Concurrency Guardrails
+- How race conditions are prevented.
+- Error handling and network retry strategies.</code></pre>
+                </div>
+
+                <div class="tips-row">
+                  <span class="tip">✓ Use the <strong>+ Code</strong> and <strong>+ Architecture</strong> buttons in the editor.</span>
+                  <span class="tip">✓ Your answers are <strong>automatically saved</strong> as you type.</span>
+                  <span class="tip">✓ You can freely navigate between questions before submitting.</span>
+                </div>
+              </div>
+            }
+
+            @if (instructionsTab() === 'rubric') {
+              <div class="instr-pane">
+                <h4>Evaluation Rubric (100 Points Total)</h4>
+                <div class="rubric-grid">
+                  <div class="rubric-row">
+                    <span class="pts">25%</span>
+                    <div>
+                      <strong>Technical Correctness & Code Quality</strong>
+                      <p>Working code logic, clean syntax, type safety, modular functions, and clean naming.</p>
+                    </div>
+                  </div>
+                  <div class="rubric-row">
+                    <span class="pts">25%</span>
+                    <div>
+                      <strong>System Resilience & Edge Case Handling</strong>
+                      <p>Handling errors, race conditions, memory leaks, invalid payloads, and distributed failure modes.</p>
+                    </div>
+                  </div>
+                  <div class="rubric-row">
+                    <span class="pts">25%</span>
+                    <div>
+                      <strong>Architectural Depth & Scalability</strong>
+                      <p>Separation of concerns, clean interfaces, schema normalization/indexing, and scaling strategy.</p>
+                    </div>
+                  </div>
+                  <div class="rubric-row">
+                    <span class="pts">25%</span>
+                    <div>
+                      <strong>Clarity of Reasoning & Problem Solving</strong>
+                      <p>Thoroughness of explanation, structured problem solving, and ability to handle complexity.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="dialog-footer">
+            <button type="button" class="btn-primary" (click)="closeInstructions()">
+              Got It, Return to Test →
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
   </div>
 </app-workspace-user-layout>
