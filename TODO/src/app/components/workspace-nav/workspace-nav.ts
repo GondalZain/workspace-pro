@@ -1,10 +1,14 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { filter } from 'rxjs';
 import { ROUTE_URL } from '../../core/routing/route-paths';
 import { AssessmentApiService } from '../../core/api/assessment-api.service';
 import { DeveloperAssessment } from '../../models/assessment.model';
+
+// Persistent singleton cache to prevent any navigation flicker
+const globalPendingAssessments = signal<DeveloperAssessment[]>([]);
+let isFirstLoadDone = false;
 
 @Component({
   selector: 'app-workspace-nav',
@@ -19,26 +23,29 @@ export class WorkspaceNavComponent {
 
   protected readonly url = ROUTE_URL;
 
-  protected readonly pendingAssessments = signal<DeveloperAssessment[]>([]);
-  protected readonly totalAssessmentsCount = signal<number>(0);
+  // Reads instantly from singleton cache — zero flicker across navigations
+  protected readonly pendingAssessments = globalPendingAssessments;
+  protected readonly pendingCount = computed(() => this.pendingAssessments().length);
 
   constructor() {
-    this.loadAssessments();
+    if (!isFirstLoadDone) {
+      this.refreshAssessments();
+    }
+
     this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe(() => {
-        this.loadAssessments();
+        // Silently update in background without resetting the current signal
+        this.refreshAssessments();
       });
   }
 
-  loadAssessments(): void {
+  refreshAssessments(): void {
     this.assessmentApi.getMyPendingAssessments().subscribe({
-      next: (list) => this.pendingAssessments.set(list || []),
-      error: () => {}
-    });
-
-    this.assessmentApi.getMyAllAssessments().subscribe({
-      next: (list) => this.totalAssessmentsCount.set((list || []).length),
+      next: (list) => {
+        globalPendingAssessments.set(list || []);
+        isFirstLoadDone = true;
+      },
       error: () => {}
     });
   }
