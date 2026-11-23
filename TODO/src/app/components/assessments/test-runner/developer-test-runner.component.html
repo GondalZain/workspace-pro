@@ -118,6 +118,85 @@
             </div>
           }
 
+          <!-- Developer Stamina & Workload Endurance Profile -->
+          @if (evalRes.staminaProfile; as stamina) {
+            <div class="stamina-profile-card">
+              <div class="stamina-head">
+                <div class="stamina-badge">
+                  <span>⚡</span>
+                  <span>DEVELOPER STAMINA & WORKLOAD ENDURANCE</span>
+                </div>
+                <div class="stamina-rating-pill">{{ stamina.staminaRating }}</div>
+              </div>
+
+              <div class="stamina-metrics-grid">
+                <div class="stamina-metric-box">
+                  <span class="stamina-metric-num">{{ stamina.sustainableDailyHours }} hrs/day</span>
+                  <span class="stamina-metric-lbl">Deep-Work Velocity Capacity</span>
+                </div>
+                <div class="stamina-metric-box">
+                  <span class="stamina-metric-badge" [attr.data-supervision]="stamina.supervisionLevel">
+                    {{ stamina.supervisionLevel }}
+                  </span>
+                  <span class="stamina-metric-lbl">Autonomy / Supervision</span>
+                </div>
+                <div class="stamina-metric-box">
+                  <span class="stamina-metric-badge complexity" [attr.data-complexity]="evalRes.maxComplexity">
+                    {{ evalRes.maxComplexity | uppercase }} COMPLEXITY
+                  </span>
+                  <span class="stamina-metric-lbl">Complexity Handling Ceiling</span>
+                </div>
+              </div>
+
+              <div class="stamina-tolerance-quote">
+                <strong>🛡️ Complexity Endurance:</strong> {{ stamina.complexityTolerance }}
+              </div>
+
+              <!-- Recommended Tasks vs Tasks to Supervise -->
+              <div class="stamina-tasks-split">
+                <div class="stamina-tasks-col recommended">
+                  <h5>🎯 Optimal Tasks to Assign</h5>
+                  <div class="task-tags-list">
+                    @for (rec of stamina.recommendedTaskTypes; track rec) {
+                      <span class="task-type-tag rec">{{ rec }}</span>
+                    }
+                  </div>
+                </div>
+                <div class="stamina-tasks-col avoid">
+                  <h5>⚠️ Tasks Requiring Peer Supervision</h5>
+                  <div class="task-tags-list">
+                    @for (av of stamina.avoidTaskTypes; track av) {
+                      <span class="task-type-tag av">{{ av }}</span>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Domain Expertise Breakdown List -->
+          @if (evalRes.expertiseList && evalRes.expertiseList.length > 0) {
+            <div class="expertise-matrix-section">
+              <h4 class="section-heading">Detailed Domain Expertise & Capability Breakdown</h4>
+              <div class="expertise-cards-grid">
+                @for (exp of evalRes.expertiseList; track exp.domain) {
+                  <div class="expertise-card">
+                    <div class="expertise-card-head">
+                      <span class="expertise-domain-name">{{ exp.domain }}</span>
+                      <span class="expertise-level-badge" [attr.data-prof]="exp.proficiencyLevel">
+                        {{ exp.proficiencyLevel }} ({{ exp.score }}%)
+                      </span>
+                    </div>
+                    <div class="expertise-bar-wrap">
+                      <div class="expertise-bar-fill" [style.width.%]="exp.score"></div>
+                    </div>
+                    <p class="expertise-summary">{{ exp.summary }}</p>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
           <!-- Strengths & Growth Areas -->
           <div class="insights-row">
             <div class="insight-box strengths">

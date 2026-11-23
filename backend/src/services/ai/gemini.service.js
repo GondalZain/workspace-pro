@@ -148,6 +148,39 @@ const assessmentEvaluationSchema = {
       type: Type.STRING,
       enum: ['low', 'medium', 'high']
     },
+    staminaProfile: {
+      type: Type.OBJECT,
+      properties: {
+        sustainableDailyHours: { type: Type.NUMBER, description: 'Sustainable productive hours/day deep work capacity (e.g. 6.0 hrs/day velocity)' },
+        staminaRating: { type: Type.STRING, description: 'Workload endurance rating: e.g. High Endurance, Solid Velocity, Focused Specialist' },
+        complexityTolerance: { type: Type.STRING, description: 'Specific explanation of complexity endurance: what level of architectural ambiguity and multi-system edge cases the developer can independently sustain' },
+        supervisionLevel: { type: Type.STRING, enum: ['Autonomous', 'Peer Review Needed', 'Requires Senior Mentorship'] },
+        recommendedTaskTypes: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING },
+          description: 'Task types this developer excels at and can handle efficiently'
+        },
+        avoidTaskTypes: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING },
+          description: 'Task types requiring peer supervision or should be escalated to higher seniority tiers'
+        }
+      },
+      required: ['sustainableDailyHours', 'staminaRating', 'complexityTolerance', 'supervisionLevel', 'recommendedTaskTypes', 'avoidTaskTypes']
+    },
+    expertiseList: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          domain: { type: Type.STRING, description: 'E.g. Backend Architecture, Database Optimization, Frontend State, API Security, Performance Tuning' },
+          score: { type: Type.INTEGER, description: '0 to 100 domain proficiency score' },
+          proficiencyLevel: { type: Type.STRING, enum: ['Novice', 'Competent', 'Advanced', 'Expert'] },
+          summary: { type: Type.STRING, description: 'Detailed breakdown of demonstrated capability and limits in this domain' }
+        },
+        required: ['domain', 'score', 'proficiencyLevel', 'summary']
+      }
+    },
     domainScores: {
       type: Type.OBJECT,
       properties: {
@@ -182,7 +215,7 @@ const assessmentEvaluationSchema = {
       }
     }
   },
-  required: ['score', 'evaluatedLevel', 'maxComplexity', 'domainScores', 'summaryFeedback', 'strengths', 'gaps', 'questionResults']
+  required: ['score', 'evaluatedLevel', 'maxComplexity', 'staminaProfile', 'expertiseList', 'domainScores', 'summaryFeedback', 'strengths', 'gaps', 'questionResults']
 };
 
 const taskMatchingSchema = {
@@ -319,14 +352,21 @@ async function evaluateAssessmentAnswers({ projectTitle, questions = [], answers
 Assessment Questions & Developer Submissions:
 ${JSON.stringify(qaPairs, null, 2)}
 
-Grade each answer rigorously. Calculate points earned per question, total score (0 to 100), technical level (Junior: 0-59, Mid-Level: 60-79, Senior: 80-91, Lead/Architect: 92-100), max task complexity (low, medium, high), domain scores, strengths, and critique.`;
+Grade each answer rigorously. Calculate:
+1. Points earned per question and total score (0 to 100).
+2. Technical seniority tier (Junior: 0-59, Mid-Level: 60-79, Senior: 80-91, Lead/Architect: 92-100).
+3. Max task complexity (low, medium, high).
+4. Developer Stamina Profile: Sustainable daily deep-work hours (standard 6.0 hrs/day benchmark), complexity tolerance (what level of complex edge cases and architectural ambiguity they can sustain), supervision level needed (Autonomous, Peer Review Needed, Requires Senior Mentorship), recommended task types, and tasks to avoid.
+5. Domain Expertise Breakdown: Granular score (0-100), proficiency level (Novice, Competent, Advanced, Expert), and summary for each core engineering discipline (Backend, Database, Frontend, Security, Architecture).
+6. Strengths, growth gaps, and per-question critique.`;
 
-  const systemInstruction = `You are an expert Technical Assessment Evaluator and Code Reviewer.
+  const systemInstruction = `You are an expert Technical Assessment Evaluator, Engineering Manager, and Code Reviewer.
 Grade developer answers objectively:
-- Reward deep understanding of clean code, security best practices, proper error handling, and scalable architecture.
-- Penalize superficial, vague, or insecure answers.
-- Assign appropriate domain scores (0-100) for backend, database, frontend, security, and architecture.
-- Set maxComplexity to 'high' only if score >= 80 and technical architecture is sound; 'medium' if 60-79; 'low' if < 60.`;
+- Reward deep understanding of clean code, security best practices, proper error handling, concurrency, and scalable architecture.
+- Penalize superficial, vague, hallucinated, or insecure answers.
+- Benchmark developer stamina and complexity endurance: analyze how complex of a system the developer can handle without burning out or introducing security vulnerabilities.
+- Set maxComplexity to 'high' only if score >= 80 and technical architecture is sound; 'medium' if 60-79; 'low' if < 60.
+- Provide a rigorous, constructive breakdown of expertise across all 5 engineering domains so management knows exactly which tasks to assign.`;
 
   return callGeminiWithFallback({
     systemInstruction,

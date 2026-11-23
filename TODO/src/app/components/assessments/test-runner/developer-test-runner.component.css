@@ -720,3 +720,278 @@
   justify-content: flex-end;
   padding-top: 8px;
 }
+
+/* Stamina & Workload Endurance Profile */
+.stamina-profile-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.stamina-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.stamina-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #4338ca;
+  background: #e0e7ff;
+  padding: 3px 10px;
+  border-radius: 9999px;
+}
+
+.stamina-rating-pill {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #065f46;
+  background: #d1fae5;
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+
+.stamina-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .stamina-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stamina-metric-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.stamina-metric-num {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.stamina-metric-lbl {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.stamina-metric-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.stamina-metric-badge[data-supervision="Autonomous"] {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.stamina-metric-badge[data-supervision="Peer Review Needed"] {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.stamina-metric-badge[data-supervision="Requires Senior Mentorship"] {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.stamina-metric-badge.complexity[data-complexity="high"] {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.stamina-metric-badge.complexity[data-complexity="medium"] {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.stamina-metric-badge.complexity[data-complexity="low"] {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.stamina-tolerance-quote {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #334155;
+  background: #ffffff;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border-left: 3px solid #6366f1;
+}
+
+.stamina-tasks-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 640px) {
+  .stamina-tasks-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stamina-tasks-col {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+}
+
+.stamina-tasks-col.recommended {
+  border-left: 3px solid #10b981;
+}
+
+.stamina-tasks-col.avoid {
+  border-left: 3px solid #f59e0b;
+}
+
+.stamina-tasks-col h5 {
+  font-size: 12px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: #0f172a;
+}
+
+.task-tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.task-type-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.task-type-tag.rec {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.task-type-tag.av {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+/* Detailed Domain Expertise Section */
+.expertise-matrix-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-heading {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.expertise-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.expertise-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.02);
+}
+
+.expertise-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.expertise-domain-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.expertise-level-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.expertise-level-badge[data-prof="Expert"] {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.expertise-level-badge[data-prof="Advanced"] {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+.expertise-level-badge[data-prof="Competent"] {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.expertise-level-badge[data-prof="Novice"] {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.expertise-bar-wrap {
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.expertise-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0f766e, #10b981);
+  border-radius: 999px;
+}
+
+.expertise-summary {
+  font-size: 11.5px;
+  color: #475569;
+  margin: 0;
+  line-height: 1.4;
+}

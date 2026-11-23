@@ -35,6 +35,22 @@ export interface QuestionResult {
   critique: string;
 }
 
+export interface ExpertiseItem {
+  domain: string;
+  score: number;
+  proficiencyLevel: 'Novice' | 'Competent' | 'Advanced' | 'Expert';
+  summary: string;
+}
+
+export interface DeveloperStaminaProfile {
+  sustainableDailyHours: number;
+  staminaRating: string;
+  complexityTolerance: string;
+  supervisionLevel: 'Autonomous' | 'Peer Review Needed' | 'Requires Senior Mentorship';
+  recommendedTaskTypes: string[];
+  avoidTaskTypes: string[];
+}
+
 export interface AssessmentFeedback {
   score: number;
   evaluatedLevel: EvaluatedLevel;
@@ -44,6 +60,8 @@ export interface AssessmentFeedback {
   strengths: string[];
   gaps: string[];
   questionResults: QuestionResult[];
+  staminaProfile?: DeveloperStaminaProfile;
+  expertiseList?: ExpertiseItem[];
 }
 
 export interface DeveloperAssessment {
